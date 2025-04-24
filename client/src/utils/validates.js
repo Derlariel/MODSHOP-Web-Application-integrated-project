@@ -35,3 +35,16 @@ const addProduct = async (url, product) => {
     throw new Error ('Error add item' + err.message);
   }
 };
+
+const deleteProductById = async (url, productId) => {
+     try {
+    const response = await axios.delete (`${url}/${productId}`);
+    return response.data;
+  } catch (err) {
+    throw new Error ('Error add item' + err.message);
+  }
+}
+
+
+
+export { addProduct, getProductById, getProducts, updateProductById, deleteProductById }
