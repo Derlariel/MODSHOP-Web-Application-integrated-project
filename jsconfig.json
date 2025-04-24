@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./client",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["client"]
+}

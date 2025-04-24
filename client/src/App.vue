@@ -1,10 +1,17 @@
 <script setup>
+import ProductList from '@/components/user/ProductList.vue'
+import Home from '@/components/Home.vue'
+import ThemeToggle from '@/components/shared/ThemeToggle.vue';
+import { useTheme } from '@/stores/useTheme'
 
+const theme = useTheme()
 </script>
  
 <template>
-<div>
-
+<div :data-theme="theme">
+<!-- <ProductList/> -->
+<ThemeToggle/>
+ <Home/>
 </div>
 </template>
  

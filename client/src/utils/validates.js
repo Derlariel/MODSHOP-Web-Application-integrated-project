@@ -5,7 +5,7 @@ const getProducts = async url => {
     const response = await axios.get (url);
     return response.data;
   } catch (err) {
-    throw new Error ('Error get items: ' + err.message);
+    throw new Error ('Error getting items: ' + err.message);
   }
 };
 
@@ -14,7 +14,7 @@ const getProductById = async (url, productId) => {
     const response = await axios.get (`${url}/${productId}`);
     return response.data;
   } catch (err) {
-    throw new Error ('Error get by item: ' + err.message);
+    throw new Error ('Error getting by item: ' + err.message);
   }
 };
 
@@ -29,7 +29,7 @@ const updateProductById = async (url, productId, data) => {
 
 const addProduct = async (url, product) => {
   try {
-    const response = await axios.put (`${url}`, data);
+    const response = await axios.put (`${url}`, product);
     return response.data;
   } catch (err) {
     throw new Error ('Error add item' + err.message);
