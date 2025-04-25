@@ -20,7 +20,7 @@ const getProductById = async (url, productId) => {
 
 const updateProductById = async (url, productId, data) => {
   try {
-    const response = await axios.post (`${url}/${productId}`, data);
+    const response = await axios.put (`${url}/${productId}`, data);
     return response.data;
   } catch (err) {
     throw new Error ('Error add item' + err.message);
@@ -29,7 +29,7 @@ const updateProductById = async (url, productId, data) => {
 
 const addProduct = async (url, product) => {
   try {
-    const response = await axios.put (`${url}`, product);
+    const response = await axios.post (`${url}`, product);
     return response.data;
   } catch (err) {
     throw new Error ('Error add item' + err.message);
