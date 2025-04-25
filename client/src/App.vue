@@ -9,9 +9,9 @@ const theme = useTheme()
  
 <template>
 <div :data-theme="theme">
-<!-- <ProductList/> -->
 <ThemeToggle/>
- <Home/>
+<ProductList/>
+ <!-- <Home/> -->
 </div>
 </template>
  

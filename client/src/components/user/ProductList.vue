@@ -9,13 +9,13 @@ function remove(id) {
 function update(id) {
   productStore.updateProduct({
     id,
-    name: 'ชื่อใหม่แม่งเลย ' + Math.floor(Math.random() * 100)
+    name: 'ชื่อใหม่เลย ' + Math.floor(Math.random() * 100)
   })
 }
 
 function addNew() {
   productStore.addProduct({
-    name: 'มือถือเทพสัส ' + Math.floor(Math.random() * 999),
+    name: 'มือถือเทพ ' + Math.floor(Math.random() * 999),
     description: 'มือถือสุดเฟี้ยวสำหรับ dev เทพๆ แบบเรา',
     stock: 10,
     price: 99999,
