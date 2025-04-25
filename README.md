@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 2-2567_INT221_KK-1
 ## Member
 | ลำดับ | Student ID   | First Name | Last Name | Group |
