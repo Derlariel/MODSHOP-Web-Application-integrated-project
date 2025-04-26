@@ -11,15 +11,11 @@
         <h1
           class="text-4xl md:text-7xl font-extrabold tracking-wide leading-normal"
         >
-          Discover Most<br />
-          Affordable<br />
-          <span class="whitespace-nowrap">Apple Products</span>
+        Discover the Most<br />
+        Affordable Phones<br />
         </h1>
-        <p class="text-[#8B8E99] max-w-md">
-          Find the best, reliable and affordable apple products here. We focus
-          on the product quality. Here you can find all the products apple ever
-          made. Even the products apple officially stopped selling. So why you
-          are waiting? Just order now!
+        <p class="text-[#8B8E99] max-w-xl">
+          Find the best, most reliable, and affordable smartphones right here. We don’t just focus on one brand — we’ve got every damn phone you can think of. From the latest flagships to rare classics you can’t even find in stores anymore. We care about quality, not just flashy names. So what the hell are you waiting for? Order now and thank us later!
         </p>
         <div
           class="flex items-center bg-white rounded-full px-4 py-2 w-full max-w-md"
