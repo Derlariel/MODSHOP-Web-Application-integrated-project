@@ -3,6 +3,10 @@ CHARACTER SET utf8mb4;
 
 USE mobile_shop_spike;
 
+show variables like 'time_zone';
+SET GLOBAL time_zone = '+00:00';
+SET time_zone = '+00:00';
+
 CREATE TABLE products (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(60) NOT NULL,
