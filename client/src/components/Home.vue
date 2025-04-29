@@ -25,7 +25,7 @@
           So what the hell are you waiting for? Order now and thank us later!
         </p>
         <router-link
-          to="/sale-items"
+          to="/home"
           class="flex items-center px-4 py-2 w-full max-w-md"
         >
           <button

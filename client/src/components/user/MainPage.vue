@@ -1,5 +1,5 @@
 <script setup>
-
+import Navbar from '../shared/Navbar.vue';
 </script>
  
 <template>
@@ -8,6 +8,7 @@
         <p>Summer Sale For All Phone and Free Express Delivery - OFF 50%!</p>
         <p class="font-bold underline">Shop Now!</p>
     </div>
+    <Navbar/>
 </div>
 </template>
  
