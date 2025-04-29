@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
-import { addProduct, getProductById } from "@/utils/validates.js";
-import { updateProductById } from "../utils/validates";
+import { addProduct, getProductById } from "@/utils/tool.js";
+import { updateProductById } from "../utils/tool";
 
 export const useProductStore = defineStore("product", {
   state: () => ({
