@@ -15,5 +15,4 @@ export default {
   daisyui: {
     themes: ["light", "dracula"],
   },
-  darkMode: "class",
 };
