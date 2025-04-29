@@ -1,6 +1,7 @@
 package sit.int204.mobileshopspike.exceptions;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -16,24 +17,12 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MyErrorResponse {
+    private Instant timestamp = Instant.now();
     private final int status;
+    private final String error;
     private final String message;
     private final String instance;
-    private Instant timestamp = Instant.now();
+    @JsonIgnore
     private String stackTrace;
-    private List<ValidationError> errors;
 
-    @Getter
-    @Setter
-    @RequiredArgsConstructor
-    private static class ValidationError {
-        private final String field;
-        private final String message;
-    }
-    public void addValidationError(String field, String message){
-        if(Objects.isNull(errors)){
-            errors = new ArrayList<>();
-        }
-        errors.add(new ValidationError(field, message));
-    }
 }
