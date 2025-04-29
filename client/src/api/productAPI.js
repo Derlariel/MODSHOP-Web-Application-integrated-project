@@ -4,7 +4,7 @@ const BASE_URL = import.meta.env.VITE_BASE_URL
 
 export async function fetchProduct() {
   try {
-    const response = await axios.get(`${BASE_URL}/sale-items`)
+    const response = await axios.get(`${BASE_URL}/v1/sale-items`)
     return response.data
   } catch (err) {
     console.error("❌ Failed to fetch products:", err)
@@ -14,7 +14,7 @@ export async function fetchProduct() {
 
 export async function fetchProductById(id) {
   try {
-    const response = await axios.get(`${BASE_URL}/sale-items/${id}`)
+    const response = await axios.get(`${BASE_URL}/v1/sale-items/${id}`)
     return response.data
   } catch (err) {
     console.error(`❌ Failed to fetch product with ID: ${id}`, err)

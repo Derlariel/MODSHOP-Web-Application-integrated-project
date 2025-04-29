@@ -14,7 +14,7 @@ export const useProductStore = defineStore("product", {
   actions: {
     async loadProducts() {
       try {
-        this.products = await getProducts(`${BASE_URL}/sale-items`);
+        this.products = await getProducts(`${BASE_URL}/v1/sale-items`);
       } catch (err) {
         console.error("Failed to load all products", err);
       }

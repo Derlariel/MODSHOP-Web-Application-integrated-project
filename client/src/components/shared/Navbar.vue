@@ -8,11 +8,11 @@ const route = useRoute();
 
 <template>
   <nav
-    class="fixed w-full z-50 flex items-center justify-between px-8 py-2 bg-white shadow text-gray-800"
+    class="sticky  w-full z-50 h-16 flex items-center justify-between px-8 py-2 bg-white shadow text-gray-800"
   >
     <!-- Left: Logo -->
     <router-link to="/">
-      <div class="text-2xl font-bold tracking-wide text-blue-600">Phonezy</div>
+      <div class="itmbs-logo text-2xl font-bold tracking-wide text-blue-600">Phonezy</div>
     </router-link>
 
     <!-- Center: Menu -->
@@ -26,16 +26,16 @@ const route = useRoute();
             : 'hover:text-blue-600'
         "
       >
-        <router-link to="/home">Home</router-link>
+        <router-link to="/home" class="itmbs-home">Home</router-link>
       </li>
       <li
         :class="
-          route.path === '/sale-items'
+          route.path === '/v1/sale-items'
             ? 'text-blue-600 font-bold'
             : 'hover:text-blue-600'
         "
       >
-        <router-link to="/sale-items">Product ▼</router-link>
+        <router-link to="/v1/sale-items" class="itmbs-product">Product ▼</router-link>
       </li>
       <li
         :class="
@@ -63,16 +63,16 @@ const route = useRoute();
         <input
           type="text"
           placeholder="What are you looking for?"
-          class="pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none w-64"
+          class="itmbs-search pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none w-64"
         />
         <Search
           class="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-400 w-5 h-5"
         />
       </div>
 
-      <Heart class="w-5 h-5 cursor-pointer hover:text-blue-600" />
-      <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-blue-600" />
-      <User class="w-5 h-5 cursor-pointer hover:text-blue-600" />
+      <Heart class="itmbs-favorite w-5 h-5 cursor-pointer hover:text-blue-600" />
+      <ShoppingCart class="itmbs-cart w-5 h-5 cursor-pointer hover:text-blue-600" />
+      <User class="itmbs-user w-5 h-5 cursor-pointer hover:text-blue-600" />
 
       <ThemeToggle />
     </div>

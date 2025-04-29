@@ -29,7 +29,7 @@
           class="flex items-center px-4 py-2 w-full max-w-md"
         >
           <button
-            class="bg-[#3D5AFE] text-white px-4 py-2 rounded-full font-semibold"
+            class="itmbs-shopnow bg-[#3D5AFE] text-white px-4 py-2 rounded-full font-semibold"
           >
             Shop Now!
           </button>

@@ -6,7 +6,7 @@ import MainPage from "@/components/user/MainPage.vue";
 const routes = [
   { path: "/", component: HomePage },
   { path: "/home", component: MainPage },
-  { path: "/sale-items", component: ProductList },
+  { path: "/v1/sale-items", component: ProductList },
 ];
 
 const router = createRouter({
