@@ -8,7 +8,7 @@ const route = useRoute();
 
 <template>
   <nav
-    class="sticky  w-full z-50 h-16 flex items-center justify-between px-8 py-2 bg-white shadow text-gray-800"
+    class="sticky w-full z-50 h-16 flex items-center justify-between px-8 py-2 bg-white shadow text-gray-800"
   >
     <!-- Left: Logo -->
     <router-link to="/">
