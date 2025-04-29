@@ -12,8 +12,7 @@ CREATE TABLE brand (
     is_active BOOLEAN DEFAULT TRUE,
     country_of_origin VARCHAR(80),
     created_on DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_on DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT chk_name_trimmed CHECK (name = RTRIM(LTRIM(name)))
+    updated_on DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 DELIMITER //
@@ -41,12 +40,10 @@ CREATE TABLE sale_item (
     ram_gb INT,
     screen_size_inch DECIMAL(4,1),
     storage_gb INT,
-	color VARCHAR(30),
+    color VARCHAR(30),
     quantity INT NOT NULL DEFAULT 1,
     created_on DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT chk_model_trimmed CHECK (model = RTRIM(LTRIM(model))),
-    CONSTRAINT chk_description_trimmed CHECK (description = RTRIM(LTRIM(description))),
     FOREIGN KEY (brand_id) REFERENCES brand(id)
 );
 
