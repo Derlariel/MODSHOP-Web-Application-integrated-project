@@ -1,9 +1,12 @@
 <script setup>
+import MainPreview from './MainPreview.vue';
+import PhoneRecommendations from './PhoneRecommendations.vue';
 </script>
 
 <template>
-  <div
-    class="relative min-h-screen bg-[linear-gradient(135deg,_#383838_3%,_#080808_48%)] text-white overflow-hidden"
+ <div
+ class="relative min-h-screen bg-[linear-gradient(135deg,_#383838_3%,_#080808_43%)] text-white"
+
   >
     <!-- Hero Section -->
     <div
@@ -25,7 +28,7 @@
           So what the hell are you waiting for? Order now and thank us later!
         </p>
         <router-link
-          to="/home"
+          to="/main"
           class="flex items-center px-4 py-2 w-full max-w-md"
         >
           <button
@@ -46,6 +49,7 @@
       </div>
     </div>
   </div>
+  
 </template>
 
 <style scoped></style>

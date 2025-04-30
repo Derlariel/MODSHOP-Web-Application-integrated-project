@@ -1,11 +1,24 @@
 import { defineStore } from "pinia";
 import { getProducts, getProductById, addProduct, updateProductById, deleteProductById } from "@/utils/tool";
-
+import I14PROMAX from '@/assets/apple/iPhone-14-Pro-Max-Space-Black.webp'
+import I14 from '@/assets/apple/iPhone_14_Midnight.png'
+import I13PRO from '@/assets/apple/iphone-13-pro-blue-select.png'
+import SE2020 from '@/assets/apple/iPhone_SE3_Starlight.webp'
+import I14PLUS from '@/assets/apple/iPhone_14_Plus_Blue-square_medium.webp'
+import S23ULTRA from '@/assets/samsung/Samsung-Galaxy-S23-Ultra.webp'
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export const useProductStore = defineStore("product", {
   state: () => ({
     products: [],
+    productImages: {
+      1: I14PROMAX,
+      2: I14,
+      3: I13PRO,
+      7: SE2020,
+      8: I14PLUS,
+      16: S23ULTRA,
+    }
   }),
   getters: {
     allProducts: (state) => state.products,
