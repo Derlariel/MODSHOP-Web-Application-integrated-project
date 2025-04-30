@@ -51,16 +51,16 @@ const props = defineProps({
           />
           <!-- Details -->
           <div class="p-4">
-            <h2 class="text-lg font-semibold text-gray-800">
+            <h2 class="itmbs-brand text-lg font-semibold text-gray-800">
               {{ product.brandName }}
             </h2>
-            <p class="text-gray-700 font-medium mb-1">
+            <p class="itmbs-model text-gray-700 font-medium mb-1">
               Model: {{ product.model }}
             </p>
-            <p class="text-sm text-gray-600 mb-2">
+            <p class="itmbs-ram/itmbs-storage text-sm text-gray-600 mb-2">
               RAM: {{ product.ramGb }} GB / {{ product.storageGb }} GB
             </p>
-            <p class="text-green-600 font-bold text-xl">
+            <p class="itmbs-price text-green-600 font-bold text-xl">
               ฿{{ product.price }}
             </p>
             <div class="flex justify-end pt-2">

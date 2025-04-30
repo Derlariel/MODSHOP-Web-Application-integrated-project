@@ -39,9 +39,9 @@ const productImages = products.productImages
       <SwiperSlide v-for="product in products.allProducts" :key="product.id" class="bg-white shadow-xl rounded-xl p-6">
         <img :src="productImages[product.id]" alt="" class="h-80 mx-auto object-contain ">
         <div class="text-center space-x-2 mb-2 font-bold text-2xl">
-            <p>{{ product.model }}</p>
+            <p class="itmbs-model ">{{ product.model }}</p>
         </div>
-        <p class="text-green-500 text-lg font-medium text-center mb-2">Price :  {{ product.price }}</p>
+        <p class="itmbs-price text-green-500 text-lg font-medium text-center mb-2">Price :  {{ product.price }}</p>
         <div class="text-center mb-4">
              <button class="bg-blue-500 px-8 py-2 rounded-xl text-white font-semibold hover:bg-blue-600 transition">Buy</button>
         </div>
