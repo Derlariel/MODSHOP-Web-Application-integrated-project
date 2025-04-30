@@ -21,12 +21,12 @@ const route = useRoute();
     >
       <li
         :class="
-          route.path === '/home'
+          route.path === '/main'
             ? 'text-blue-600 font-bold'
             : 'hover:text-blue-600'
         "
       >
-        <router-link to="/home" class="itmbs-home">Home</router-link>
+        <router-link to="/main" class="itmbs-home">Home</router-link>
       </li>
       <li
         :class="
