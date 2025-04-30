@@ -5,7 +5,7 @@ const { theme , toggleTheme} = useTheme();
 </script>
  
 <template>
-<div class="fixed top-0 right-0 flex justify-end p-4 m-4 rounded-lg ">
+<div class="flex justify-end p-4 m-4 rounded-lg">
   <input
   @change="toggleTheme"
   :checked="theme === 'dracula'"

@@ -1,72 +1,37 @@
 <script setup>
-import { useProductStore } from '@/stores/useProductStore.js'
+import ListModel from '../shared/ListModel.vue';
+import Navbar from '../shared/Navbar.vue';
+import { onMounted } from 'vue';
+import { useProductStore } from '@/stores/useProductStore';
+import I14PROMAX from '@/assets/apple/iPhone-14-Pro-Max-Space-Black.webp'
+import I14 from '@/assets/apple/iPhone_14_Midnight.png'
+import I13PRO from '@/assets/apple/iphone-13-pro-blue-select.png'
+import SE2020 from '@/assets/apple/iPhone_SE3_Starlight.webp'
+import I14PLUS from '@/assets/apple/iPhone_14_Plus_Blue-square_medium.webp'
+import S23ULTRA from '@/assets/samsung/Samsung-Galaxy-S23-Ultra.webp'
 const productStore = useProductStore()
+onMounted(() => {
+productStore.loadProducts()
+})
 
-function remove(id) {
-  productStore.deleteProduct(id)
+const productImages = {
+  1: I14PROMAX,
+  2: I14,
+  3: I13PRO,
+  7: SE2020,
+  8: I14PLUS,
+  16: S23ULTRA,
 }
 
-function update(id) {
-  productStore.updateProduct({
-    id,
-    name: 'ชื่อใหม่เลย ' + Math.floor(Math.random() * 100)
-  })
-}
-
-function addNew() {
-  productStore.addProduct({
-    name: 'มือถือเทพ ' + Math.floor(Math.random() * 999),
-    description: 'มือถือสุดเฟี้ยวสำหรับ dev เทพๆ แบบเรา',
-    stock: 10,
-    price: 99999,
-    brand: 'DevBrand',
-    createdOn: new Date().toISOString().slice(0, 19).replace('T', ' '),
-    updatedOn: new Date().toISOString().slice(0, 19).replace('T', ' ')
-  })
-}
 </script>
-
+ 
 <template>
-  <div class="p-8 max-w-2xl mx-auto space-y-6">
-    <h1 class="text-3xl font-bold text-center text-indigo-600">📱 Product Store Demo</h1>
-
-    <ul class="space-y-4">
-      <li
-        v-for="p in productStore.allProducts"
-        :key="p.id"
-        class="p-4 bg-white rounded-2xl shadow flex items-center justify-between"
-      >
-        <div>
-          <h2 class="text-xl font-semibold text-gray-800">{{ p.name }}</h2>
-          <p class="text-gray-500">{{ p.price.toLocaleString() }} บาท</p>
-        </div>
-        <div class="space-x-2">
-          <button
-            @click="remove(p.id)"
-            class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-          >
-            🗑 Delete
-          </button>
-          <button
-            @click="update(p.id)"
-            class="px-3 py-1 bg-yellow-400 text-gray-800 rounded hover:bg-yellow-500"
-          >
-            ✏ Update Name
-          </button>
-        </div>
-      </li>
-    </ul>
-
-    <div class="text-center">
-      <button
-        @click="addNew"
-        class="mt-4 px-6 py-2 bg-green-500 text-white font-semibold rounded-full hover:bg-green-600"
-      >
-        ➕ Add Product
-      </button>
-    </div>
-  </div>
+<div>
+  <Navbar/>
+  <ListModel :products="productStore.allProducts" :productImages="productImages" />
+</div>
 </template>
-
+ 
 <style scoped>
-</style>
+
+</style> 

@@ -16,7 +16,7 @@ public class ExceptionController {
     public ResponseEntity<MyErrorResponse> handleItemNotFoundException(ItemNotFoundException e,
                                                                        HttpServletRequest request){
         MyErrorResponse myErrorResponse = new MyErrorResponse(
-                HttpStatus.NOT_FOUND.value(), e.getMessage(), request.getRequestURI()
+                HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND.getReasonPhrase(), e.getMessage(), request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(myErrorResponse);
     }

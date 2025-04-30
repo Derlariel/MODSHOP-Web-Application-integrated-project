@@ -9,6 +9,7 @@ export default {
       fontFamily: {
         sans: ['Poppins', ...defaultTheme.fontFamily.sans],
       },
+      
     },    
   },
   plugins: [require("daisyui")],
