@@ -24,7 +24,7 @@ const groupedByBrand = computed(() => {
 })
 
 // Toggle dropdown for each brand
-const openBrands = ref({}) // ex: { Apple: true, Samsung: false }
+const openBrands = ref({})
 
 function toggleBrand(brand) {
   openBrands.value[brand] = !openBrands.value[brand]
