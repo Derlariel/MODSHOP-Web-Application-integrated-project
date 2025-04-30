@@ -37,6 +37,7 @@ CREATE TABLE sale_item (
     brand_id INT NOT NULL,
     description TEXT NOT NULL,
     price INT NOT NULL,
+    rate DECIMAL(2,1) NULL,
     ram_gb INT,
     screen_size_inch DECIMAL(4,1),
     storage_gb INT,
@@ -44,6 +45,7 @@ CREATE TABLE sale_item (
     quantity INT NOT NULL DEFAULT 1,
     created_on DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT chk_rate CHECK (rate >= 0.0 AND rate <= 5.0),
     FOREIGN KEY (brand_id) REFERENCES brand(id)
 );
 
@@ -91,10 +93,10 @@ INSERT INTO brand (id, name, website_url, is_active, country_of_origin) VALUES
 (19, 'Honor', 'https://www.hihonor.com', TRUE, 'China'),
 (20, 'Nothing', 'https://nothing.tech', TRUE, 'United Kingdom');
 
-INSERT INTO sale_item (id, brand_id, model, description, quantity, price, screen_size_inch, ram_gb, storage_gb, color) VALUES
-(1, 2, '    iPhone 14 Pro Max    ', '   ไอโฟนเรือธงรุ่นล่าสุด มาพร้อม Dynamic Island จอใหญ่สุดในตระกูล กล้องระดับโปร          ', 5, 42900, 6.7, 6, 512, 'Space Black'),
-(2, 2, 'iPhone 14', '     ไอโฟนรุ่นใหม่ล่าสุด รองรับ 5G เร็วแรง ถ่ายภาพสวยทุกสภาพแสง    ', 8, 29700, 6.1, 6, 256, 'Midnight'),
-(3, 2, 'iPhone 13 Pro', 'ไอโฟนรุ่นโปร จอ ProMotion 120Hz กล้องระดับมืออาชีพ', 3, 33000, 6.1, 6, 256, 'Sierra Blue'),
-(7, 2, 'iPhone SE 2022', 'Budget-friendly model', 15, 14190, 4.7, 4, 64, 'Starlight'),
-(8, 2, 'iPhone 14 Plus', 'iPhone 14 Plus 128GB สี Starlight เครื่องศูนย์ไทย โมเดล TH แบต 100% มีกล่อง ครบประกันศูนย์ถึง พ.ย. 68 ส่งฟรี', 7, 29700, 6.7, 6, 256, 'Blue'),
-(16, 1, 'Galaxy S23 Ultra', '    Samsung Galaxy S23 Ultra 512GB สีดำนิล สภาพางฟ้า 99% ไร้รอย แถมเคสแท้ แบตอึดสุดๆ รองรับปากกา S-Pen', 1, 32900, 6.8, NULL, 512, NULL);
+INSERT INTO sale_item (id, brand_id, model, description, quantity, price, rate, screen_size_inch, ram_gb, storage_gb, color) VALUES
+(1, 2, '    iPhone 14 Pro Max    ', '   ไอโฟนเรือธงรุ่นล่าสุด มาพร้อม Dynamic Island จอใหญ่สุดในตระกูล กล้องระดับโปร          ', 5, 42900, 4.5, 6.7, 6, 512, 'Space Black'),
+(2, 2, 'iPhone 14', '     ไอโฟนรุ่นใหม่ล่าสุด รองรับ 5G เร็วแรง ถ่ายภาพสวยทุกสภาพแสง    ', 8, 29700, 4.2, 6.1, 6, 256, 'Midnight'),
+(3, 2, 'iPhone 13 Pro', 'ไอโฟนรุ่นโปร จอ ProMotion 120Hz กล้องระดับมืออาชีพ', 3, 33000, 4.8, 6.1, 6, 256, 'Sierra Blue'),
+(7, 2, 'iPhone SE 2022', 'Budget-friendly model', 15, 14190, 3.9, 4.7, 4, 64, 'Starlight'),
+(8, 2, 'iPhone 14 Plus', 'iPhone 14 Plus 128GB สี Starlight เครื่องศูนย์ไทย โมเดล TH แบต 100% มีกล่อง ครบประกันศูนย์ถึง พ.ย. 68 ส่งฟรี', 7, 29700, 4.0, 6.7, 6, 256, 'Blue'),
+(16, 1, 'Galaxy S23 Ultra', '    Samsung Galaxy S23 Ultra 512GB สีดำนิล สภาพนางฟ้า 99% ไร้รอย แถมเคสแท้ แบตอึดสุดๆ รองรับปากกา S-Pen', 1, 32900, 4.7, 6.8, NULL, 512, NULL);
