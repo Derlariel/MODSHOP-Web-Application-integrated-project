@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -22,4 +23,7 @@ public class SaleItemUserDto<T> {
     @Min(value = 1)
     private Integer quantity;
     private String color;
+    private Instant createdOn;
+    private Instant updatedOn;
+    private BigDecimal rate;
 }

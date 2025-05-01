@@ -1,13 +1,13 @@
 import { defineStore } from "pinia";
 import { getProducts, getProductById, addProduct, updateProductById, deleteProductById } from "@/utils/tool";
-import I14PROMAX from '@/assets/apple/iPhone-14-Pro-Max-Space-Black.webp'
-import I14 from '@/assets/apple/iPhone_14_Midnight.png'
-import I13PRO from '@/assets/apple/iphone-13-pro-blue-select.png'
-import SE2020 from '@/assets/apple/iPhone_SE3_Starlight.webp'
-import I14PLUS from '@/assets/apple/iPhone_14_Plus_Blue-square_medium.webp'
-import S23ULTRA from '@/assets/samsung/Samsung-Galaxy-S23-Ultra.webp'
 const BASE_URL = import.meta.env.VITE_BASE_URL;
-
+import I14PROMAX from "@/assets/apple/iPhone-14-Pro-Max-Space-Black.webp";
+import I14 from "@/assets/apple/iPhone_14_Midnight.png";
+import I13PRO from "@/assets/apple/iphone-13-pro-blue-select.png";
+import SE2020 from "@/assets/apple/iPhone_SE3_Starlight.webp";
+import I14PLUS from "@/assets/apple/iPhone_14_Plus_Blue-square_medium.webp";
+import S23ULTRA from "@/assets/samsung/Samsung-Galaxy-S23-Ultra.webp";
+import DEFAULT_IMAGE from "@/assets/default.jpg"
 export const useProductStore = defineStore("product", {
   state: () => ({
     products: [],
@@ -15,19 +15,48 @@ export const useProductStore = defineStore("product", {
       1: I14PROMAX,
       2: I14,
       3: I13PRO,
+      4: DEFAULT_IMAGE,
+      5: DEFAULT_IMAGE,
+      6: DEFAULT_IMAGE,
       7: SE2020,
       8: I14PLUS,
+      9: DEFAULT_IMAGE,
+      10: DEFAULT_IMAGE,
+      11: DEFAULT_IMAGE,
+      12: DEFAULT_IMAGE,
+      13: DEFAULT_IMAGE,
+      14: DEFAULT_IMAGE,
+      15: DEFAULT_IMAGE,
       16: S23ULTRA,
+      17: DEFAULT_IMAGE,
+      18: DEFAULT_IMAGE,
     }
   }),
   getters: {
     allProducts: (state) => state.products,
     getProductById: (state) => (id) => state.products.find(p => p.id === id),
+    latestProduct: (state) => {
+      return [...state.products]
+        .sort((a, b) => new Date(b.updatedOn) - new Date(a.updatedOn))
+        .slice(0, 5);
+    },
+    getProductBestSeller: (state) => (minRating = 4.5) => {
+      return [...state.products]
+        .filter(p => p && typeof p.rate === "number" && p.rate >= minRating)
+        .sort((a, b) => b.rate - a.rate);
+    }
   },
   actions: {
     async loadProducts() {
       try {
-        this.products = await getProducts(`${BASE_URL}/v1/sale-items`);
+        const data = await getProducts(`${BASE_URL}/v1/sale-items`);
+    
+        const normalized = data.map(product => ({
+          ...product,
+          rate: parseFloat(product.rate),
+        }));
+    
+        this.products = normalized;
       } catch (err) {
         console.error("Failed to load all products", err);
       }

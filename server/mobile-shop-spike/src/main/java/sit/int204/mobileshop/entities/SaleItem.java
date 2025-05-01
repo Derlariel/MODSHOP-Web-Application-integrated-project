@@ -66,4 +66,8 @@ public class SaleItem {
     @Column(name = "updated_on", nullable = false)
     private Instant updatedOn;
 
-}
+    @NotNull
+    @Column(name = "rate" , precision = 2, scale = 1)
+    private BigDecimal rate;
+
+ }
