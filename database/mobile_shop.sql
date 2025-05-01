@@ -20,6 +20,8 @@ CREATE TRIGGER trim_brand_name BEFORE INSERT ON brand
 FOR EACH ROW
 BEGIN
     SET NEW.name = TRIM(NEW.name);
+    SET NEW.website_url = TRIM(NEW.website_url);
+    SET NEW.country_of_origin = TRIM(NEW.country_of_origin);
 END//
 DELIMITER ;
 
@@ -28,6 +30,8 @@ CREATE TRIGGER trim_brand_name_update BEFORE UPDATE ON brand
 FOR EACH ROW
 BEGIN
     SET NEW.name = TRIM(NEW.name);
+    SET NEW.website_url = TRIM(NEW.website_url);
+    SET NEW.country_of_origin = TRIM(NEW.country_of_origin);
 END//
 DELIMITER ;
 
@@ -50,13 +54,13 @@ CREATE TABLE sale_item (
 );
 
 
-
 DELIMITER //
 CREATE TRIGGER trim_sale_item_on_insert BEFORE INSERT ON sale_item
 FOR EACH ROW
 BEGIN
-    SET NEW.model = RTRIM(LTRIM(NEW.model));
-    SET NEW.description = RTRIM(LTRIM(NEW.description));
+    SET NEW.model = TRIM(NEW.model);
+    SET NEW.description = TRIM(NEW.description);
+    SET NEW.color = TRIM(NEW.color);
 END//
 DELIMITER ;
 
@@ -64,10 +68,10 @@ DELIMITER //
 CREATE TRIGGER trim_sale_item_on_update BEFORE UPDATE ON sale_item
 FOR EACH ROW
 BEGIN
-    SET NEW.model = RTRIM(LTRIM(NEW.model));
-    SET NEW.description = RTRIM(LTRIM(NEW.description));
+    SET NEW.model = TRIM(NEW.model);
+    SET NEW.description = TRIM(NEW.description);
+    SET NEW.color = TRIM(NEW.color);
 END//
-DELIMITER ;
 
 CREATE INDEX idx_sale_item_created_on ON sale_item(created_on);
 CREATE INDEX idx_brand_created_on ON brand(created_on);
@@ -113,4 +117,3 @@ INSERT INTO sale_item (id, brand_id, model, description, quantity, price, screen
 (16, 9, 'Razr 2025', 'มือถือพับได้รุ่นเริ่มต้นจาก Motorola จอใน 6.7 นิ้ว จอนอก 3.2 นิ้ว ชิป Snapdragon 8 Gen Elite กล้อง 50MP', 10, 25900, 6.7, 8, 128, 'Sage Green', '2025-05-15 10:00:00', '2025-04-30 12:00:00', 3.9),
 (17, 20, 'Nothing Phone 3a Pro', 'มือถือดีไซน์ล้ำจาก Nothing จอ AMOLED 6.7 นิ้ว ชิป Snapdragon 8 Gen 3 กล้อง 50MP x2', 12, 28900, 6.7, 12, 256, 'Transparent', '2025-03-01 10:00:00', '2025-04-30 12:00:00', 4.2),
 (18, 20, 'Nothing Phone 3a', 'มือถือดีไซน์ล้ำจาก Nothing จอ AMOLED 6.5 นิ้ว ชิป Snapdragon 7 Gen 3 กล้อง 50MP', 15, 19900, 6.5, 8, 128, 'White', '2025-03-01 10:00:00', '2025-04-30 12:00:00', 4.0);
-
