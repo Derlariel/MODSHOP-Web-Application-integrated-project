@@ -72,6 +72,7 @@ BEGIN
     SET NEW.description = TRIM(NEW.description);
     SET NEW.color = TRIM(NEW.color);
 END//
+DELIMITER ;
 
 CREATE INDEX idx_sale_item_created_on ON sale_item(created_on);
 CREATE INDEX idx_brand_created_on ON brand(created_on);
