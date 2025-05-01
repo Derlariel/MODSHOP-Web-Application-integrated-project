@@ -22,17 +22,7 @@ const props = defineProps({
   <p class="text-center font-extrabold text-2xl">Product List</p>
 
       <!-- View Toggle -->
-      <div class="text-right mb-6">
-        <button
-          @click="isListView = !isListView"
-          class="text-sm px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-transform duration-300 hover:scale-110"
-        >
-          <component
-            :is="isListView ? List : GalleryThumbnails"
-            class="w-5 h-5"
-          />
-        </button>
-      </div>
+      
 
       <!-- Product Gallery View -->
       <ul
