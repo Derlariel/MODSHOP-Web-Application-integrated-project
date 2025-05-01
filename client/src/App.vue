@@ -1,13 +1,13 @@
 <script setup>
 import { useTheme } from '@/stores/useTheme'
-import ThemeToggle from '@/components/shared/ThemeToggle.vue'
+import HomePage from './pages/HomePage.vue';
+import MainPage from './components/user/MainPage.vue';
 const theme = useTheme()
 </script>
 
 <template>
   <div :data-theme="theme">
-    <ThemeToggle />
-    <RouterView />
+    <router-view/>
   </div>
 </template>
 

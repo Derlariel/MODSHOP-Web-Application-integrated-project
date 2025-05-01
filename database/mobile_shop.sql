@@ -53,6 +53,7 @@ CREATE TABLE sale_item (
     FOREIGN KEY (brand_id) REFERENCES brand(id)
 );
 
+
 DELIMITER //
 CREATE TRIGGER trim_sale_item_on_insert BEFORE INSERT ON sale_item
 FOR EACH ROW

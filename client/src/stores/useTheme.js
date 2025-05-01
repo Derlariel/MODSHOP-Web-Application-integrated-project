@@ -13,7 +13,7 @@ watch(theme, (newTheme) => {
 });
 
 const toggleTheme = () => {
-  theme.value = theme.value === 'light' ? 'dracula' : 'light';
+  theme.value = theme.value === 'light' ? 'black' : 'light';
 };
 
 export function useTheme() {
