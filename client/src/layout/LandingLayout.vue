@@ -1,14 +1,13 @@
 <script setup>
-import Navbar from '@/components/shared/Navbar.vue';
-</script>
- 
-<template>
-<div>
-    <Navbar />
-    <router-view />
-</div>
-</template>
- 
-<style scoped>
+import { ref } from "vue";
+import Navbar from "@/components/shared/Navbar.vue";
 
-</style>
+const adminMode = ref(false);
+</script>
+
+<template>
+  <div>
+    <Navbar/>
+    <router-view />
+  </div>
+</template>
