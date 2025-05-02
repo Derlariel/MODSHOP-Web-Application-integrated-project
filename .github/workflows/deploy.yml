@@ -1,0 +1,25 @@
+name: Deploy to Self-Hosted Runner
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Auto Deploy application itb-mshop
+        run: |
+          set -x  
+          cd /home/sysadmin/2-2567_INT221_KK-1 
+          git pull origin dev
+          cd client
+          npm i
+          npm run build -- --base=/itb-mshop
+          docker compose down -v
+          docker compose up -d --build
