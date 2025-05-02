@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory} from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 import LandingLayout from '@/layout/LandingLayout.vue';
 import DefaultLayout from '@/layout/DefaultLayout.vue';
 import HomePage from '@/pages/HomePage.vue';
@@ -6,7 +6,7 @@ import MainPage from '@/components/user/MainPage.vue';
 import ProductList from '@/components/user/ProductList.vue';
 import ProductManager from '@/components/user/ProductManager.vue';
 import ProductDetail from '@/components/user/ProductDetail.vue';
-import NotFound from '@/pages/NotFound.vue';
+
 const routes = [
   {
     path: '/',
@@ -44,18 +44,23 @@ const routes = [
           },
         ],
       },
-     {
-      path:'/error',
-      name: 'NotFound',
-      component: NotFound,
-     }
+      {
+        path: '/error',
+        name: 'error-page',
+        component: () => import('@/pages/ErrorCodePage.vue'),
+      },
     ],
+  },
+  // fallback route
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: { name: 'error-page', query: { code: 404 } },
   },
 ];
 
 const router = createRouter({
-  history: createWebHistory('/itb-mshop/'), // Add the base path here
+  history: createWebHistory('/itb-mshop/'),
   routes,
-})
+});
 
 export default router;

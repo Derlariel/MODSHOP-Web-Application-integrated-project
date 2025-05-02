@@ -15,26 +15,16 @@ export const useProductStore = defineStore("product", {
       1: I14PROMAX,
       2: I14,
       3: I13PRO,
-      4: DEFAULT_IMAGE,
-      5: DEFAULT_IMAGE,
-      6: DEFAULT_IMAGE,
       7: SE2020,
       8: I14PLUS,
-      9: DEFAULT_IMAGE,
-      10: DEFAULT_IMAGE,
-      11: DEFAULT_IMAGE,
-      12: DEFAULT_IMAGE,
-      13: DEFAULT_IMAGE,
-      14: DEFAULT_IMAGE,
-      15: DEFAULT_IMAGE,
-      16: S23ULTRA,
-      17: DEFAULT_IMAGE,
-      18: DEFAULT_IMAGE,
+    
     }
   }),
   getters: {
     allProducts: (state) => state.products,
-    getProductById: (state) => (id) => state.products.find(p => p.id === id),
+    getProductById: (state) => {
+      return (id) => state.products.find((product) => product.id === id);
+    },    
     latestProduct: (state) => {
       return [...state.products]
         .sort((a, b) => new Date(b.updatedOn) - new Date(a.updatedOn))

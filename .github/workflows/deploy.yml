@@ -3,15 +3,15 @@ name: Deploy to Self-Hosted Runner
 on:
   push:
     branches:
-      - dev  
+      - dev
 
 jobs:
   deploy:
-    runs-on: self-hosted  
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3 
+        uses: actions/checkout@v3
 
       - name: Deploy application
         run: |
@@ -19,4 +19,4 @@ jobs:
           cd /home/sysadmin/2-2567_INT221_KK-1 
           git pull origin main
           docker compose down 
-          docker compose up -d --build  
+          docker compose up -d --build
