@@ -2,7 +2,6 @@ services:
   frontend:
     build: 
       context: ./client
-      dockerfile: docker-frontend
     ports:
      - "80:80"
     networks:
