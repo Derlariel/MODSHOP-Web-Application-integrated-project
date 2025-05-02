@@ -11,7 +11,7 @@ import sit.int204.mobileshop.utils.ListMapper;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:4173")
 @RestController
 @RequestMapping("/v1/sale-items")
 public class SaleItemController {
