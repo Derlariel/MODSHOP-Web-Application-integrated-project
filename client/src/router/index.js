@@ -6,7 +6,7 @@ import MainPage from '@/components/user/MainPage.vue';
 import ProductList from '@/components/user/ProductList.vue';
 import ProductManager from '@/components/user/ProductManager.vue';
 import ProductDetail from '@/components/user/ProductDetail.vue';
-
+import NotFound from '@/pages/NotFound.vue';
 const routes = [
   {
     path: '/',
@@ -44,6 +44,11 @@ const routes = [
           },
         ],
       },
+     {
+      path:'/error',
+      name: 'NotFound',
+      component: NotFound,
+     }
     ],
   },
 ];
