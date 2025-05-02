@@ -3,25 +3,25 @@ name: Deploy to VM
 on:
   push:
     branches:
-      - dev                                  
+      - dev
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy via SSH
+      - name: SSH and deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.VM_HOST }}
+          host: 5fe7-202-28-7-4.ngrok-free.app  
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 99  
           script: |
             cd /home/sysadmin/2-2567_INT221_KK-1
             git pull origin main
             docker compose down
             docker compose up -d --build
-
