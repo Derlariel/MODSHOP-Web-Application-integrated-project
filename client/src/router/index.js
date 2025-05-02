@@ -7,6 +7,7 @@ import ProductList from '@/components/user/ProductList.vue';
 import ProductManager from '@/components/user/ProductManager.vue';
 import ProductDetail from '@/components/user/ProductDetail.vue';
 
+
 const routes = [
   {
     path: '/',
@@ -48,9 +49,9 @@ const routes = [
   },
 ];
 
-const router = createRouter ({
-  history: createWebHistory (),
+const router = createRouter({
+  history: createWebHistory('/itb-mshop/'), // Add the base path here
   routes,
-});
+})
 
 export default router;
