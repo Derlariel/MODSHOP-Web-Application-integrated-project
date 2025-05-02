@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sit.int204.mobileshop.dtos.SaleItemUserDto;
 import sit.int204.mobileshop.entities.SaleItem;
-import sit.int204.mobileshop.exceptions.DatabaseCommunicationException;
 import sit.int204.mobileshop.services.SaleItemService;
 import sit.int204.mobileshop.utils.ListMapper;
 
