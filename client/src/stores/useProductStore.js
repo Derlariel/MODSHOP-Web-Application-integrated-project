@@ -7,7 +7,7 @@ import I13PRO from "@/assets/apple/iphone-13-pro-blue-select.png";
 import SE2020 from "@/assets/apple/iPhone_SE3_Starlight.webp";
 import I14PLUS from "@/assets/apple/iPhone_14_Plus_Blue-square_medium.webp";
 import S23ULTRA from "@/assets/samsung/Samsung-Galaxy-S23-Ultra.webp";
-import DEFAULT_IMAGE from "@/assets/default.jpg"
+import DEFAULT_IMAGE from "@/assets/default.jpg";
 export const useProductStore = defineStore("product", {
   state: () => ({
     products: [],

@@ -4,7 +4,7 @@ import Navbar from "../shared/Navbar.vue";
 import SideBar from "../shared/SideBar.vue";
 import { onMounted } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
-
+import DEFAULT_IMAGE from "@/assets/default.jpg";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -42,17 +42,10 @@ const detail = (productId) => {
     <div class="flex-1 overflow-y-auto p-4">
       <ListModel :saleItems="productStore.allProducts" :viewType="viewType">
         <template #listItems="{ Item: product, viewType }">
-          <div
-            @click="detail(product.id)"
-            v-if="viewType === 'gallery'"
-            class="bg-white rounded-md overflow-hidden hover:shadow-md transition-shadow cursor-pointer flex flex-col h-full"
-          >
+          <div @click="detail(product.id)" v-if="viewType === 'gallery'"
+            class="bg-white rounded-md overflow-hidden hover:shadow-md transition-shadow cursor-pointer flex flex-col h-full">
             <div class="bg-gray-200 w-full h-72 flex items-center justify-center overflow-hidden">
-              <img
-                :src="productImages[product.id]"
-                class="max-h-full object-contain"
-                alt=""
-              />
+              <img :src="productImages[Number(product.id)] || DEFAULT_IMAGE " class="max-h-full object-contain" alt="" />
             </div>
             <div class="p-4 flex flex-col justify-between flex-1">
               <div>
@@ -76,6 +69,4 @@ const detail = (productId) => {
 </template>
 
 
-<style scoped>
-
-</style>
+<style scoped></style>
