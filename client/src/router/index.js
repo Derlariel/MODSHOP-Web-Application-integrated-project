@@ -53,9 +53,9 @@ const routes = [
   },
 ];
 
-const router = createRouter ({
-  history: createWebHistory (),
+const router = createRouter({
+  history: createWebHistory('/itb-mshop/'), // Add the base path here
   routes,
-});
+})
 
 export default router;
