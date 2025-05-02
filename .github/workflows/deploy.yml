@@ -1,36 +1,22 @@
-name: Deploy to VM
+name: Deploy to Self-Hosted Runner
 
 on:
   push:
     branches:
-      - dev
+      - dev  
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted  
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3 
 
-      - name: SSH and deploy
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: 60cc-202-28-7-4.ngrok-free.app
-          username: napat
-          password: napat1234
-          key: |
-            -----BEGIN OPENSSH PRIVATE KEY-----
-            b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-            QyNTUxOQAAACCNsHaO0daRMLuxrWdAqVs0dwyeNHF9nAeSLcWEBcdwdwAAAKDZdlep2XZX
-            qQAAAAtzc2gtZWQyNTUxOQAAACCNsHaO0daRMLuxrWdAqVs0dwyeNHF9nAeSLcWEBcdwdw
-            AAAEBrN6TjM4nt1tfEHUGtcxpxCAH1Vm8PQ+q5HsmCopxEhI2wdo7R1pEwu7GtZ0CpWzR3
-            DJ40cX2cB5ItxYQFx3B3AAAAFmRlcGxveW1lbnRfa2V5X2Zvcl9hcHABAgMEBQYH
-            -----END OPENSSH PRIVATE KEY-----
-          port: 99 
-          script: |
-            set -x  
-            cd /home/sysadmin/2-2567_INT221_KK-1
-            git pull origin main
-            docker compose down
-            docker compose up -d --build
+      - name: Deploy application
+        run: |
+          set -x  
+          cd /home/sysadmin/2-2567_INT221_KK-1 
+          git pull origin main
+          docker compose down 
+          docker compose up -d --build  
