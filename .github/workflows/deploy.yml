@@ -16,7 +16,7 @@ jobs:
       - name: SSH and deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: 5fe7-202-28-7-4.ngrok-free.app 
+          host: 60cc-202-28-7-4.ngrok-free.app
           username: napat
           key: |
             -----BEGIN OPENSSH PRIVATE KEY-----
