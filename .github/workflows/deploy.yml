@@ -18,5 +18,8 @@ jobs:
           set -x  
           cd /home/sysadmin/2-2567_INT221_KK-1 
           git pull origin dev
+          cd client
+          npm i
+          npm run build -- --base=/itb-mshop
           docker compose down -v
           docker compose up -d --build
