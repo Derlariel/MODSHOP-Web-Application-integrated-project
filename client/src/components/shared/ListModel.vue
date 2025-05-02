@@ -16,9 +16,7 @@ const props = defineProps({
 
 <template>
   <div class="container mx-auto px-4">
-    <div v-if="!saleItems || saleItems.length === 0" class="flex items-center justify-center min-h-screen text-gray-500 text-4xl">
-      No sale item
-    </div>
+    
     <div v-if="viewType === 'gallery'" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
       <div v-for="(item, index) in saleItems" :key="index">
         <slot name="listItems" :Item="item" :viewType="viewType"></slot>
