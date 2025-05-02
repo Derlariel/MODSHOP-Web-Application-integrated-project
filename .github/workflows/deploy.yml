@@ -18,6 +18,7 @@ jobs:
         with:
           host: 60cc-202-28-7-4.ngrok-free.app
           username: napat
+          password: napat1234
           key: |
             -----BEGIN OPENSSH PRIVATE KEY-----
             b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
