@@ -18,7 +18,7 @@ const appStore = useAppStore();
     <!-- Menu -->
     <ul class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex space-x-6 font-medium">
       <li :class="route.path === '/main' ? 'text-blue-600 font-bold' : 'hover:text-blue-600'">
-        <router-link to="/main">Home</router-link>
+        <router-link to="/main">Homie</router-link>
       </li>
       <li :class="route.path.startsWith('/v1/sale-items') ? 'text-blue-600 font-bold' : 'hover:text-blue-600'">
         <router-link to="/v1/sale-items">Product ▼</router-link>
