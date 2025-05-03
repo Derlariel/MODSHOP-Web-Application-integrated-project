@@ -1,23 +1,22 @@
-import axios from "axios"
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-const BASE_URL = import.meta.env.VITE_BASE_URL
-
-export async function fetchProduct() {
+async function handleFetch(url, errorMessage) {
   try {
-    const response = await axios.get(`${BASE_URL}/v1/sale-items`)
-    return response.data
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`${errorMessage} (Status: ${res.status})`);
+    }
+    return await res.json();
   } catch (err) {
-    console.error("❌ Failed to fetch products:", err)
-    throw err
+    console.error(`❌ ${errorMessage}:`, err);
+    throw err;
   }
 }
 
+export async function fetchProduct() {
+  return await handleFetch(`${BASE_URL}/v1/sale-items`, "Failed to fetch products");
+}
+
 export async function fetchProductById(id) {
-  try {
-    const response = await axios.get(`${BASE_URL}/v1/sale-items/${id}`)
-    return response.data
-  } catch (err) {
-    console.error(`❌ Failed to fetch product with ID: ${id}`, err)
-    throw err
-  }
+  return await handleFetch(`${BASE_URL}/v1/sale-items/${id}`, `Failed to fetch product with ID: ${id}`);
 }
