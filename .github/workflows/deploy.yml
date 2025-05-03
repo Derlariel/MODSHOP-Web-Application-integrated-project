@@ -3,7 +3,7 @@ name: Deploy to Self-Hosted Runner
 on:
   push:
     branches:
-      - dev
+      - pre-dev
 
 jobs:
   deploy:
@@ -17,7 +17,7 @@ jobs:
         run: |
           set -x  
           cd /home/sysadmin/2-2567_INT221_KK-1 
-          git pull origin dev
+          git pull origin pre-dev
           cd client
           npm i
           npm run build -- --base=/itb-mshop
