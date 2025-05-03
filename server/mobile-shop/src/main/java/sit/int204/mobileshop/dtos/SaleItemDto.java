@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
-public class SaleItemUserDto<T> {
+public class SaleItemDto<T> {
     private Integer id;
     private String model;
     private String brandName;
@@ -18,8 +18,5 @@ public class SaleItemUserDto<T> {
     private Integer storageGb;
     @Min(value = 0)
     private Integer ramGb;
-    private BigDecimal screenSizeInch;
-    @Min(value = 1)
-    private Integer quantity;
     private String color;
 }
