@@ -1,50 +1,59 @@
-import axios from 'axios';
-
-const getProducts = async url => {
+const handleFetch = async (url, options, errorMessages) => {
   try {
-    const response = await axios.get (url);
-    return response.data;
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      throw { message: errorMessages, status: res.status };
+    }
+    return await res.json();
   } catch (err) {
-    throw new Error ('Error getting items: ' + err.message);
+    throw { message: errorMessages, status: err.status || 500 };
   }
 };
 
-const getProductById = async (url, productId) => {
-  try {
-    const response = await axios.get (`${url}/${productId}`);
-    return response.data;
-  } catch (err) {
-    throw new Error ('Error getting by item: ' + err.message);
-  }
+const getProducts = async (url) => {
+  return handleFetch(url, { method: "GET" }, "Error getting products");
 };
 
-const updateProductById = async (url, productId, data) => {
-  try {
-    const response = await axios.put (`${url}/${productId}`, data);
-    return response.data;
-  } catch (err) {
-    throw new Error ('Error add item' + err.message);
-  }
+const getProductById = async (url, id) => {
+  return handleFetch(
+    `${url}/${id}`,
+    { method: "GET" },
+    "Error getting product by ID"
+  );
 };
 
-const addProduct = async (url, product) => {
-  try {
-    const response = await axios.post (`${url}`, product);
-    return response.data;
-  } catch (err) {
-    throw new Error ('Error add item' + err.message);
-  }
+const updateProductById = async (url, id, data) => {
+  return handleFetch(
+    `${url}/${id}`,
+    {
+      method: "PUT",
+      headers: { "content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+    "Error updating product by ID"
+  );
 };
 
-const deleteProductById = async (url, productId) => {
-     try {
-    const response = await axios.delete (`${url}/${productId}`);
-    return response.data;
-  } catch (err) {
-    throw new Error ('Error add item' + err.message);
-  }
+
+const addProduct = async (url,product) => {
+  return handleFetch(
+    url,
+    {
+      method:"POST",
+      headers: { "content-Type": "application/json" },
+      body: JSON.stringify(product),
+    },
+    "Error adding product"
+  )
 }
 
-
-
-export { addProduct, getProductById, getProducts, updateProductById, deleteProductById }
+const deleteProductById = async (url, id) => {
+  return handleFetch(
+    `${url}/${id}`,
+    { method: "DELETE"},
+    "Error deleting product by ID"
+  )
+}
+export {
+  addProduct,getProductById,getProducts,updateProductById,deleteProductById
+};

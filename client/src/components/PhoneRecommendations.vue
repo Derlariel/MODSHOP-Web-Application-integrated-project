@@ -7,7 +7,7 @@ import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 import { onMounted, ref } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
-
+import DEFALUT_IMAGE from "@/assets/default.jpg";
 const products = useProductStore();
 const isLoaded = ref(false);
 
@@ -45,7 +45,7 @@ const productImages = products.productImages;
         :key="product.id"
         class="bg-white shadow-xl rounded-xl p-6"
       >
-        <img :src="productImages[product.id]" alt="" class="h-80 mx-auto object-contain" />
+        <img :src="productImages[product.id] || DEFALUT_IMAGE " alt="" class="h-80 mx-auto object-contain" />
         <div class="text-center space-x-2 mb-2 font-bold text-2xl">
           <p class="itmbs-model">{{ product.model }}</p>
         </div>
