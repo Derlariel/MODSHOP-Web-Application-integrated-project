@@ -29,12 +29,18 @@ const routes = [
         component: MainPage,
       },
       {
-        path: 'v1/sale-items',
-        name: 'Product',
-        component: ProductList,
+        path: 'sale-items',
+        component: ProductManager,
+        children: [
+          {
+            path: ':productId',
+            component: ProductDetail,
+            name: 'product-detail',
+          },
+        ],
       },
       {
-        path: '/v1/sale-items',
+        path: 'sale-items',
         component: ProductManager,
         children: [
           {
@@ -59,7 +65,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory('/itb-mshop/'),
+  history: createWebHistory(''),
   routes,
 });
 

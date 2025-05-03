@@ -20,6 +20,6 @@ jobs:
           git pull origin pre-dev
           cd client
           npm i
-          npm run build -- --base=/itb-mshop
+          npm run build 
           docker compose down -v
           docker compose up -d --build

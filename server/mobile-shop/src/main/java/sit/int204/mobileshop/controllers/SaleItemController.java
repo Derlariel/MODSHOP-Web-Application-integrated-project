@@ -28,7 +28,7 @@ public class SaleItemController {
     @GetMapping("")
     public ResponseEntity<List<SaleItemDto>> getAllProducts() {
         List<SaleItem> products = saleItemService.getAllSaleItems();
-        if(products.isEmpty()) {
+        if (products.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(listMapper.toListDto(products, SaleItemDto.class, modelMapper));
@@ -38,6 +38,5 @@ public class SaleItemController {
     public ResponseEntity<SaleItemDetailDto> getProductById(@PathVariable Integer id) {
         return ResponseEntity.ok(modelMapper.map(saleItemService.getSaleItemById(id), SaleItemDetailDto.class));
     }
-
 
 }

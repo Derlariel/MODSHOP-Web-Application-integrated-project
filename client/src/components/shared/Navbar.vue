@@ -20,8 +20,8 @@ const appStore = useAppStore();
       <li :class="route.path === '/main' ? 'text-blue-600 font-bold' : 'hover:text-blue-600'">
         <router-link to="/main">Home</router-link>
       </li>
-      <li :class="route.path.startsWith('/v1/sale-items') ? 'text-blue-600 font-bold' : 'hover:text-blue-600'">
-        <router-link to="/v1/sale-items">Product ▼</router-link>
+      <li :class="route.path.startsWith('/sale-items') ? 'text-blue-600 font-bold' : 'hover:text-blue-600'">
+        <router-link to="/sale-items">Product ▼</router-link>
       </li>
       <li class="hover:text-blue-600">Brand</li>
       <li class="hover:text-blue-600">About</li>

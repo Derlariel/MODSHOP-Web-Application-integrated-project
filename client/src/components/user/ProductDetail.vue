@@ -10,22 +10,29 @@ const productId = Number(route.params.productId);
 const productStore = useProductStore();
 
 const isLoading = ref(true);
-const product = computed(() => productStore.getProductById(productId));
+
+const product = ref(null);
+const isData = ref(true)
 
 onMounted(async () => {
   await productStore.loadProducts();
 
-  if (productStore.products.length === 0 || !product.value) {
-    router.push({ name: "error-page", query: { code: 200 } });
-    return;
-  }
+  const result = await productStore.fetchProductDetail(productId);
+  product.value = result;
+
+if (productStore.products === null || !product.value) {
+  sessionStorage.setItem('error-message', 'The requested sale item does not exist.');
+  router.push('/sale-items');
+  return;
+}
 
   isLoading.value = false;
+
 });
 </script>
 <template>
-  <div v-if="!isLoading && product" class="max-w-6xl mx-auto px-6 py-10">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+  <div v-if="!isLoading && product && isData" class="max-w-6xl mx-auto px-6 py-10">
+    <div class="itbms-row grid grid-cols-1 md:grid-cols-2 gap-12">
       <!-- Product Image -->
       <div class="flex flex-col gap-4">
         <div
@@ -45,21 +52,35 @@ onMounted(async () => {
       <!-- Product Info -->
       <div class="flex flex-col gap-6">
         <div>
-          <h1 class="text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
-            {{ product.brandName }} {{ product.model }} {{ product.storageGb }}GB {{ product.color }}
+          <h1 class="itbms-brand text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
+            {{ product.brandName }} 
           </h1>
+          <h1 class="itbms-model text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
+            {{ product.model }}
+          </h1>
+          <h1 class="itbms-storageGb text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
+            {{ product.storageGb === null ? '-' : product.storageGb }}GB 
+          </h1>
+          <h1 class="itbms-storageGb-unit text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
+            GB 
+          </h1>
+          <h1 class="itbms-color text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
+            {{ product.color === null ? '-' : product.color }}
+          </h1>
+         
           <p class="text-sm text-gray-500 mt-1">Brand: {{ product.brandName }}</p>
         </div>
 
-        <div class="text-3xl font-bold text-red-400">฿{{ product.price }}</div>
+        <div class="itbms-price text-3xl font-bold text-red-400">฿{{ product.price.toLocaleString() }}</div>
 
         <div>
-          <p class="text-gray-700 leading-relaxed">{{ product.description }}</p>
+          <p class="itbms-description text-gray-700 leading-relaxed">{{ product.description }}</p>
           <ul class="mt-4 text-sm text-gray-600 space-y-1">
-            <li>RAM: {{ product.ramGb }} GB</li>
-            <li>Screen: {{ product.screenSizeInch }} นิ้ว</li>
+            <li class="itbms-ramGb">RAM: {{ product.ramGb === null ? '-' : product.ramGb }} <span class="itbms-ramGb-unit">GB</span></li>
+            <li class="itbms-screenSizeInch">Screen: {{ product.screenSizeInch === null ? '-' : product.screenSizeInch }}  <span class="itbms-screenSizeInch-unit">Inches</span></li>
             <li>Storage: {{ product.storageGb }} GB</li>
-            <li>Color: {{ product.color }}</li>
+            <li>Color: {{ product.color === null ? '-' : product.color }}</li>
+            <li class="itbms-quantity">Quantity: {{ product.quantity }}</li>
           </ul>
         </div>
 

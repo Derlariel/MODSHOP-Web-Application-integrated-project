@@ -7,7 +7,7 @@ const code = route.query.code || "500";
 
 const errorMessages = {
   200: "No sale item",
-  404: "The page you are looking for was not found",
+  404: "The requested sale item does not exist.",
   500: "Internal server error occurred",
   503: "The service is temporarily unavailable",
   default: "An unknown error has occurred",
