@@ -1,17 +1,25 @@
-import axios from 'axios';
-
 /**
  * @param {import('vue-router').Router} router
- * @param {string} url
- * @param {object} options
+ * @param {String} url
+ * @param {RequestInit} options
+ * 
  */
-export async function fetchWithErrorHandling(router, url, options = {}) {
+
+import router from '@/router';
+
+export async function fetchWithErrorHandling(router,url, options ={}) {
   try {
-    const res = await axios({ url, ...options });
-    return res.data;
-  } catch (error) {
-    const code = error.response?.status || 500;
-    router.push({ name: 'error-page', query: { code } });
-    return null;
+    const res = await fetch(url, options);
+
+    if(!res.ok){
+      const code = res.status || 500
+      router.push({name:'error-page',query:{code}})
+      return null
+    }
+
+    const data = await res.json()
+    return data
+  }catch(err){
+    router.push({name:'error-page',query:{code:500}})
   }
 }
