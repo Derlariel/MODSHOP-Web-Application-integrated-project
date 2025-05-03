@@ -49,7 +49,7 @@ const appStore = useAppStore();
     </div>
 
     <div v-else>
-      <div class="grid grid-cols-6 gap-4 px-2 py-3 bg-gray-100 font-semibold text-gray-600 text-sm border rounded-t-md">
+      <div class="grid grid-cols-7 gap-4 px-2 py-3 bg-gray-100 font-semibold text-gray-600 text-sm border rounded-t-md">
         <slot name="listHeader" />
       </div>
       <div v-for="(item, index) in saleItems" :key="index" class="border-b px-2 py-3 hover:bg-gray-50">
