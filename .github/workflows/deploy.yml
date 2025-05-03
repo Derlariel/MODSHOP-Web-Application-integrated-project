@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Auto Deploy container application itb-mshop kk1---
+      - name: Auto Deploy container application itb-mshop kk1
         run: |
           set -x  
           cd /home/sysadmin/2-2567_INT221_KK-1 
