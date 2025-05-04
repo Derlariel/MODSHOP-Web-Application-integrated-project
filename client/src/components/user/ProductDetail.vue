@@ -1,35 +1,29 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
 import { useProductStore } from "@/stores/useProductStore";
-import { computed, onMounted, ref } from 'vue';
+import { defineEmits, onMounted, ref } from 'vue';
 import DEFAULT_IMAGE from "@/assets/default.jpg";
 const router = useRouter();
 const route = useRoute();
 const productId = Number(route.params.productId);
 const productStore = useProductStore();
-
 const isLoading = ref(true);
 const product = ref(null);
 const isData = ref(true)
-const isModalOpen = ref(false)
+
 onMounted(async () => {
   await productStore.loadProducts();
   const result = await productStore.fetchProductDetail(productId);
   product.value = result;
 
   if (product.value === null || !product.value) {
-    isModalOpen.value = true;
+    sessionStorage.setItem('productStatus', true)
     router.go(-1)
     return;
   }
 
   isLoading.value = false;
 });
-
-function handleModalClose() {
-  isModalOpen.value = false;
-  router.push('/sale-items');
-}
 
 </script>
 

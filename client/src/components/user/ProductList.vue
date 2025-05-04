@@ -11,12 +11,18 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 const isLoading = ref(true);
 const adminMode = ref(false);
+const isModalOpen = ref(sessionStorage.getItem('productStatus'))
 const props = defineProps({
   viewType: {
     type: String,
     default: "gallery",
   },
 });
+
+function handleModalClose() {
+  isModalOpen.value = false;
+  router.push({name: 'sale-items'});
+}
 
 const productStore = useProductStore();
 const productImages = productStore.productImages;
