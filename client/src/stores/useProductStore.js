@@ -6,8 +6,11 @@ import I14 from "@/assets/apple/iPhone_14_Midnight.png";
 import I13PRO from "@/assets/apple/iphone-13-pro-blue-select.png";
 import SE2020 from "@/assets/apple/iPhone_SE3_Starlight.webp";
 import I14PLUS from "@/assets/apple/iPhone_14_Plus_Blue-square_medium.webp";
-import S23ULTRA from "@/assets/samsung/Samsung-Galaxy-S23-Ultra.webp";
-import DEFAULT_IMAGE from "@/assets/default.jpg";
+
+import HuaweiP40 from "@/assets/banner/huawei-p40-banner.webp";
+import Mi9 from "@/assets/banner/Mi9-banner.jpg";
+import S24 from "@/assets/banner/S24-banner.jpg";
+import Vivo from "@/assets/banner/vivo-banner.webp";
 export const useProductStore = defineStore("product", {
   state: () => ({
     products: [],
@@ -17,7 +20,12 @@ export const useProductStore = defineStore("product", {
       3: I13PRO,
       7: SE2020,
       8: I14PLUS,
-    
+    },
+    bannerImages: {
+      1: HuaweiP40,
+      2: Mi9,
+      3: S24,
+      4: Vivo,
     }
   }),
   getters: {

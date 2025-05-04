@@ -3,7 +3,6 @@ import LandingLayout from '@/layout/LandingLayout.vue';
 import DefaultLayout from '@/layout/DefaultLayout.vue';
 import HomePage from '@/pages/HomePage.vue';
 import MainPage from '@/components/user/MainPage.vue';
-import ProductList from '@/components/user/ProductList.vue';
 import ProductManager from '@/components/user/ProductManager.vue';
 import ProductDetail from '@/components/user/ProductDetail.vue';
 

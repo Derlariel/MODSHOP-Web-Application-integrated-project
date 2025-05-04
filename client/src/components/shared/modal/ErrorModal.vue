@@ -23,7 +23,6 @@ defineProps({
         >
           <X class="w-5 h-5" />
         </button>
-
         <h2 class="text-lg font-semibold text-red-600 mb-2 text-center">Error</h2>
         <p class="text-gray-800 text-center">{{ message }}</p>
       </div>
