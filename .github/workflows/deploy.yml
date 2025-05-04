@@ -1,4 +1,4 @@
-name: Deploy PBI-1 AND PBI-2
+name: Deploy PBI-1 AND PBI-2 Sprint 2
 
 on:
   push:
