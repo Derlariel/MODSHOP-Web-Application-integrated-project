@@ -20,6 +20,7 @@ onMounted(async () => {
 
   if (!product.value) {
     isModalOpen.value = true;
+    router.push(-1)
     return;
   }
 
@@ -28,7 +29,7 @@ onMounted(async () => {
 
 function handleModalClose() {
   isModalOpen.value = false;
-  router.push(-1);
+  router.push('/sale-items');
 }
 
 </script>
@@ -93,5 +94,5 @@ function handleModalClose() {
       </div>
     </div>
   </div>
-  <ErrorModal :visible="isModalOpen" message="The requested sale item does not exist." @close="handleModalClose"/>
+  <ErrorModal  :visible="isModalOpen" message="The requested sale item does not exist." @close="handleModalClose"/>
 </template>
