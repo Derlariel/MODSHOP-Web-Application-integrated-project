@@ -11,7 +11,8 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 const isLoading = ref(true);
 const adminMode = ref(false);
-const isModalOpen = ref(sessionStorage.getItem('productStatus'))
+const showModal = sessionStorage.getItem('productStatus') === 'true';
+const isModalOpen = ref(showModal);
 console.log(isModalOpen);
 
 const props = defineProps({
@@ -32,6 +33,7 @@ const productImages = productStore.productImages;
 const product = computed(() => productStore.allProducts);
 
 onMounted(async () => {
+  sessionStorage.setItem
   await productStore.loadProducts();
 
   if (product.value.length === 0) {
