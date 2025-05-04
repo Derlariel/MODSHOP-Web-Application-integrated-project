@@ -16,8 +16,9 @@ onMounted(async () => {
   const result = await productStore.fetchProductDetail(productId);
   product.value = result;
 
-  if (product.value === null || !product.value) {
+  if (!product.value) {
     sessionStorage.setItem('productStatus', true)
+    console.log(sessionStorage.getItem('productStatus'));
     router.go(-1)
     return;
   }
