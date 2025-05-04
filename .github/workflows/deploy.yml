@@ -1,4 +1,4 @@
-name: Deploy to Self-Hosted Runner
+name: Deploy PBI-1 AND PBI-2
 
 on:
   push:
