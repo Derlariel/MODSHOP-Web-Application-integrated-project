@@ -4,6 +4,7 @@ import Navbar from "../shared/Navbar.vue";
 import SideBar from "../shared/SideBar.vue";
 import { computed, onMounted, ref } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
+import ErrorModal from '../shared/modal/ErrorModal.vue';
 import DEFAULT_IMAGE from "@/assets/default.jpg";
 import { useRouter } from "vue-router";
 
@@ -41,12 +42,14 @@ const detail = (productId) => {
 </script>
 
 <template>
+
   <div class="flex h-screen">
     <SideBar />
+    <ErrorModal  :visible="isModalOpen" message="The requested sale item does not exist." @close="handleModalClose"/>
 
 
     <!-- Content (ListModel) -->
-    <div class="flex-1 overflow-y-auto p-4">
+    <div v-if="!isModalOpen" class="flex-1 overflow-y-auto p-4">
       <ListModel :saleItems="productStore.allProducts" :viewType="viewType" :adminMode="adminMode">
 
         <template #listHeader>

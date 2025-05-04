@@ -3,7 +3,6 @@ import { useRoute, useRouter } from 'vue-router';
 import { useProductStore } from "@/stores/useProductStore";
 import { computed, onMounted, ref } from 'vue';
 import DEFAULT_IMAGE from "@/assets/default.jpg";
-import ErrorModal from '../shared/modal/ErrorModal.vue';
 const router = useRouter();
 const route = useRoute();
 const productId = Number(route.params.productId);
@@ -94,5 +93,4 @@ function handleModalClose() {
       </div>
     </div>
   </div>
-  <ErrorModal  :visible="isModalOpen" message="The requested sale item does not exist." @close="handleModalClose"/>
 </template>
