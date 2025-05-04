@@ -20,7 +20,7 @@ const toggleMobileMenu = () => {
       <div class="relative flex justify-between items-center h-16 w-full px-4 sm:px-6 lg:px-8">
         <!-- Logo (ซ้ายสุด) -->
         <router-link to="/">
-          <div class="text-2xl font-bold tracking-wide text-blue-600">Phonezy</div>
+          <div class="text-2xl font-bold tracking-wide text-blue-600">KK1</div>
         </router-link>
 
         <!-- Desktop Menu -->
