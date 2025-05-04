@@ -3,7 +3,15 @@ import { useProductStore } from '@/stores/useProductStore';
 import { computed, onMounted, ref } from 'vue';
 
 const productStore = useProductStore()
+const isAvailable = ref(false)
 
+const checkAvailable = () => {
+  if (isAvailable.value) {
+    productStore.allProducts = productStore.allProducts.filter(product => product.available)
+  } else {
+    productStore.loadProducts()
+  }
+}
 onMounted(() => {
   productStore.loadProducts()
 })
@@ -35,7 +43,7 @@ function toggleBrand(brand) {
   <div class="w-64 p-4 border-r border-gray-300 bg-gray-100 text-sm space-y-6">
     <!-- Check box -->
     <div class="flex items-center space-x-2">
-      <input type="checkbox" id="availableOnly" class="w-4 h-4">
+      <input  v-model="isAvailable" @change="checkAvailable" type="checkbox" id="availableOnly" class="w-4 h-4">
       <label for="availableOnly" class="text-black font-medium cursor-pointer hover:underline">
         Show available products
       </label>
