@@ -11,8 +11,8 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 const isLoading = ref(true);
 const adminMode = ref(false);
-const isModalOpen = ref(sessionStorage.getItem('productStatus'))
-console.log(isModalOpen.value);
+const isModalOpen = ref(false)
+console.log(sessionStorage.getItem('error-message'));
 
 const props = defineProps({
   viewType: {

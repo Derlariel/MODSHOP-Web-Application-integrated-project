@@ -16,11 +16,11 @@ onMounted(async () => {
   const result = await productStore.fetchProductDetail(productId);
   product.value = result;
 
-  if (!product.value) {
-    sessionStorage.setItem('productStatus', true)
-    router.go(-1)
-    return;
-  }
+  if (productStore.products === null || !product.value) {
+   sessionStorage.setItem('error-message', 'The requested sale item does not exist.');
+   router.push('/sale-items');
+   return;
+ }
 
   isLoading.value = false;
 });
