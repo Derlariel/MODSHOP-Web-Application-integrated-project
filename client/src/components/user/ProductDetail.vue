@@ -18,9 +18,9 @@ onMounted(async () => {
   const result = await productStore.fetchProductDetail(productId);
   product.value = result;
 
-  if (!product.value) {
+  if (product.value === null || !product.value) {
     isModalOpen.value = true;
-    router.push(-1)
+    router.go(-1)
     return;
   }
 
