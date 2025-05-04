@@ -39,4 +39,10 @@ public class SaleItemController {
         return ResponseEntity.ok(modelMapper.map(saleItemService.getSaleItemById(id), SaleItemDetailDto.class));
     }
 
+    @DeleteMapping("/delete-all")
+    public ResponseEntity<Void> deleteAllProducts() {
+        saleItemService.deleteAllForTest();
+        return ResponseEntity.noContent().build();
+    }
+
 }

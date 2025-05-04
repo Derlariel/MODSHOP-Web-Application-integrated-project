@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          token: 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
 
       - name: Auto Deploy container application itb-mshop 
         run: |
