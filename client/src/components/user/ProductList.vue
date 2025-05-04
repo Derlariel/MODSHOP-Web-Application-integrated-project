@@ -23,6 +23,7 @@ const props = defineProps({
 
 function handleModalClose() {
   isModalOpen.value = false;
+  sessionStorage.setItem('productStatus', false)
   router.push({name: 'sale-items'});
 }
 
