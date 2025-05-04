@@ -1,4 +1,4 @@
-name: Deploy PBI-1 AND PBI-2 Sprint 2 test
+name: Deploy PBI-1 AND PBI-2 Sprint 2 test kk1
 
 on:
   push:
@@ -12,14 +12,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          token: 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
 
       - name: Auto Deploy container application itb-mshop 
         run: |
           set -x  
           cd /home/sysadmin/2-2567_INT221_KK-1 
-          git pull origin pre-dev
+          git pull https://napatzzz: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@github.com/Derlariel/2-2567_INT221_KK-1.git pre-dev
           cd client
           npm i
           npm run build 
