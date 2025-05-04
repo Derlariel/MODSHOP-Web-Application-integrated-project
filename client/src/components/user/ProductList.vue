@@ -11,8 +11,8 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 const isLoading = ref(true);
 const adminMode = ref(false);
-const isModalOpen = ref(sessionStorage.getItem('productStatus'))
-console.log(isModalOpen.value);
+const isModalOpen = sessionStorage.getItem('productStatus')
+console.log(isModalOpen);
 
 const props = defineProps({
   viewType: {
@@ -22,8 +22,8 @@ const props = defineProps({
 });
 
 function handleModalClose() {
-  isModalOpen.value = false;
-  sessionStorage.setItem('productStatus', false)
+  isModalOpen = false;
+  sessionStorage.removeItem('productStatus')
   router.push({name: 'sale-items'});
 }
 
