@@ -18,7 +18,6 @@ onMounted(async () => {
 
   if (!product.value) {
     sessionStorage.setItem('productStatus', true)
-    console.log(sessionStorage.getItem('productStatus'));
     router.go(-1)
     return;
   }

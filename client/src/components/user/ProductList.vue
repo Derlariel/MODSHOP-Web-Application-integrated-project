@@ -12,6 +12,8 @@ const router = useRouter();
 const isLoading = ref(true);
 const adminMode = ref(false);
 const isModalOpen = ref(sessionStorage.getItem('productStatus'))
+console.log(isModalOpen.value);
+
 const props = defineProps({
   viewType: {
     type: String,
