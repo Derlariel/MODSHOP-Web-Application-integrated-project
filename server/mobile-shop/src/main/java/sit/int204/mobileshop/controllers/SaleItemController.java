@@ -34,9 +34,8 @@ public class SaleItemController {
 
     @Operation(summary = "Get all sale items", description = "Retrieve a list of all available sale items")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved all sale items", 
-                    content = @Content(schema = @Schema(implementation = SaleItemDto.class))),
-        @ApiResponse(responseCode = "204", description = "No sale items found", content = @Content)
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved all sale items", content = @Content(schema = @Schema(implementation = SaleItemDto.class))),
+            @ApiResponse(responseCode = "204", description = "No sale items found", content = @Content)
     })
     @GetMapping("")
     public ResponseEntity<List<SaleItemDto>> getAllProducts() {
@@ -49,10 +48,8 @@ public class SaleItemController {
 
     @Operation(summary = "Get sale item by ID", description = "Retrieve a sale item by its ID")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved the sale item", 
-                    content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class))),
-        @ApiResponse(responseCode = "404", description = "Sale item not found", 
-                    content = @Content(schema = @Schema(implementation = MyErrorResponse.class)))
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved the sale item", content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class))),
+            @ApiResponse(responseCode = "404", description = "Sale item not found", content = @Content(schema = @Schema(implementation = MyErrorResponse.class)))
     })
     @GetMapping("/{id}")
     public ResponseEntity<SaleItemDetailDto> getProductById(@PathVariable Integer id) {
@@ -66,5 +63,7 @@ public class SaleItemController {
         saleItemService.deleteAllForTest();
         return ResponseEntity.noContent().build();
     }
+
+
 
 }
