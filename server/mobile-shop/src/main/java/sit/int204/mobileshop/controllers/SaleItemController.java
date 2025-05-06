@@ -58,7 +58,7 @@ public class SaleItemController {
 
     @Operation(summary = "Delete all sale items", description = "Delete all sale items (for testing purposes only)")
     @ApiResponse(responseCode = "204", description = "All sale items deleted successfully")
-    @DeleteMapping("/delete-all")
+    @DeleteMapping("/delete/all")
     public ResponseEntity<Void> deleteAllProducts() {
         saleItemService.deleteAllForTest();
         return ResponseEntity.noContent().build();

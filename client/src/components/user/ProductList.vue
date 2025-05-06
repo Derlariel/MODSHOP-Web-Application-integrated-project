@@ -29,19 +29,29 @@ const productStore = useProductStore();
 const productImages = productStore.productImages;
 const product = computed(() => productStore.allProducts);
 
-onMounted(async () => {
-  await productStore.loadProducts();
-
-  // เปิด modal ถ้ามี error-message
-  isModalOpen.value = sessionStorage.getItem("error-message") !== null;
-
-  if (product.value.length === 0) {
-    router.push({ name: "error-page", query: { code: 200 } });
-    return;
+async function initProducts() {
+  try {
+    await productStore.loadProducts();
+    if (product.value.length === 0) {
+      router.push({ name: "error-page", query: { code: 200 } });
+      return;
+    }
+  } catch (err) {
+    console.error("Load products failed:", err);
+  } finally {
+    isLoading.value = false;
   }
+}
 
-  isLoading.value = false;
+function checkForErrorModal() {
+  isModalOpen.value = sessionStorage.getItem("error-message") !== null;
+}
+
+onMounted(async () => {
+  await initProducts();
+  checkForErrorModal();
 });
+
 
 const detail = (productId) => {
   router.push({

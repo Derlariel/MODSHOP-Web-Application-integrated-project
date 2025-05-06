@@ -17,10 +17,10 @@ onMounted(async () => {
   product.value = result;
 
   if (productStore.products === null || !product.value) {
-   sessionStorage.setItem('error-message', 'The requested sale item does not exist.');
-   router.push('/sale-items');
-   return;
- }
+    sessionStorage.setItem('error-message', 'The requested sale item does not exist.');
+    router.push('/sale-items');
+    return;
+  }
 
   isLoading.value = false;
 });
@@ -50,7 +50,7 @@ onMounted(async () => {
       <div class="flex flex-col gap-4 sm:gap-6">
         <div class="itbms-row flex flex-wrap gap-x-2 gap-y-1">
           <h1 class="itbms-brand text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
-            {{ product.brandName }} 
+            {{ product.brandName }}
           </h1>
           <h1 class="itbms-model text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
             {{ product.model }}
@@ -59,7 +59,7 @@ onMounted(async () => {
             {{ product.storageGb === null ? '-' : product.storageGb }}
           </h1>
           <h1 class="itbms-storageGb-unit text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
-            GB 
+            GB
           </h1>
           <h1 class="itbms-color text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight leading-tight">
             {{ product.color === null ? '-' : product.color }}
@@ -73,15 +73,18 @@ onMounted(async () => {
         <div>
           <p class="itbms-description text-gray-700 leading-relaxed text-sm sm:text-base">{{ product.description }}</p>
           <ul class="mt-4 text-sm sm:text-base text-gray-600 space-y-1">
-            <li class="itbms-ramGb">RAM: {{ product.ramGb === null ? '-' : product.ramGb }} <span class="itbms-ramGb-unit">GB</span></li>
-            <li class="itbms-screenSizeInch">Screen: {{ product.screenSizeInch === null ? '-' : product.screenSizeInch }} <span class="itbms-screenSizeInch-unit">Inches</span></li>
+            <li class="itbms-ramGb">RAM: {{ product.ramGb === null ? '-' : product.ramGb }} <span
+                class="itbms-ramGb-unit">GB</span></li>
+            <li class="itbms-screenSizeInch">Screen: {{ product.screenSizeInch === null ? '-' : product.screenSizeInch
+              }} <span class="itbms-screenSizeInch-unit">Inches</span></li>
             <li>Storage: {{ product.storageGb }} GB</li>
             <li>Color: {{ product.color === null ? '-' : product.color }}</li>
             <li class="itbms-quantity">Quantity: {{ product.quantity }}</li>
           </ul>
         </div>
 
-        <button class="mt-6 bg-black text-white text-sm font-medium px-6 py-3 rounded-md hover:bg-gray-800 transition w-full sm:w-auto">
+        <button
+          class="mt-6 bg-black text-white text-sm font-medium px-6 py-3 rounded-md hover:bg-gray-800 transition w-full sm:w-auto">
           Add to Cart
         </button>
       </div>
