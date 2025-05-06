@@ -30,7 +30,7 @@ const toggleMobileMenu = () => {
         <!-- Logo (ซ้ายสุด) -->
         <router-link to="/">
           <div class="text-2xl font-bold tracking-wide text-blue-600">
-            Phonezy
+            KK1
           </div>
         </router-link>
 
