@@ -19,7 +19,7 @@ import sit.int204.mobileshop.utils.ListMapper;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://ip24kk1.sit.kmutt.ac.th")
+@CrossOrigin(origins = "${app.origins}")
 @RestController
 @RequestMapping("/v1/sale-items")
 public class SaleItemController {
