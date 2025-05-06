@@ -1,7 +1,7 @@
-name: Deploy PBI-1 AND PBI-2 Sprint 2 test after no sale items
+name: Deploy PBI-1 AND PBI-2 Sprint 1 test 
 
 on:
-  pull_request:
+  push:
     branches:
       - pre-dev
 
