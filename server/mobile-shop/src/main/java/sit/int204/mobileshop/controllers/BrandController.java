@@ -11,7 +11,7 @@ import sit.int204.mobileshop.utils.ListMapper;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "${app.origins}")
 @RestController
 @RequestMapping("/v1/brands")
 public class BrandController {
