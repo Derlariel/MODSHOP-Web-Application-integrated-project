@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
+
 public class SaleItemDetailDto<T> {
     private Integer id;
     private String model;
