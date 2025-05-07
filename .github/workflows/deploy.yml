@@ -1,9 +1,9 @@
-name: Deploy to Self-Hosted Runner
+name: Deploy PBI-1 AND PBI-2 Sprint 1 test 
 
 on:
-  push:
+  pull_request:
     branches:
-      - dev
+      - pre-dev
 
 jobs:
   deploy:
@@ -13,13 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Auto Deploy application itb-mshop
+      - name: Auto Deploy container application itb-mshop 
         run: |
           set -x  
           cd /home/sysadmin/2-2567_INT221_KK-1 
-          git pull origin dev
+          git pull https://napatzzz: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@github.com/Derlariel/2-2567_INT221_KK-1.git pre-dev
           cd client
           npm i
-          npm run build -- --base=/itb-mshop
+          npm run build 
           docker compose down -v
           docker compose up -d --build

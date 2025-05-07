@@ -1,80 +1,71 @@
 <script setup>
-import { Search, Heart, ShoppingCart, User } from "lucide-vue-next";
+import {
+  Heart,
+  ShoppingCart,
+  User,
+  UserCog,
+  Menu,
+} from "lucide-vue-next";
 import ThemeToggle from "./ThemeToggle.vue";
 import { useRoute } from "vue-router";
+import { useAppStore } from "@/stores/useAppStore";
+import { ref } from "vue";
 
 const route = useRoute();
+const appStore = useAppStore();
+const isMobileMenuOpen = ref(false);
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+};
 </script>
 
 <template>
-  <nav
-    class="sticky w-full z-50 h-16 flex items-center justify-between px-8 py-2 bg-white shadow text-gray-800"
-  >
-    <!-- Left: Logo -->
-    <router-link to="/">
-      <div class="itmbs-logo text-2xl font-bold tracking-wide text-blue-600">Phonezy</div>
-    </router-link>
+  <nav class="fixed top-0 inset-x-0 bg-black bg-opacity-80 backdrop-blur-lg z-50 border-b border-neutral-800">
+    <div class="relative flex justify-between items-center h-14 w-full px-4 sm:px-6 lg:px-8">
+      <!-- Logo -->
+      <router-link to="/">
+        <div class="text-xl font-light tracking-wide text-white">KK1</div>
+      </router-link>
 
-    <!-- Center: Menu -->
-    <ul
-      class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex space-x-6 font-medium"
-    >
-      <li
-        :class="
-          route.path === '/main'
-            ? 'text-blue-600 font-bold'
-            : 'hover:text-blue-600'
-        "
-      >
-        <router-link to="/main" class="itmbs-home">Home</router-link>
-      </li>
-      <li
-        :class="
-          route.path === '/v1/sale-items'
-            ? 'text-blue-600 font-bold'
-            : 'hover:text-blue-600'
-        "
-      >
-        <router-link to="/v1/sale-items" class="itmbs-product">Product ▼</router-link>
-      </li>
-      <li
-        :class="
-          route.path === '/brand'
-            ? 'text-blue-600 font-bold'
-            : 'hover:text-blue-600'
-        "
-      >
-        Brand
-      </li>
-      <li
-        :class="
-          route.path === '/about'
-            ? 'text-blue-600 font-bold'
-            : 'hover:text-blue-600'
-        "
-      >
-        About
-      </li>
-    </ul>
-
-    <!-- Right: Search + Icons + ThemeToggle -->
-    <div class="flex items-center space-x-4">
-      <div class="relative">
-        <input
-          type="text"
-          placeholder="What are you looking for?"
-          class="itmbs-search pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none w-64"
-        />
-        <Search
-          class="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-400 w-5 h-5"
-        />
+      <!-- Desktop Nav -->
+      <div class="hidden lg:flex justify-center flex-1 text-white font-light">
+        <ul class="flex justify-center space-x-6 lg:space-x-10 xl:space-x-12 font-light">
+          <li :class="route.path === '/main' ? 'text-white font-bold' : 'hover:text-white'">
+            <router-link to="/main">Home</router-link>
+          </li>
+          <li :class="route.path.startsWith('/sale-items') ? 'text-white font-light' : 'hover:text-white'">
+            <router-link to="/sale-items">Product</router-link>
+          </li>
+          <li class="hover:text-white">
+            <router-link to="/brand">Brand</router-link>
+          </li>
+          <li class="hover:text-white">
+            <router-link to="/about">About</router-link>
+          </li>
+        </ul>
       </div>
 
-      <Heart class="itmbs-favorite w-5 h-5 cursor-pointer hover:text-blue-600" />
-      <ShoppingCart class="itmbs-cart w-5 h-5 cursor-pointer hover:text-blue-600" />
-      <User class="itmbs-user w-5 h-5 cursor-pointer hover:text-blue-600" />
+      <!-- Icons -->
+      <div class="hidden lg:flex text-white items-center space-x-4">
+        <Heart class="w-5 h-5 cursor-pointer hover:text-white" />
+        <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
+        <div @click="appStore.toggleAdminMode" class="cursor-pointer">
+          <component :is="appStore.adminMode ? UserCog : User" class="w-5 h-5" />
+        </div>
+      </div>
 
-      <ThemeToggle />
+      <!-- Mobile Menu Button -->
+      <div class="lg:hidden cursor-pointer" @click="toggleMobileMenu">
+        <Menu class="w-6 h-6 text-white" />
+      </div>
+    </div>
+
+    <!-- Mobile Nav -->
+    <div v-if="isMobileMenuOpen" class="lg:hidden px-6 py-4 space-y-4 border-t text-center font-semibold text-white bg-black bg-opacity-90">
+      <router-link to="/main" class="block hover:text-blue-400">Home</router-link>
+      <router-link to="/sale-items" class="block hover:text-blue-400">Product</router-link>
+      <router-link to="/brand" class="block hover:text-blue-400">Brand</router-link>
+      <router-link to="/about" class="block hover:text-blue-400">About</router-link>
     </div>
   </nav>
 </template>

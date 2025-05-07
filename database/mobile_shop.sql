@@ -16,7 +16,7 @@ CREATE TABLE brand (
 );
 
 DELIMITER //
-CREATE TRIGGER trim_brand_name BEFORE INSERT ON brand
+CREATE TRIGGER trim_brand_on_insert BEFORE INSERT ON brand
 FOR EACH ROW
 BEGIN
     SET NEW.name = TRIM(NEW.name);
@@ -26,7 +26,7 @@ END//
 DELIMITER ;
 
 DELIMITER //
-CREATE TRIGGER trim_brand_name_update BEFORE UPDATE ON brand
+CREATE TRIGGER trim_brand_on_update BEFORE UPDATE ON brand
 FOR EACH ROW
 BEGIN
     SET NEW.name = TRIM(NEW.name);

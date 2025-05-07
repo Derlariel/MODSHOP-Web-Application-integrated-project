@@ -3,9 +3,10 @@ import LandingLayout from '@/layout/LandingLayout.vue';
 import DefaultLayout from '@/layout/DefaultLayout.vue';
 import HomePage from '@/pages/HomePage.vue';
 import MainPage from '@/components/user/MainPage.vue';
-import ProductList from '@/components/user/ProductList.vue';
 import ProductManager from '@/components/user/ProductManager.vue';
 import ProductDetail from '@/components/user/ProductDetail.vue';
+import { components } from 'daisyui/imports';
+import ProductAdd from '@/components/user/ProductAdd.vue';
 
 const routes = [
   {
@@ -29,19 +30,19 @@ const routes = [
         component: MainPage,
       },
       {
-        path: 'v1/sale-items',
-        name: 'Product',
-        component: ProductList,
-      },
-      {
-        path: '/v1/sale-items',
+        path: 'sale-items',
         component: ProductManager,
         children: [
+          {
+            path: 'add',
+            component: ProductAdd,
+            name: 'product-add'
+          },
           {
             path: ':productId',
             component: ProductDetail,
             name: 'product-detail',
-          },
+          }
         ],
       },
       {
@@ -59,7 +60,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory('/itb-mshop/'),
+  history: createWebHistory(''),
   routes,
 });
 
