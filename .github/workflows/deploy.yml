@@ -1,7 +1,7 @@
-name: Deploy
+name: Deploy kk1
 
 on:
-  pull_request:
+  push:
     branches:
       - pre-dev
 
