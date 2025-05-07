@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -24,4 +25,7 @@ public class SaleItemDetailDto<T> {
     @Min(value = 0)
     private Integer storageGb;
     private String color;
+    private Instant createdOn;
+    private Instant updatedOn;
+
 }

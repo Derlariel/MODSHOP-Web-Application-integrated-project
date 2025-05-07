@@ -5,6 +5,8 @@ import HomePage from '@/pages/HomePage.vue';
 import MainPage from '@/components/user/MainPage.vue';
 import ProductManager from '@/components/user/ProductManager.vue';
 import ProductDetail from '@/components/user/ProductDetail.vue';
+import { components } from 'daisyui/imports';
+import ProductAdd from '@/components/user/ProductAdd.vue';
 
 const routes = [
   {
@@ -32,21 +34,15 @@ const routes = [
         component: ProductManager,
         children: [
           {
-            path: ':productId',
-            component: ProductDetail,
-            name: 'product-detail',
+            path: 'add',
+            component: ProductAdd,
+            name: 'product-add'
           },
-        ],
-      },
-      {
-        path: 'sale-items',
-        component: ProductManager,
-        children: [
           {
             path: ':productId',
             component: ProductDetail,
             name: 'product-detail',
-          },
+          }
         ],
       },
       {
