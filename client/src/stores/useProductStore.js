@@ -45,6 +45,11 @@ export const useProductStore = defineStore("product", {
     }
   },
   actions: {
+    async fetchProductDetail(id) {
+      const product = await fetchWithErrorHandling(`${BASE_URL}/v1/sale-items/${id}`);
+      this.selectedProduct = product;
+      return product;
+    },
     async loadProducts() {
       try {
         const data = await getProducts(`${BASE_URL}/v1/sale-items`);
@@ -59,6 +64,7 @@ export const useProductStore = defineStore("product", {
         console.error("Failed to load all products", err);
       }
     },
+    
     async fetchProductDetail(id) {
       try {
         return await getProductById(`${BASE_URL}/v1/sale-items`, id);

@@ -32,7 +32,7 @@ async function initProducts() {
   try {
     await productStore.loadProducts();
     if (product.value.length === 0) {
-      router.push({ name: "error-page", query: { fallback: "No sale item" } });
+      router.push({ name: "error-page", query: { code: "NODATA" } });
       return;
     }
   } catch (err) {
@@ -60,7 +60,7 @@ const detail = (productId) => {
 </script>
 
 <template>
-  <div class=" min-h-screen bg-black text-white">
+  <div v-if="!isLoading && product.length > 0" class=" min-h-screen bg-black text-white">
 
     <div class="pt-24 pb-16 px-6 bg-gradient-to-b from-neutral-900 to-black">
       <div class="max-w-[1200px] mx-auto text-center">
@@ -212,6 +212,9 @@ const detail = (productId) => {
         </div>
       </div>
     </footer>
+  </div>
+  <div v-else>
+    No sale item
   </div>
 </template>
 
