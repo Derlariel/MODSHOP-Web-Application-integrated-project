@@ -1,4 +1,4 @@
-name: Deploy PBI-1 AND PBI-2 Sprint 1
+name: Deploy PBI-1 AND PBI-2 Sprint
 
 on:
   pull_request:
