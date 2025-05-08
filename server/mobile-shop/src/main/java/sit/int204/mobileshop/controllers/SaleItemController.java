@@ -1,7 +1,9 @@
 package sit.int204.mobileshop.controllers;
 
+import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import sit.int204.mobileshop.dtos.SaleItemDetailDto;
 import sit.int204.mobileshop.dtos.SaleItemDto;
+import sit.int204.mobileshop.dtos.SaleItemRequestDto;
 import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.exceptions.MyErrorResponse;
 import sit.int204.mobileshop.services.SaleItemService;
@@ -55,6 +58,16 @@ public class SaleItemController {
     public ResponseEntity<SaleItemDetailDto> getProductById(@PathVariable Integer id) {
         return ResponseEntity.ok(modelMapper.map(saleItemService.getSaleItemById(id), SaleItemDetailDto.class));
     }
+
+    @Operation(summary = "Add new sale item", description = "Create a new sale item")
+    @ApiResponse(responseCode = "201", description = "Sale item created successfully", content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class)))
+    @PostMapping
+    public ResponseEntity<SaleItemDetailDto> createSaleItem(@Valid @RequestBody SaleItemRequestDto dtoItem) {
+        SaleItem createItem = saleItemService.createSaleItem(dtoItem);
+        SaleItemDetailDto responseDto = modelMapper.map(createItem, SaleItemDetailDto.class);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    }
+
 
     @Operation(summary = "Delete all sale items", description = "Delete all sale items (for testing purposes only)")
     @ApiResponse(responseCode = "204", description = "All sale items deleted successfully")
