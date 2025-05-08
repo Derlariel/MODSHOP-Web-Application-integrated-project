@@ -115,6 +115,9 @@ public class SaleItemService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update Sale Item");
         }
 
+        System.out.println("Updating sale item id = " + id);
+        System.out.println("Model = " + dtoItem.getModel());
+        System.out.println("Brand = " + dtoItem.getBrand().getName());
         return modelMapper.map(updatedItem, SaleItemDetailDto.class);
     }
 
