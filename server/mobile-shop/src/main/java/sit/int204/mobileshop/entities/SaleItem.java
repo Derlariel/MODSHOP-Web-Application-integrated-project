@@ -16,6 +16,7 @@ import java.time.Instant;
 @Table(name = "sale_item")
 public class SaleItem {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
@@ -67,3 +68,4 @@ public class SaleItem {
     private Instant updatedOn;
 
 }
+

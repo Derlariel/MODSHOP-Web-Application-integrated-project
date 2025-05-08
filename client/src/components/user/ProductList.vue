@@ -1,6 +1,5 @@
 <script setup>
 import ListModel from "../shared/ListModel.vue";
-import SideBar from "../shared/SideBar.vue";
 import ErrorModal from "../shared/modal/ErrorModal.vue";
 import { computed, onMounted, ref } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
@@ -33,7 +32,7 @@ async function initProducts() {
   try {
     await productStore.loadProducts();
     if (product.value.length === 0) {
-      router.push({ name: "error-page", query: { code: 200 } });
+      router.push({ name: "error-page", query: { code: "NODATA" } });
       return;
     }
   } catch (err) {
@@ -61,7 +60,7 @@ const detail = (productId) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-black text-white">
+  <div v-if="!isLoading && product.length > 0" class=" min-h-screen bg-black text-white">
 
     <div class="pt-24 pb-16 px-6 bg-gradient-to-b from-neutral-900 to-black">
       <div class="max-w-[1200px] mx-auto text-center">
@@ -74,21 +73,14 @@ const detail = (productId) => {
 
     <div class="max-w-[1200px] mx-auto px-6 pb-20">
 
-      <ErrorModal
-        :visible="isModalOpen"
-        message="The requested sale item does not exist."
-        @close="handleModalClose"
-      />
+      <ErrorModal :visible="isModalOpen" message="The requested sale item does not exist." @close="handleModalClose" />
 
 
       <div v-if="!isLoading && !isModalOpen" class="flex-1 overflow-y-auto">
-        <ListModel
-          :saleItems="productStore.allProducts"
-          :viewType="viewType"
-          :adminMode="adminMode"
-        >
+        <ListModel :saleItems="productStore.allProducts" :viewType="viewType" :adminMode="adminMode">
           <template #listHeader>
-            <div v-if="viewType === 'list'" class="grid grid-cols-7 gap-4 py-3 px-4 border-b border-neutral-800 text-gray-400 text-sm font-medium">
+            <div v-if="viewType === 'list'"
+              class="grid grid-cols-7 gap-4 py-3 px-4 border-b border-neutral-800 text-gray-400 text-sm font-medium">
               <span>IMAGE</span>
               <span>BRAND</span>
               <span>MODEL</span>
@@ -101,60 +93,62 @@ const detail = (productId) => {
 
           <template #listItems="{ Item: product, viewType }">
             <!-- Gallery -->
-            <div
-              v-if="viewType === 'gallery'"
-              @click="detail(product.id)"
-              class="itbms-row group cursor-pointer transform transition-all duration-500"
-            >
-              <div class="relative h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br backdrop-blur-2xl from-white to-neutral-300/90 mb-4 perspective">
-                <div class="absolute -inset-2 flex items-center justify-center p-0 transform-style-3d transition-transform duration-700">
-                  <img
-                    :src="productImages[1] || DEFAULT_IMAGE"
-                    class="max-h-full max-w-full object-contain transform transition-all duration-700 -mt-10  hover:scale-[1.1]"
-                    alt=""
-                  />
-                  
-                  <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/30 to-transparent transform translate-z-0"></div>
-                </div>
-                
-                <div class="absolute bottom-6 left-6 flex space-x-3">
-                  <div class="bg-gradient-to-r from-neutral-600 to-neutral-800 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium">
-                    <span class="itbms-ramGb flex">{{ product.ramGb === null ? '-' : product.ramGb }} <p class="itbms-storageGb-unit">{{ product.ramGb === null ? '-' : 'GB'}}</p> <p class="ml-1">RAM</p></span>
+
+            <div v-if="viewType === 'gallery'" @click="detail(product.id)"
+              class="itbms-row group cursor-pointer transform transition-all duration-500 hover:scale-[1.02] gap-8 ">
+              <div
+                class="relative h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-white to-neutral-100 mb-4 perspective group-hover:shadow-2xl group-hover:shadow-white/30 transition-shadow duration-700">
+                <div class="absolute inset-0 flex items-center justify-center transition-transform duration-700">
+                  <img :src="productImages[Number(product.id)] || DEFAULT_IMAGE"
+                    class="max-h-full max-w-full object-contain transform transition-transform duration-700 -mt-10 group-hover:scale-110"
+                    alt="" />
+                  <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/30 to-transparent">
                   </div>
-                  <div class="bg-gradient-to-r from-neutral-600 to-neutral-900 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium">
-                    <span class="itbms-storageGb flex">{{ product.storageGb === null ? '-' : product.storageGb }}<p class="itbms-storageGb-unit">{{ product.storageGb === null ? '-' : 'GB'}}</p></span>
+                </div>
+
+                <div class="absolute bottom-6 left-6 flex space-x-3">
+                  <div
+                    class="bg-gradient-to-r from-neutral-600 to-neutral-800 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium">
+                    <span class="itbms-ramGb flex">{{ product.ramGb === null ? '-' : product.ramGb }} <p
+                        class="itbms-storageGb-unit">{{ product.ramGb === null ? '-' : 'GB' }}</p>
+                      <p class="ml-1">RAM</p>
+                    </span>
+                  </div>
+                  <div
+                    class="bg-gradient-to-r from-neutral-600 to-neutral-900 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium">
+                    <span class="itbms-storageGb flex">{{ product.storageGb === null ? '-' : product.storageGb }}<p
+                        class="itbms-storageGb-unit">{{ product.storageGb === null ? '-' : 'GB' }}</p></span>
                   </div>
                 </div>
               </div>
-              
+
               <div class="space-y-2 px-2">
                 <div class="flex justify-between items-start">
                   <h2 class="itbms-brand text-lg font-semibold">{{ product.brandName }}</h2>
                   <p class="itbms-price text-lg font-medium">฿{{ product.price.toLocaleString() }}</p>
                 </div>
                 <p class="itbms-model text-base text-gray-400">{{ product.model }}</p>
-                
+
                 <div class="pt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <button class="w-full bg-white text-black rounded-full py-1 font-medium hover:bg-gray-200 transition-colors">
+                  <button
+                    class="w-full bg-white text-black rounded-full py-1 font-medium hover:bg-gray-200 transition-colors">
                     Buy
                   </button>
                 </div>
               </div>
             </div>
-
-            <div 
-              v-else 
-              @click="detail(product.id)"
-              class="border-b border-neutral-800 hover:bg-neutral-900 transition-colors"
-            >
+            <!-- List view -->
+            <div v-else @click="detail(product.id)"
+              class="border-b relative  border-neutral-800 hover:bg-neutral-900 transition-colors">
               <div class="grid grid-cols-7 items-center gap-4 py-6 px-4">
-                <div class="bg-gradient-to-br from-neutral-800 to-neutral-900 w-24 h-24 rounded-xl flex items-center justify-center overflow-hidden perspective">
-                  <div class="transform-style-3d hover:rotate-y-10 transition-transform duration-500 w-full h-full flex items-center justify-center">
-                    <img
-                      :src="productImages[Number(product.id)] || DEFAULT_IMAGE"
-                      class="itbms-image max-h-full max-w-full object-contain hover:scale-110 transition-transform duration-500"
-                      alt=""
-                    />
+                <!-- 3D effect for list view images too -->
+                <div
+                  class="bg-gradient-to-br from-neutral-800 to-neutral-900 w-24 h-24 rounded-xl flex items-center justify-center overflow-hidden perspective">
+                  <div
+                    class="transform-style-3d hover:rotate-y-10 transition-transform duration-500 w-full h-full flex items-center justify-center">
+                    <img :src="productImages[Number(product.id)] || DEFAULT_IMAGE"
+                      class="itbms-image max-h-full max-w-full object-contain hover:scale-105 transition-transform duration-500"
+                      alt="" />
                   </div>
                 </div>
                 <div class="itbms-brand font-medium">{{ product.brandName }}</div>
@@ -220,26 +214,18 @@ const detail = (productId) => {
       </div>
     </footer>
   </div>
+  <div v-else>
+    No sale item
+  </div>
 </template>
 
 <style>
 
 .perspective {
-  perspective: 1000px;
+  perspective: 800px;
 }
+
 .transform-style-3d {
   transform-style: preserve-3d;
-}
-.rotate-y-10 {
-  transform: rotateY(10deg);
-}
-.rotate-x-5 {
-  transform: rotateX(5deg);
-}
-.translate-z-20 {
-  transform: translateZ(20px);
-}
-.translate-z-0 {
-  transform: translateZ(0);
 }
 </style>
