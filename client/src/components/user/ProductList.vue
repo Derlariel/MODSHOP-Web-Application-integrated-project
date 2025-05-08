@@ -104,13 +104,13 @@ const detail = (productId) => {
             <div
               v-if="viewType === 'gallery'"
               @click="detail(product.id)"
-              class="itbms-row group cursor-pointer transform transition-all duration-500 hover:scale-[1.02]"
+              class="itbms-row group cursor-pointer transform transition-all duration-500"
             >
-              <div class="relative h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-white to-neutral-100 mb-4 perspective">
-                <div class="absolute inset-0 flex items-center justify-center p-0 transform-style-3d group-hover:rotate-y-10 group-hover:rotate-x-5 transition-transform duration-700">
+              <div class="relative h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br backdrop-blur-2xl from-white to-neutral-300/90 mb-4 perspective">
+                <div class="absolute -inset-2 flex items-center justify-center p-0 transform-style-3d transition-transform duration-700">
                   <img
                     :src="productImages[1] || DEFAULT_IMAGE"
-                    class="max-h-full max-w-full object-contain transform transition-all duration-700 -mt-10 group-hover:scale-110 group-hover:translate-z-20"
+                    class="max-h-full max-w-full object-contain transform transition-all duration-700 -mt-10  hover:scale-[1.1]"
                     alt=""
                   />
                   
@@ -142,14 +142,12 @@ const detail = (productId) => {
               </div>
             </div>
 
-            <!-- List view -->
             <div 
               v-else 
               @click="detail(product.id)"
               class="border-b border-neutral-800 hover:bg-neutral-900 transition-colors"
             >
               <div class="grid grid-cols-7 items-center gap-4 py-6 px-4">
-                <!-- 3D effect for list view images too -->
                 <div class="bg-gradient-to-br from-neutral-800 to-neutral-900 w-24 h-24 rounded-xl flex items-center justify-center overflow-hidden perspective">
                   <div class="transform-style-3d hover:rotate-y-10 transition-transform duration-500 w-full h-full flex items-center justify-center">
                     <img
@@ -225,7 +223,7 @@ const detail = (productId) => {
 </template>
 
 <style>
-/* CSS for 3D effects */
+
 .perspective {
   perspective: 1000px;
 }
