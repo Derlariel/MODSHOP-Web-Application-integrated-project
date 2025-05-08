@@ -1,5 +1,6 @@
 /Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/AppRepositoryConfig.java
 /Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/MobileShopApplication.java
+/Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/controllers/BrandController.java
 /Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/controllers/ExceptionController.java
 /Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/controllers/SaleItemController.java
 /Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/dtos/BrandDto.java
@@ -10,6 +11,8 @@
 /Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/exceptions/DatabaseCommunicationException.java
 /Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/exceptions/ItemNotFoundException.java
 /Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/exceptions/MyErrorResponse.java
+/Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/repositories/BrandRepository.java
 /Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/repositories/SaleItemRepository.java
+/Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/services/BrandService.java
 /Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/services/SaleItemService.java
 /Users/napat/2-2567_INT221_KK-1/server/mobile-shop/src/main/java/sit/int204/mobileshop/utils/ListMapper.java

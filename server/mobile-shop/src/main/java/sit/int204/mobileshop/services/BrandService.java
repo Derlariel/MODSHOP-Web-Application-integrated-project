@@ -21,6 +21,10 @@ public class BrandService {
         return brandRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("Brand not found for this id :: " + id));
     }
- 
+
+    public Brand getBrandByName(String name) {
+        return brandRepository.findByName(name)
+                .orElseThrow(() -> new ItemNotFoundException("Brand not found with name: " + name));
+    }
 
 }
