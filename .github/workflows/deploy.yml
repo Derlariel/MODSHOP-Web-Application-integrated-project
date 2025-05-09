@@ -1,4 +1,4 @@
-name: Deploy kk1
+name: Deploy POST PUT
 
 on:
   push:
