@@ -1,7 +1,7 @@
-name: Deploy PBI-1 AND PBI-2 Sprint 1 test 
+name: Deploy kk1
 
 on:
-  pull_request:
+  push:
     branches:
       - pre-dev
 
@@ -18,8 +18,7 @@ jobs:
           set -x  
           cd /home/sysadmin/2-2567_INT221_KK-1 
           git pull https://napatzzz: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@github.com/Derlariel/2-2567_INT221_KK-1.git pre-dev
-          cd client
-          npm i
-          npm run build 
           docker compose down -v
           docker compose up -d --build
+          docker image prune -f
+          docker builder prune -f 

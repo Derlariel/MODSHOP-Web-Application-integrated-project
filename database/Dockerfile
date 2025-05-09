@@ -1,4 +1,4 @@
-FROM mysql
+FROM mysql:8.0
 
 COPY ./mobile_shop.sql /docker-entrypoint-initdb.d/init.sql
 
