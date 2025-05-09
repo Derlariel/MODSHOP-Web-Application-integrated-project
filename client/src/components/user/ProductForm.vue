@@ -49,13 +49,20 @@ watch(
 
 watchEffect(() => {
   const requiredFields = [
-    "brand.name",
+    "model",
+    "brand.name", 
     "price",
     "quantity",
-    "model",
     "description",
   ];
-  const requiredFieldsEmpty = requiredFields.some((field) => !temp[field]);
+
+  const requiredFieldsEmpty = requiredFields.some((field) => {
+
+    if (field === "brand.name") {
+      return !temp.brand.name;
+    }
+    return !temp[field];
+  });
 
   const keys = Object.keys(temp);
   const isUnchanged = keys.every((key) => temp[key] === props.init[key]);
@@ -66,16 +73,23 @@ watchEffect(() => {
 const submit = () => {
   const requiredFields = [
     "brand.name",
+    "model",
     "price",
     "quantity",
-    "model",
     "description",
   ];
-  const requiredFieldsEmpty = requiredFields.some((field) => !temp[field]);
-  if (requiredFieldsEmpty) return;
-  emit('submit',temp)
-};
 
+  const requiredFieldsEmpty = requiredFields.some((field) => {
+    if (field === "brand.name") {
+      return !temp.brand.name; 
+    }
+    return !temp[field];
+  });
+
+  if (requiredFieldsEmpty) return;
+
+  emit('submit', temp);
+};
 onMounted(() => {
   brandStore.loadBrands();
 });
