@@ -8,6 +8,8 @@ const productStore = useProductStore()
 
 const add = (data) => {
   productStore.createProduct(data)
+  console.log(data);
+  
 }
 
 </script>
