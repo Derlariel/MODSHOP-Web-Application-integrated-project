@@ -6,6 +6,14 @@ services:
      - "80:80"
     networks:
     - kk1-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 64M
+        reservations:
+          memory: 16M
+    restart: unless-stopped  
   database:
     build: 
       context: ./database
@@ -22,6 +30,17 @@ services:
       timeout: 20s
       retries: 5
       start_period: 40s 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          memory: 400M
+    restart: unless-stopped
+    volumes:
+      - database:/var/lib/mysql
+  
   api:
     build:
       context: ./server
@@ -33,7 +52,19 @@ services:
         condition: service_healthy   
     networks:
       - kk1-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
+        reservations:
+          memory: 256M
+    restart: unless-stopped
 
 networks:
   kk1-network:
     driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
