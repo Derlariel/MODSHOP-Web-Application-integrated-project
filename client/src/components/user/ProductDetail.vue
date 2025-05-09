@@ -3,7 +3,6 @@ import { useRoute, useRouter } from "vue-router";
 import { useProductStore } from "@/stores/useProductStore";
 import { onMounted, ref } from "vue";
 import ProductPicture from "./ProductPicture.vue";
-import DEFAULT_IMAGE from "@/assets/default.jpg";
 
 const router = useRouter();
 const route = useRoute();
@@ -13,6 +12,14 @@ const isLoading = ref(true);
 const product = ref(null);
 const isData = ref(true);
 
+const submit = () => {
+  router.push({
+    name: 'sale-items-edit',
+    params: {
+      productId: productId
+    }
+  })
+}
 
 onMounted(async () => {
   await productStore.loadProducts();
@@ -82,9 +89,7 @@ onMounted(async () => {
             <div class="border-t border-neutral-800 pt-6">
               <h2 class="text-xl font-medium mb-4">Overview</h2>
               <p class="itbms-description text-gray-400 leading-relaxed">
-                {{
-                  product.description 
-                }}
+                {{ product.description }}
               </p>
             </div>
 
@@ -188,6 +193,22 @@ onMounted(async () => {
                   />
                 </svg>
               </a>
+            </div>
+
+            <div class="pt-8 flex flex-col sm:flex-row gap-4">
+              <button
+                type="submit"
+                @click="submit"
+                class="flex-1 bg-white text-black py-4 px-6 rounded-full hover:bg-gray-200 transition-colors duration-300 font-medium"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                 class="flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-gray-200 transition-colors duration-300 font-medium"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
