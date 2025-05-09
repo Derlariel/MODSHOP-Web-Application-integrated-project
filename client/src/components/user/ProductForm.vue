@@ -1,5 +1,14 @@
 <script setup>
-import { onMounted, computed, defineEmits, defineProps, reactive, watch, watchEffect, ref } from "vue";
+import {
+  onMounted,
+  computed,
+  defineEmits,
+  defineProps,
+  reactive,
+  watch,
+  watchEffect,
+  ref,
+} from "vue";
 import { useBrandStore } from "@/stores/useBrandStore";
 import BaseInput from "../shared/BaseInput.vue";
 const brandStore = useBrandStore();
@@ -16,43 +25,57 @@ const props = defineProps({
 
 const temp = reactive({
   model: "",
-  brand: {
-    id: "",
-    name: "",
-  },
+  brandName: "",
   description: "",
   price: "",
   ramGb: "",
   storageGb: "",
   screenSizeInch: "",
   color: "",
-  quantity: ""
+  quantity: "",
 });
 
-const btnNotAvailable = ref(false)
+const btnNotAvailable = ref(false);
 
-watch(() => props.init, (newValue) => {
-  Object.assign(temp, newValue)
-}, { immediate: true })
+watch(
+  () => props.init,
+  (newValue) => {
+    Object.assign(temp, newValue);
+  },
+  { immediate: true }
+);
 
 watchEffect(() => {
-  if (!temp.brand.name || !temp.price || !temp.quantity || !temp.model || !temp.description) {
-    btnNotAvailable.value = true
-  } else {
-    btnNotAvailable.value = false
-  }
-})
+  const requiredFields = [
+    "brandName",
+    "price",
+    "quantity",
+    "model",
+    "description",
+  ];
+  const requiredFieldsEmpty = requiredFields.some((field) => !temp[field]);
+
+  const keys = Object.keys(temp);
+  const isUnchanged = keys.every((key) => temp[key] === props.init[key]);
+
+  btnNotAvailable.value = requiredFieldsEmpty || isUnchanged;
+});
 
 const submit = () => {
-  if (!temp.brand.name || !temp.price || !temp.quantity || !temp.model || !temp.description) {
-    return;
-  } 
+  const requiredFields = [
+    "brandName",
+    "price",
+    "quantity",
+    "model",
+    "description",
+  ];
+  const requiredFieldsEmpty = requiredFields.some((field) => !temp[field]);
+  if (requiredFieldsEmpty) return;
+  emit('submit',temp)
 };
-
 
 onMounted(() => {
   brandStore.loadBrands();
-
 });
 </script>
 
@@ -65,7 +88,7 @@ onMounted(() => {
         >
         <div class="relative">
           <select
-            v-model="temp.brand.name"
+            v-model="temp.brandName"
             id="brand"
             class="w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white appearance-none"
           >
@@ -105,7 +128,7 @@ onMounted(() => {
       />
 
       <BaseInput
-      v-model="temp.price"
+        v-model="temp.price"
         class=""
         placeholder="0.00"
         label="Price (Baht)"
@@ -131,15 +154,30 @@ onMounted(() => {
           Technical Specifications
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <BaseInput v-model="temp.ramGb" label="RAM (GB)" placeholder="6" id="ram" />
           <BaseInput
-          v-model="temp.screenSizeInch"
+            v-model="temp.ramGb"
+            label="RAM (GB)"
+            placeholder="6"
+            id="ram"
+          />
+          <BaseInput
+            v-model="temp.screenSizeInch"
             label="Screen Size (Inches)"
             placeholder="6.1"
             id="screenSize"
           />
-          <BaseInput v-model="temp.storageGb" label="Storage (GB)" placeholder="128" id="storage" />
-          <BaseInput v-model="temp.color" label="Color" placeholder="Black" id="color" />
+          <BaseInput
+            v-model="temp.storageGb"
+            label="Storage (GB)"
+            placeholder="128"
+            id="storage"
+          />
+          <BaseInput
+            v-model="temp.color"
+            label="Color"
+            placeholder="Black"
+            id="color"
+          />
         </div>
       </div>
 
@@ -180,17 +218,21 @@ onMounted(() => {
         <button
           type="submit"
           @click="submit"
-          :class="btnNotAvailable
-          ? 'flex-1 bg-red-400/20 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium' 
-          : 'flex-1 bg-white text-black py-4 px-6 rounded-full hover:bg-gray-200 transition-colors duration-300 font-medium'"
+          :class="
+            btnNotAvailable
+              ? 'flex-1 bg-red-400/20 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium'
+              : 'flex-1 bg-white text-black py-4 px-6 rounded-full hover:bg-gray-200 transition-colors duration-300 font-medium'
+          "
         >
           Save Product
         </button>
         <button
           type="button"
-          :class="btnNotAvailable
-          ? 'flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium' 
-          : 'flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium'"
+          :class="
+            btnNotAvailable
+              ? 'flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium'
+              : 'flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium'
+          "
         >
           Cancel
         </button>
