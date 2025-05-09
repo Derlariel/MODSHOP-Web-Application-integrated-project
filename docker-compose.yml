@@ -39,7 +39,7 @@ services:
           memory: 400M
     restart: unless-stopped
     volumes:
-      - database:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
   
   api:
     build:
