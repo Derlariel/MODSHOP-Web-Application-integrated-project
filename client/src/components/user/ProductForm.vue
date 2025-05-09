@@ -25,7 +25,9 @@ const props = defineProps({
 
 const temp = reactive({
   model: "",
-  brandName: "",
+  brand: {
+    name: ""
+  },
   description: "",
   price: "",
   ramGb: "",
@@ -47,7 +49,7 @@ watch(
 
 watchEffect(() => {
   const requiredFields = [
-    "brandName",
+    "brand.name",
     "price",
     "quantity",
     "model",
@@ -63,7 +65,7 @@ watchEffect(() => {
 
 const submit = () => {
   const requiredFields = [
-    "brandName",
+    "brand.name",
     "price",
     "quantity",
     "model",
@@ -88,7 +90,7 @@ onMounted(() => {
         >
         <div class="relative">
           <select
-            v-model="temp.brandName"
+            v-model="temp.brand.name"
             id="brand"
             class="w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white appearance-none"
           >
