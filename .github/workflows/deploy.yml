@@ -1,8 +1,7 @@
-<<<<<<< HEAD
+
 name: Deploy 
-=======
-name: Deploy  KK1
->>>>>>> feature/edit
+
+
 
 on:
   push:
