@@ -5,7 +5,7 @@ services:
     ports:
      - "80:80"
     networks:
-    - kk1-network
+    - frontend-network
     deploy:
       resources:
         limits:
@@ -21,9 +21,9 @@ services:
     environment:
      - MYSQL_ROOT_PASSWORD=root
     networks:
-     - kk1-network
+     - backend-network
     ports:
-     - "3306:3306"
+     - "127.0.0.1:3306:3306"
     healthcheck:
       test: ["CMD","mysqladmin", "ping", "-h", "database"]
       interval: 20s
@@ -51,7 +51,8 @@ services:
       database:
         condition: service_healthy   
     networks:
-      - kk1-network
+      - frontend-network
+      - backend-network
     deploy:
       resources:
         limits:
@@ -62,8 +63,11 @@ services:
     restart: unless-stopped
 
 networks:
-  kk1-network:
+  frontend-network:
     driver: bridge
+  backend-network:
+    driver: bridge
+    internal: true
 
 volumes:
   mysql_data:
