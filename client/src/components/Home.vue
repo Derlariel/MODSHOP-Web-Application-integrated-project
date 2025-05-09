@@ -1,6 +1,4 @@
 <script setup>
-import MainPreview from './MainPreview.vue';
-import PhoneRecommendations from './PhoneRecommendations.vue';
 </script>
 
 <template>
