@@ -1,4 +1,4 @@
-name: Deploy 
+name: Deploy  KK1
 
 on:
   push:
