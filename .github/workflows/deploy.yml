@@ -1,4 +1,4 @@
-name: Deploy POST PUT
+name: Deploy 
 
 on:
   push:
