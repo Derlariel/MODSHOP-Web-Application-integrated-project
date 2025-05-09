@@ -64,7 +64,7 @@ const detail = (productId) => {
 
     <div class="pt-24 pb-16 px-6 bg-gradient-to-b from-neutral-900 to-black">
       <div class="max-w-[1200px] mx-auto text-center">
-        <h1 class="text-5xl font-semibold tracking-tight mb-2">Store. The best way to buy the products you love.</h1>
+        <h1 class="text-5xl font-semibold tracking-tight mb-2">Store The best way to buy the products you love.</h1>
         <p class="text-xl text-gray-400 mt-4 max-w-2xl mx-auto">
           Explore premium devices with cutting-edge technology and elegant design.
         </p>
@@ -93,6 +93,7 @@ const detail = (productId) => {
 
           <template #listItems="{ Item: product, viewType }">
             <!-- Gallery -->
+
             <div v-if="viewType === 'gallery'" @click="detail(product.id)"
               class="itbms-row group cursor-pointer transform transition-all duration-500 hover:scale-[1.02] gap-8 ">
               <div
@@ -219,6 +220,7 @@ const detail = (productId) => {
 </template>
 
 <style>
+
 .perspective {
   perspective: 800px;
 }
