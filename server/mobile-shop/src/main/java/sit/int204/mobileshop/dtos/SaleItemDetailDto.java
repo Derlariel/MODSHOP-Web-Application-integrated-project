@@ -11,7 +11,7 @@ import java.time.Instant;
 @Getter
 @Setter
 
-public class SaleItemDetailDto<T> {
+public class SaleItemDetailDto {
     private Integer id;
     private String model;
     private String brandName;

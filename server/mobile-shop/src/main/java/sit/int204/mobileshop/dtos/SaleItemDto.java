@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class SaleItemDto<T> {
+public class SaleItemDto{
     private Integer id;
     private String model;
     private String brandName;

@@ -86,7 +86,7 @@ public class SaleItemService {
     }
 
 
-    public SaleItemDetailDto updateSaleItem(Integer id, SaleItemRequestDto dtoItem) {
+    public SaleItemDetailDto updateSaleItemById(Integer id, SaleItemRequestDto dtoItem) {
         SaleItem existingItem = saleItemRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("Sale item not found"));
 
@@ -115,10 +115,14 @@ public class SaleItemService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update Sale Item");
         }
 
-        System.out.println("Updating sale item id = " + id);
-        System.out.println("Model = " + dtoItem.getModel());
-        System.out.println("Brand = " + dtoItem.getBrand().getName());
+
         return modelMapper.map(updatedItem, SaleItemDetailDto.class);
+    }
+
+    public void deleteSaleItemById(Integer id) {
+        SaleItem deletedItem = saleItemRepository.findById(id)
+                .orElseThrow(() -> new ItemNotFoundException("Sale item not found for this id :: " + id));
+        saleItemRepository.delete(deletedItem);
     }
 
 
