@@ -4,6 +4,7 @@ COPY ./mobile_shop.sql /docker-entrypoint-initdb.d/init.sql
 
 RUN chmod 755 /docker-entrypoint-initdb.d/init.sql
 
+ENV MYSQL_ROOT_PASSWORD=root
 ENV MYSQL_CHARSET=utf8mb4
 ENV MYSQL_TIMEZONE=Asia/Bangkok
 
