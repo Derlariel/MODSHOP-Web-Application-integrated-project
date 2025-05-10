@@ -19,7 +19,7 @@ services:
       context: ./database
     container_name: database
     environment:
-     - MYSQL_ROOT_PASSWORD=root
+     - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_password
     networks:
      - backend-network
     ports:
@@ -40,6 +40,8 @@ services:
     restart: unless-stopped
     volumes:
       - mysql_data:/var/lib/mysql
+    secrets:
+      - db_password
   
   api:
     build:
@@ -72,4 +74,8 @@ networks:
 volumes:
   mysql_data:
     driver: local
+
+secrets:
+  db_password:
+    file: ./secrets/db_password
 
