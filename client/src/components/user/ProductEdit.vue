@@ -5,9 +5,10 @@ import ProductPicture from "./ProductPicture.vue";
 import ProductForm from "./ProductForm.vue";
 import { useProductStore } from "@/stores/useProductStore";
 
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import HistoryPath from "../shared/HistoryPath.vue";
 const { params } = useRoute()
+const router = useRouter()
 
 const product = ref(null)
 const productStore = useProductStore()
@@ -16,7 +17,7 @@ const brandStore = useBrandStore();
 const edit = (data) => {
   productStore.updateProduct(data)
   sessionStorage.setItem("edit-success", "true");
-  router.back()
+  router.go(-1)
 }
 
 const title = computed(() => {

@@ -91,7 +91,7 @@ export const useProductStore = defineStore("product", {
     },
     async deleteProduct(id) {
       try {
-        await deleteProductById(`${BASE_URL}/v1/sale-items`, id);
+        await deleteProductById(`${BASE_URL}/v1/sale-items`, id);        
         this.products = this.products.filter(p => p.id !== id);
       } catch (err) {
         console.error("Failed to delete product", err);
