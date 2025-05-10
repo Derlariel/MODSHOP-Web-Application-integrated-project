@@ -26,7 +26,6 @@ jobs:
           cat > secrets/db_password <<EOF
           root
           EOF
-          chown -R sysadmin:sharedgroup secrets
           chmod 600 secrets/db_password
           
           docker compose down -v
