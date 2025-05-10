@@ -10,12 +10,13 @@ import {
   ref,
 } from "vue";
 import { useBrandStore } from "@/stores/useBrandStore";
+import { useRouter } from "vue-router";
 import BaseInput from "../shared/BaseInput.vue";
+
+const router = useRouter()
 const brandStore = useBrandStore();
 const brands = computed(() => brandStore.getBrands());
-
 const emit = defineEmits(["submit", "cancel"]);
-
 const props = defineProps({
   init: {
     type: Object,
@@ -26,7 +27,7 @@ const props = defineProps({
 const temp = reactive({
   model: "",
   brand: {
-    name: ""
+    name: "",
   },
   description: "",
   price: "",
@@ -43,53 +44,46 @@ watch(
   () => props.init,
   (newValue) => {
     Object.assign(temp, newValue);
+    temp.brand.name = props.init.brandName;
   },
   { immediate: true }
 );
 
 watchEffect(() => {
-  const requiredFields = [
+  const requiredFields = ["model", "price", "quantity", "description"];
+
+  const AllFields = [
     "model",
-    "brand.name", 
-    "price",
-    "quantity",
     "description",
+    "price",
+    "ramGb",
+    "storageGb",
+    "screenSizeInch",
+    "color",
+    "quantity",
   ];
-
   const requiredFieldsEmpty = requiredFields.some((field) => {
-
-    if (field === "brand.name") {
-      return !temp.brand.name;
-    }
     return !temp[field];
   });
 
-  const keys = Object.keys(temp);
-  const isUnchanged = keys.every((key) => temp[key] === props.init[key]);
+  if (temp.ramGb === "") temp.ramGb = null
+  
+  const isUnchanged =
+    AllFields.every((field) => temp[field] === props.init[field]) &&
+    temp.brand.name === props.init.brandName;
 
   btnNotAvailable.value = requiredFieldsEmpty || isUnchanged;
 });
 
 const submit = () => {
-  const requiredFields = [
-    "brand.name",
-    "model",
-    "price",
-    "quantity",
-    "description",
-  ];
-
-  const requiredFieldsEmpty = requiredFields.some((field) => {
-    if (field === "brand.name") {
-      return !temp.brand.name; 
-    }
-    return !temp[field];
-  });
-
-  if (requiredFieldsEmpty) return;
-
-  emit('submit', temp);
+  if(btnNotAvailable.value === true) return
+  emit("submit", temp);
 };
+
+const trimField = (field) => {
+  temp[field] = temp[field].trim()
+};
+
 onMounted(() => {
   brandStore.loadBrands();
 });
@@ -137,6 +131,7 @@ onMounted(() => {
       </div>
 
       <BaseInput
+        @trim="trimField('model')"
         v-model="temp.model"
         class=""
         placeholder="IPhone 15"
@@ -147,8 +142,9 @@ onMounted(() => {
         v-model="temp.price"
         class=""
         placeholder="0.00"
-        label="Price (Baht)"
         type="number"
+        step="0.01"
+        label="Price (Baht)"
         prefix="฿"
       />
 
@@ -157,6 +153,7 @@ onMounted(() => {
           >Description</label
         >
         <textarea
+          @blur="trimField('description')"
           v-model="temp.description"
           id="description"
           rows="4"
@@ -173,6 +170,7 @@ onMounted(() => {
           <BaseInput
             v-model="temp.ramGb"
             label="RAM (GB)"
+            type="number"
             placeholder="6"
             id="ram"
           />
@@ -180,15 +178,19 @@ onMounted(() => {
             v-model="temp.screenSizeInch"
             label="Screen Size (Inches)"
             placeholder="6.1"
+            step="0.01"
+            type="number"
             id="screenSize"
           />
           <BaseInput
             v-model="temp.storageGb"
             label="Storage (GB)"
             placeholder="128"
+            type="number"
             id="storage"
           />
           <BaseInput
+           @trim="trimField('color')"
             v-model="temp.color"
             label="Color"
             placeholder="Black"
@@ -243,6 +245,7 @@ onMounted(() => {
           Save Product
         </button>
         <button
+          @click="router.back()"
           type="button"
           :class="
             btnNotAvailable

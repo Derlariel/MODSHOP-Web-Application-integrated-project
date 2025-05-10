@@ -15,7 +15,7 @@ onMounted(async () => {
  
 <template>
 <div>
-    <ProductList v-if="!['product-detail','product-add'].includes(route.name) && !message"/>
+    <ProductList v-if="!['product-detail','product-add'].includes(route.name)"/>
     <router-view></router-view>
 </div>
 </template>

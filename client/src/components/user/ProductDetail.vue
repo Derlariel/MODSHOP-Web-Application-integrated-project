@@ -1,8 +1,10 @@
 <script setup>
 import { useRoute, useRouter } from "vue-router";
 import { useProductStore } from "@/stores/useProductStore";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import ProductPicture from "./ProductPicture.vue";
+import HistoryPath from "../shared/HistoryPath.vue";
+import ConfirmModal from "../shared/modal/ConfirmModal.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -21,6 +23,31 @@ const submit = () => {
   })
 }
 
+const title = computed(() => {
+  if (!product.value) return '';
+
+  const {
+    brandName = '',
+    model = '',
+    ramGb = '',
+    storageGb = '',
+    color = ''
+  } = product.value;
+
+  return `${brandName} ${model} ${ramGb}/${storageGb}GB ${color}`.trim();
+});
+
+const showDelete = ref(false)
+const deleteSaleItem = () => {
+  showDelete.value = true
+}
+
+const confirm = () => {
+  productStore.deleteProduct(productId)
+  router.back()
+}
+
+
 onMounted(async () => {
   await productStore.loadProducts();
   const result = await productStore.fetchProductDetail(productId);
@@ -35,6 +62,8 @@ onMounted(async () => {
     return;
   }
 
+
+
   isLoading.value = false;
 });
 </script>
@@ -42,7 +71,9 @@ onMounted(async () => {
 <template>
   <div class="min-h-screen bg-black text-white">
     <div v-if="!isLoading && product && isData" class="pt-24 pb-20">
+      <ConfirmModal @confirm="confirm" :visible="showDelete" />
       <div class="max-w-[1200px] mx-auto px-6">
+        <HistoryPath :previous="1" :name-path="title" /> 
         <div class="itbms-row grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           <ProductPicture />
 
@@ -96,12 +127,7 @@ onMounted(async () => {
             <div class="border-t border-neutral-800 pt-6">
               <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-medium">Specifications</h2>
-                <button
-                  @click="toggleSpecifications"
-                  class="text-sm text-blue-400 hover:underline"
-                >
-                  {{ showSpecifications ? "Hide details" : "Show details" }}
-                </button>
+                
               </div>
 
               <div class="text-gray-400 space-y-4 animate-fadeIn">
@@ -204,8 +230,9 @@ onMounted(async () => {
                 Edit
               </button>
               <button
+              @click="deleteSaleItem"
                 type="button"
-                 class="flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-gray-200 transition-colors duration-300 font-medium"
+                 class="flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-red-500 transition-colors duration-300 font-medium"
               >
                 Delete
               </button>

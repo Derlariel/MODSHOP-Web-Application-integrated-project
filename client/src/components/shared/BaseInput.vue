@@ -1,5 +1,7 @@
 <script setup>
-import { defineProps } from "vue";
+import { defineProps, defineEmits } from "vue";
+const emit = defineEmits(['trim'])
+
 const model = defineModel();
 defineProps({
   label: String,
@@ -12,7 +14,12 @@ defineProps({
   error: String,
   helper: String,
   prefix: String, 
+  step: String
 });
+
+const handle = () => {
+  emit('trim')
+}
 
 </script>
 <template>
@@ -31,6 +38,8 @@ defineProps({
 
       <input
         v-model="model"
+        @blur="handle"
+        :step="step"
         :type="type"
         :id="id"
         :placeholder="placeholder"
