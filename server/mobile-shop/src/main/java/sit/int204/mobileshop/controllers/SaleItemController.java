@@ -70,10 +70,10 @@ public class SaleItemController {
             content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class)))
     @PostMapping("")
     public ResponseEntity<SaleItemDetailDto> createSaleItem(@Valid @RequestBody SaleItemRequestDto dtoItem) {
-        SaleItem createdItem = saleItemService.createSaleItem(dtoItem);
-        SaleItemDetailDto responseDto = modelMapper.map(createdItem, SaleItemDetailDto.class);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+        SaleItemDetailDto createdItem = saleItemService.createSaleItem(dtoItem);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdItem);
     }
+
 
     @Operation(summary = "Update sale item", description = "Update an existing sale item")
     @ApiResponses({

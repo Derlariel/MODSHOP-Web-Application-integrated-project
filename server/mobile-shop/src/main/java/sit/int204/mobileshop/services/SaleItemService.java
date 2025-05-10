@@ -63,7 +63,7 @@ public class SaleItemService {
     }
 
     @Transactional
-    public SaleItem createSaleItem(SaleItemRequestDto dtoItem) {
+    public SaleItemDetailDto  createSaleItem(SaleItemRequestDto dtoItem) {
         SaleItem item = new SaleItem();
         Brand brand = brandService.getBrandByName(dtoItem.getBrand().getName());
         if (brand == null) {
@@ -82,7 +82,8 @@ public class SaleItemService {
 
         SaleItem savedItem = saleItemRepository.saveAndFlush(item);
         entityManager.refresh(savedItem);
-        return savedItem;
+        SaleItemDetailDto dto = modelMapper.map(savedItem, SaleItemDetailDto.class);
+        return dto;
     }
 
 
