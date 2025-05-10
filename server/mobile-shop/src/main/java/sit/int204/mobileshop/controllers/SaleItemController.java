@@ -40,7 +40,8 @@ public class SaleItemController {
 
     @Operation(summary = "Get all sale items", description = "Retrieve a list of all available sale items")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved all sale items", content = @Content(schema = @Schema(implementation = SaleItemDto.class))),
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved all sale items",
+                    content = @Content(schema = @Schema(implementation = SaleItemDto.class))),
             @ApiResponse(responseCode = "204", description = "No sale items found", content = @Content)
     })
     @GetMapping("")
@@ -54,8 +55,10 @@ public class SaleItemController {
 
     @Operation(summary = "Get sale item by ID", description = "Retrieve a sale item by its ID")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved the sale item", content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class))),
-            @ApiResponse(responseCode = "404", description = "Sale item not found", content = @Content(schema = @Schema(implementation = MyErrorResponse.class)))
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved the sale item",
+                    content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class))),
+            @ApiResponse(responseCode = "404", description = "Sale item not found",
+                    content = @Content(schema = @Schema(implementation = MyErrorResponse.class)))
     })
     @GetMapping("/{id}")
     public ResponseEntity<SaleItemDetailDto> getProductById(@PathVariable Integer id) {
@@ -63,26 +66,47 @@ public class SaleItemController {
     }
 
     @Operation(summary = "Add new sale item", description = "Create a new sale item")
-    @ApiResponse(responseCode = "201", description = "Sale item created successfully", content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class)))
+    @ApiResponse(responseCode = "201", description = "Sale item created successfully",
+            content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class)))
     @PostMapping("")
     public ResponseEntity<SaleItemDetailDto> createSaleItem(@Valid @RequestBody SaleItemRequestDto dtoItem) {
-        SaleItem createItem = saleItemService.createSaleItem(dtoItem);
-        SaleItemDetailDto responseDto = modelMapper.map(createItem, SaleItemDetailDto.class);
+        SaleItem createdItem = saleItemService.createSaleItem(dtoItem);
+        SaleItemDetailDto responseDto = modelMapper.map(createdItem, SaleItemDetailDto.class);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
+    @Operation(summary = "Update sale item", description = "Update an existing sale item")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Sale item updated successfully",
+                    content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class))),
+            @ApiResponse(responseCode = "404", description = "Sale item not found",
+                    content = @Content(schema = @Schema(implementation = MyErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(implementation = MyErrorResponse.class)))
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateSaleItem(@PathVariable Integer id, @Valid @RequestBody SaleItemRequestDto dtoItem) {
+    public ResponseEntity<SaleItemDetailDto> updateSaleItemById(@PathVariable Integer id, @Valid @RequestBody SaleItemRequestDto dtoItem) {
         try {
-            SaleItemDetailDto updateItem = saleItemService.updateSaleItem(id, dtoItem);
-            return ResponseEntity.ok(updateItem);
+            SaleItemDetailDto updatedItem = saleItemService.updateSaleItemById(id, dtoItem);
+            return ResponseEntity.ok(updatedItem);
         } catch (ItemNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+            throw new ItemNotFoundException("Sale item not found");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Something went wrong"));
+            throw new RuntimeException("Something went wrong");
         }
     }
 
+    @Operation(summary = "Delete sale item by ID", description = "Delete a specific sale item by its ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Sale item deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Sale item not found",
+                    content = @Content(schema = @Schema(implementation = MyErrorResponse.class)))
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSaleItemById(@PathVariable Integer id){
+        saleItemService.deleteSaleItemById(id);
+        return ResponseEntity.noContent().build();
+    }
 
     @Operation(summary = "Delete all sale items", description = "Delete all sale items (for testing purposes only)")
     @ApiResponse(responseCode = "204", description = "All sale items deleted successfully")
@@ -91,7 +115,4 @@ public class SaleItemController {
         saleItemService.deleteAllForTest();
         return ResponseEntity.noContent().build();
     }
-
-
-
 }
