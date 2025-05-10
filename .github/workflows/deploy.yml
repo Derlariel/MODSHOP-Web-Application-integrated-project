@@ -23,10 +23,7 @@ jobs:
           git pull https://napatzzz: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@github.com/Derlariel/2-2567_INT221_KK-1.git pre-dev
           
           mkdir -p /tmp/db_secrets
-          cat > /tmp/db_secrets/db_password <<EOF
-          root
-          EOF
-          /tmp/db_secrets/db_password
+          echo "root" > /tmp/db_secrets/db_password
           
           mkdir -p secrets
           cp /tmp/db_secrets/db_password secrets/db_password || true
