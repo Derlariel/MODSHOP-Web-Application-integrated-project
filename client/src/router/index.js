@@ -1,11 +1,12 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import {createRouter, createWebHistory} from 'vue-router';
 import LandingLayout from '@/layout/LandingLayout.vue';
 import DefaultLayout from '@/layout/DefaultLayout.vue';
 import HomePage from '@/pages/HomePage.vue';
 import MainPage from '@/components/user/MainPage.vue';
 import ProductManager from '@/components/user/ProductManager.vue';
 import ProductDetail from '@/components/user/ProductDetail.vue';
-import ProductAdd from '@/components/user/ProductAdd.vue';
+import ProductAdd from '@/components/user/ProductCreate.vue';
+import ProductEdit from '@/components/user/ProductEdit.vue';
 
 const routes = [
   {
@@ -35,31 +36,38 @@ const routes = [
           {
             path: 'add',
             component: ProductAdd,
-            name: 'product-add'
+            name: 'product-add',
           },
+
           {
             path: ':productId',
             component: ProductDetail,
             name: 'product-detail',
-          }
+          },
         ],
       },
       {
+        path: 'sale-items/:productId/edit',
+        component: ProductEdit,
+        name: 'sale-items-edit',
+      },
+
+      {
         path: '/error',
         name: 'error-page',
-        component: () => import('@/pages/ErrorCodePage.vue'),
+        component: () => import ('@/pages/ErrorCodePage.vue'),
       },
     ],
   },
   // fallback route
   {
     path: '/:pathMatch(.*)*',
-    redirect: { name: 'error-page', query: { code: 404 } },
+    redirect: {name: 'error-page', query: {code: 404}},
   },
 ];
 
-const router = createRouter({
-  history: createWebHistory(''),
+const router = createRouter ({
+  history: createWebHistory (''),
   routes,
 });
 

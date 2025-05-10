@@ -1,5 +1,6 @@
 package sit.int204.mobileshop.controllers;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +17,13 @@ import sit.int204.mobileshop.dtos.SaleItemDetailDto;
 import sit.int204.mobileshop.dtos.SaleItemDto;
 import sit.int204.mobileshop.dtos.SaleItemRequestDto;
 import sit.int204.mobileshop.entities.SaleItem;
+import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.exceptions.MyErrorResponse;
 import sit.int204.mobileshop.services.SaleItemService;
 import sit.int204.mobileshop.utils.ListMapper;
 
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "${app.origins}")
 @RestController
@@ -61,11 +64,23 @@ public class SaleItemController {
 
     @Operation(summary = "Add new sale item", description = "Create a new sale item")
     @ApiResponse(responseCode = "201", description = "Sale item created successfully", content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class)))
-    @PostMapping
+    @PostMapping("")
     public ResponseEntity<SaleItemDetailDto> createSaleItem(@Valid @RequestBody SaleItemRequestDto dtoItem) {
         SaleItem createItem = saleItemService.createSaleItem(dtoItem);
         SaleItemDetailDto responseDto = modelMapper.map(createItem, SaleItemDetailDto.class);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateSaleItem(@PathVariable Integer id, @Valid @RequestBody SaleItemRequestDto dtoItem) {
+        try {
+            SaleItemDetailDto updateItem = saleItemService.updateSaleItem(id, dtoItem);
+            return ResponseEntity.ok(updateItem);
+        } catch (ItemNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Something went wrong"));
+        }
     }
 
 
