@@ -22,12 +22,15 @@ jobs:
           cd /home/sysadmin/2-2567_INT221_KK-1 
           git pull https://napatzzz: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@github.com/Derlariel/2-2567_INT221_KK-1.git pre-dev
           
-          mkdir -p secrets
-          cat > secrets/db_password <<EOF
+          mkdir -p /tmp/db_secrets
+          cat > /tmp/db_secrets/db_password <<EOF
           root
           EOF
-          chmod 600 secrets/db_password
+          /tmp/db_secrets/db_password
           
+          mkdir -p secrets
+          cp /tmp/db_secrets/db_password secrets/db_password || true
+
           docker compose down -v
           docker compose up -d --build
           docker image prune -f
