@@ -23,7 +23,10 @@ jobs:
           git pull https://napatzzz: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@github.com/Derlariel/2-2567_INT221_KK-1.git pre-dev
           
           mkdir -p secrets
-          chown -R sysadmin:sharedgroup secrets/
+          cat > secrets/db_password <<EOF
+          root
+          EOF
+          chown -R sysadmin:sharedgroup secrets
           chmod 600 secrets/db_password
           
           docker compose down -v
