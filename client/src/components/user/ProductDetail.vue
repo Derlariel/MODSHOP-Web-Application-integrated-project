@@ -5,6 +5,7 @@ import { onMounted, ref, computed } from "vue";
 import ProductPicture from "./ProductPicture.vue";
 import HistoryPath from "../shared/HistoryPath.vue";
 import ConfirmModal from "../shared/modal/ConfirmModal.vue";
+import SuccessModal from "../shared/modal/SuccessModal.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -47,6 +48,7 @@ const confirm = () => {
   router.back()
 }
 
+const showSuccess = ref(false)
 
 onMounted(async () => {
   await productStore.loadProducts();
@@ -62,6 +64,14 @@ onMounted(async () => {
     return;
   }
 
+  if (sessionStorage.getItem("edit-success") === "true") {
+    showSuccess.value = true
+    sessionStorage.removeItem("edit-success")
+    setTimeout(() => {
+      showSuccess.value = false
+    },3000)
+  }
+
 
 
   isLoading.value = false;
@@ -71,6 +81,7 @@ onMounted(async () => {
 <template>
   <div class="min-h-screen bg-black text-white">
     <div v-if="!isLoading && product && isData" class="pt-24 pb-20">
+      <SuccessModal :visible="showSuccess" message="The sale item has been updated."/>
       <ConfirmModal @confirm="confirm" :visible="showDelete" />
       <div class="max-w-[1200px] mx-auto px-6">
         <HistoryPath :previous="1" :name-path="title" /> 

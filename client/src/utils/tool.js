@@ -1,6 +1,7 @@
 const handleFetch = async (url, options, errorMessages) => {
   try {
     const res = await fetch(url, options);
+    if(res.status === 204) return null
     if (!res.ok) {
       throw { message: errorMessages, status: res.status };
     }
