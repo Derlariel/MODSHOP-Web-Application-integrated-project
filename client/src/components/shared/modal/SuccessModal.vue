@@ -46,7 +46,7 @@ onMounted(() => props.visible && showModal());
         <div class="p-6">
           <div class="flex justify-center mb-4">
             <div class="w-14 h-14rounded-full flex items-center justify-center">
-              <img class="w-10 h-10" src="../../../../images/database-success-svgrepo-com.svg" alt="">
+              <img class="w-10 h-10" src="/assets/images/database-success-svgrepo-com.svg" alt="">
             </div>
           </div>
           <div class="text-center">
