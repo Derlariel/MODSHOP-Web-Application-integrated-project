@@ -6,6 +6,7 @@ import ProductPicture from "./ProductPicture.vue";
 import HistoryPath from "../shared/HistoryPath.vue";
 import ConfirmModal from "../shared/modal/ConfirmModal.vue";
 import SuccessModal from "../shared/modal/SuccessModal.vue";
+import { checkUptodate } from '../../utils/validate'
 
 const router = useRouter();
 const route = useRoute();
@@ -43,8 +44,14 @@ const deleteSaleItem = () => {
   showDelete.value = true
 }
 
-const confirm = () => {
+const confirm = async () => {
+  const result = await productStore.fetchProductDetail(productId);
+  if (checkUptodate(result)) {
+    router.push("/sale-items");
+    return
+  }
   productStore.deleteProduct(productId)
+  sessionStorage.setItem("delete-success", "true")
   router.back()
 }
 
@@ -55,13 +62,9 @@ onMounted(async () => {
   const result = await productStore.fetchProductDetail(productId);
   product.value = result;
 
-  if (productStore.products === null || !product.value) {
-    sessionStorage.setItem(
-      "error-message",
-      "The requested sale item does not exist."
-    );
+  if (checkUptodate(result)) {
+    showSuccess.value = false
     router.push("/sale-items");
-    return;
   }
 
   if (sessionStorage.getItem("edit-success") === "true") {

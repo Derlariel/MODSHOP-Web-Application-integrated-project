@@ -17,6 +17,14 @@ defineProps({
   step: String
 });
 
+const preventNegative = (e) => {
+  const value = parseFloat(e.target.value);
+  if (value < 0) {
+    e.target.value = 0;
+    model.value = 0; 
+  }
+};
+
 const handle = () => {
   emit('trim')
 }
@@ -38,11 +46,13 @@ const handle = () => {
 
       <input
         v-model="model"
+        :min="type === 'number' ? 0 : undefined"
         @blur="handle"
         :step="step"
         :type="type"
         :id="id"
         :placeholder="placeholder"
+        @input="preventNegative"
         :class="[
           'w-full py-3.5 pr-4 rounded-xl border transition-all bg-neutral-800 text-white',
           prefix ? 'pl-12' : 'px-4',

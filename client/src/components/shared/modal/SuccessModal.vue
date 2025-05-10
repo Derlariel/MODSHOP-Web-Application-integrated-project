@@ -4,7 +4,7 @@ import successIcon from '@/assets/database-success-svgrepo-com.svg'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
-  message: { type: String, default: 'The sale item successfully has been added.' },
+  message: { type: String},
   duration: { type: Number, default: 5000 }
 });
 

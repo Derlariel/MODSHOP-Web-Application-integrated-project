@@ -13,8 +13,8 @@ const adminMode = ref(false);
 const isModalOpen = ref(false);
 
 const add = () => {
-  router.push({name: 'product-add'})
-}
+  router.push({ name: "product-add" });
+};
 
 const props = defineProps({
   viewType: {
@@ -29,10 +29,12 @@ function handleModalClose() {
   router.push({ name: "sale-items" });
 }
 
-const showSuccess = ref(false)
+const showSuccess = ref(false);
 const productStore = useProductStore();
 const productImages = productStore.productImages;
 const product = computed(() => productStore.allProducts);
+
+const alertMessage = ref("");
 
 async function initProducts() {
   try {
@@ -58,11 +60,21 @@ onMounted(async () => {
 });
 
 if (sessionStorage.getItem("add-success") === "true") {
-  showSuccess.value = true
+  alertMessage.value = 'The sale item successfully has been added.';
+  showSuccess.value = true;
   sessionStorage.removeItem("add-success");
   setTimeout(() => {
-    showSuccess.value = false
-  }, 2000)
+    showSuccess.value = false;
+  }, 2000);
+}
+
+if (sessionStorage.getItem("delete-success") === "true") {
+  alertMessage.value = "The sale item has been deleted.";
+  showSuccess.value = true;
+  sessionStorage.removeItem("delete-success");
+  setTimeout(() => {
+    showSuccess.value = false;
+  }, 2000);
 }
 
 const detail = (productId) => {
@@ -87,7 +99,7 @@ const detail = (productId) => {
           Explore premium devices with cutting-edge technology and elegant
           design.
         </p>
-        <SuccessModal :visible="showSuccess"/>
+        <SuccessModal :message="alertMessage" :visible="showSuccess" />
         <button
           @click="add"
           class="mt-8 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200"

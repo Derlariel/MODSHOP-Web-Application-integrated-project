@@ -201,35 +201,13 @@ onMounted(() => {
 
       <div class="space-y-3 pt-6 border-t border-neutral-800">
         <h3 class="text-lg font-medium text-white mb-4">Inventory</h3>
-        <div class="space-y-3">
-          <label for="quantity" class="block text-sm font-medium text-gray-300"
-            >Quantity</label
-          >
-          <div class="relative">
-            <input
-              v-model="temp.quantity"
-              type="number"
-              id="quantity"
-              min="1"
-              class="w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white"
-              placeholder="10"
-            />
-            <div class="absolute inset-y-0 right-0 flex">
-              <button
-                type="button"
-                class="px-4 border-l border-neutral-700 text-gray-400 hover:bg-neutral-700 transition-colors rounded-r-xl"
-              >
-                -
-              </button>
-              <button
-                type="button"
-                class="px-4 border-l border-neutral-700 text-gray-400 hover:bg-neutral-700 transition-colors rounded-r-xl"
-              >
-                +
-              </button>
-            </div>
-          </div>
-        </div>
+        <BaseInput
+           @trim="trimField('quantity')"
+            v-model="temp.quantity"
+            label="Quantity"
+            placeholder="10"
+            id="color"
+          />
       </div>
 
       <div class="pt-8 flex flex-col sm:flex-row gap-4">
