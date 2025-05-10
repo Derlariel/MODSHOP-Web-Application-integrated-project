@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
-import successIcon from '@/assets/images/database-success-svgrepo-com.svg'
+import successIcon from '@/assets/database-success-svgrepo-com.svg'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
