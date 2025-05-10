@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
+import successIcon from '@/assets/images/database-success-svgrepo-com.svg'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -46,7 +47,7 @@ onMounted(() => props.visible && showModal());
         <div class="p-6">
           <div class="flex justify-center mb-4">
             <div class="w-14 h-14rounded-full flex items-center justify-center">
-              <img class="w-10 h-10" src="/assets/images/database-success-svgrepo-com.svg" alt="">
+              <img class="w-10 h-10" :src="successIcon" alt="">
             </div>
           </div>
           <div class="text-center">
