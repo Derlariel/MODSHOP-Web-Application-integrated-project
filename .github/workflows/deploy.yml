@@ -1,7 +1,5 @@
 
-name: Deploy kk1 sprint 2 frontend
-
-
+name: Deploy kk1 sprint 2
 
 on:
   push:
