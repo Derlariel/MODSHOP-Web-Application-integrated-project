@@ -19,4 +19,14 @@ export default defineConfig({
       },
     },
   ],
+  preview: {
+  port: 4173,
+  proxy: {
+    '/itb-mshop': {
+      target: 'http://localhost:8080',
+      changeOrigin: true,
+      // ไม่ต้องกังวลเรื่อง CORS
+    }
+  }
+}
 });
