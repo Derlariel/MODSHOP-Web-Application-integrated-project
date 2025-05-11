@@ -81,7 +81,7 @@ const closeDialog = () => {
         <div class="p-6 sm:p-8">
           <div class="text-center mb-6">
             <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ title }}</h3>
-            <p class="text-gray-600">
+            <p class="text-gray-600 itbms-message">
               {{ message }}
               <span v-if="itemName" class="font-medium text-gray-900">{{ itemName }}</span>
             </p>
@@ -90,14 +90,14 @@ const closeDialog = () => {
           <div class="flex flex-col space-y-3">
             <button 
               @click="handleConfirm"
-              class="w-full py-3 px-4 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              class="itbms-confirm-button w-full py-3 px-4 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
               {{ confirmText }}
             </button>
             
             <button 
               @click="handleCancel"
-              class="w-full py-3 px-4 rounded-full bg-gray-200 text-gray-800 font-medium hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              class="itbms-cancel-button w-full py-3 px-4 rounded-full bg-gray-200 text-gray-800 font-medium hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
             >
               {{ cancelText }}
             </button>

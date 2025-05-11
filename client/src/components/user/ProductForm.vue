@@ -93,7 +93,7 @@ onMounted(() => {
   <div>
     <form @submit.prevent class="space-y-8">
       <div class="space-y-3">
-        <label for="brand" class="block text-sm font-medium text-gray-300"
+        <label for="brand" class="itbms-brand block text-sm font-medium text-gray-300"
           >Brand</label
         >
         <div class="relative">
@@ -133,14 +133,14 @@ onMounted(() => {
       <BaseInput
         @trim="trimField('model')"
         v-model="temp.model"
-        class=""
+        class="itbms-model"
         placeholder="IPhone 15"
         label="Model"
       />
 
       <BaseInput
         v-model="temp.price"
-        class=""
+        class="itbms-price"
         placeholder="0.00"
         type="number"
         step="0.01"
@@ -149,7 +149,7 @@ onMounted(() => {
       />
 
       <div class="space-y-3">
-        <label for="description" class="block text-sm font-medium text-gray-300"
+        <label for="description" class="itbms-description block text-sm font-medium text-gray-300"
           >Description</label
         >
         <textarea
@@ -168,6 +168,7 @@ onMounted(() => {
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <BaseInput
+            class="itbms-ramGb"
             v-model="temp.ramGb"
             label="RAM (GB)"
             type="number"
@@ -175,6 +176,7 @@ onMounted(() => {
             id="ram"
           />
           <BaseInput
+            class="itbms-screenSizeInch"
             v-model="temp.screenSizeInch"
             label="Screen Size (Inches)"
             placeholder="6.1"
@@ -183,6 +185,7 @@ onMounted(() => {
             id="screenSize"
           />
           <BaseInput
+            class="itbms-storageGb"
             v-model="temp.storageGb"
             label="Storage (GB)"
             placeholder="128"
@@ -190,6 +193,7 @@ onMounted(() => {
             id="storage"
           />
           <BaseInput
+           class="itbms-color"
            @trim="trimField('color')"
             v-model="temp.color"
             label="Color"
@@ -202,6 +206,7 @@ onMounted(() => {
       <div class="space-y-3 pt-6 border-t border-neutral-800">
         <h3 class="text-lg font-medium text-white mb-4">Inventory</h3>
         <BaseInput
+          class="itbms-quantity"
            @trim="trimField('quantity')"
             v-model="temp.quantity"
             label="Quantity"
@@ -214,6 +219,7 @@ onMounted(() => {
         <button
           type="submit"
           @click="submit"
+          class="itbms-save-button"
           :class="
             btnNotAvailable
               ? 'flex-1 bg-red-400/20 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium'
@@ -225,6 +231,7 @@ onMounted(() => {
         <button
           @click="router.back()"
           type="button"
+          class="itbms-cancel-button"
           :class="
             btnNotAvailable
               ? 'flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium'

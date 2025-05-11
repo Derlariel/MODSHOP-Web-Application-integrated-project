@@ -14,11 +14,11 @@ const router = useRouter()
 
 <template>
   <div class="flex cursor-pointer font-light mb-5 space-x-2.5">
-    <p @click="router.go(-props.previous)">Home</p>
+    <p class="itbms-home-button" @click="router.go(-props.previous)">Home</p>
     <p>/</p>
     <p
       @click="router.go(-props.next)"
-      class="bg-gradient-to-r from-neutral-100 to-blue-200 text-black px-4 rounded-3xl"
+      class="itbms-back-button bg-gradient-to-r from-neutral-100 to-blue-200 text-black px-4 rounded-3xl"
       :class="props.previous > 1 ? 'from-neutral-100 to-red-200' : ''"
     >
       {{props.namePath}}

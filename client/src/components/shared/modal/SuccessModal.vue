@@ -52,7 +52,7 @@ onMounted(() => props.visible && showModal());
           </div>
           <div class="text-center">
             <h3 class="text-white text-2xl font-semibold mb-1">Success</h3>
-            <p class="text-zinc-400 text-sm">{{ message }}</p>
+            <p class="itbms-message text-zinc-400 text-sm">{{ message }}</p>
           </div>
         </div>
       </div>

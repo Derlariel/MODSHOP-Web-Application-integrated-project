@@ -102,7 +102,7 @@ const detail = (productId) => {
         <SuccessModal :message="alertMessage" :visible="showSuccess" />
         <button
           @click="add"
-          class="mt-8 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200"
+          class="itbms-sale-item-add mt-8 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200"
         >
           Add Sale Item
         </button>
