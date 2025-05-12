@@ -49,12 +49,9 @@ const confirm = async () => {
     sessionStorage.setItem("delete-success", "true");
     router.push("/sale-items");
   } catch (error) {
-    if (error) {
       sessionStorage.setItem("error-message", "true")
       console.log(sessionStorage.getItem("error-message"));
-      
       router.push("/sale-items");
-    } 
   }
 };
 const showSuccess = ref(false)
