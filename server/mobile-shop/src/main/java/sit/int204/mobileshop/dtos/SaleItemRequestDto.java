@@ -12,9 +12,6 @@ import java.time.Instant;
 @Getter @Setter
 public class SaleItemRequestDto {
 
-    @Size(min = 12)
-    private String name;
-
     private String model;
 
     private BrandDto brand;
