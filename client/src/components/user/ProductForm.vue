@@ -98,15 +98,15 @@ onMounted(() => {
         >
         <div class="relative">
           <select
-            v-model="temp.brand.name"
+            v-model="temp.brand"
             id="brand"
             class="itbms-brand w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white appearance-none"
           >
-            <option value="" disabled selected>Select a brand</option>
+            <option :value="{ id: null, name: null}" disabled selected>Select a brand</option>
             <option
               v-for="(brand, index) in brands"
-              :key="index"
-              :value="brand.name"
+              :key="brand.id"
+              :value="brand"
             >
               {{ brand.name }}
             </option>
