@@ -54,7 +54,6 @@ public class SaleItem {
     @Column(name = "color", length = 30)
     private String color;
 
-    @NotNull
     @ColumnDefault("1")
     @Column(name = "quantity", nullable = false)
     private Integer quantity;

@@ -65,36 +65,38 @@ public class SaleItemService {
 
     @Transactional
     public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem) {
-        SaleItem item = new SaleItem();
-
         if (dtoItem.getBrand() == null || dtoItem.getBrand().getName() == null) {
             throw new ItemNotFoundException("Brand name must not be null.");
         }
 
         Brand brand = brandService.getBrandByName(dtoItem.getBrand().getName());
         if (brand == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand not found: " + dtoItem.getBrand().getName());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Brand not found: " + dtoItem.getBrand().getName());
         }
 
-        if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
-            dtoItem.setQuantity(1);
-        }
-
-        if (dtoItem.getColor() == null || dtoItem.getColor().trim().isEmpty()) {
-            dtoItem.setColor(null);
+        String color = dtoItem.getColor();
+        if (color == null || color.trim().isEmpty()) {
+            color = null;
         } else {
-            dtoItem.setColor(dtoItem.getColor().trim());
+            color = color.trim();
         }
 
+        Integer quantity = dtoItem.getQuantity();
+        if (quantity == null || quantity < 1) {
+            quantity = 1;
+        }
+
+        SaleItem item = new SaleItem();
         item.setModel(dtoItem.getModel());
         item.setBrand(brand);
         item.setDescription(dtoItem.getDescription());
         item.setPrice(dtoItem.getPrice());
-        if (dtoItem.getRamGb() != null) item.setRamGb(dtoItem.getRamGb());
-        if (dtoItem.getScreenSizeInch() != null) item.setScreenSizeInch(dtoItem.getScreenSizeInch());
-        item.setQuantity(dtoItem.getQuantity());
-        if (dtoItem.getStorageGb() != null) item.setStorageGb(dtoItem.getStorageGb());
-        if (dtoItem.getColor() != null && !dtoItem.getColor().isBlank()) item.setColor(dtoItem.getColor().trim());
+        item.setRamGb(dtoItem.getRamGb());
+        item.setScreenSizeInch(dtoItem.getScreenSizeInch());
+        item.setStorageGb(dtoItem.getStorageGb());
+        item.setQuantity(quantity);
+        item.setColor(color);
 
         SaleItem savedItem = saleItemRepository.saveAndFlush(item);
         entityManager.refresh(savedItem);
@@ -103,6 +105,7 @@ public class SaleItemService {
         dto.setBrandName(savedItem.getBrand().getName());
         return dto;
     }
+
 
 
 
