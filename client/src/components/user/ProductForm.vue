@@ -25,7 +25,7 @@ const props = defineProps({
 });
 
 const temp = reactive({
-  id: null, // เพิ่ม id เพื่อเก็บ productId
+  id: null, 
   model: '',
   brand: { id: null, name: null },
   description: '',
@@ -51,15 +51,9 @@ watch(
       console.log('props.init:', newValue);
       console.log('availableBrands:', availableBrands);
 
-      if (!newValue || !newValue.brandName) {
-        console.warn('props.init is empty or missing brandName');
-        errorMessage.value = 'Failed to load product data';
-        isLoading.value = false;
-        return;
-      }
 
       Object.assign(temp, {
-        id: newValue.id || null, // ตั้งค่า id จาก props.init
+        id: newValue.id || null,
         model: newValue.model || '',
         description: newValue.description || '',
         price: newValue.price?.toString() || '',
