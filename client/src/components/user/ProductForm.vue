@@ -93,14 +93,14 @@ onMounted(() => {
   <div>
     <form @submit.prevent class="space-y-8">
       <div class="space-y-3">
-        <label for="brand" class="itbms-brand block text-sm font-medium text-gray-300"
+        <label for="brand" class="block text-sm font-medium text-gray-300"
           >Brand</label
         >
         <div class="relative">
           <select
             v-model="temp.brand.name"
             id="brand"
-            class="w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white appearance-none"
+            class="itbms-brand w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white appearance-none"
           >
             <option value="" disabled selected>Select a brand</option>
             <option
