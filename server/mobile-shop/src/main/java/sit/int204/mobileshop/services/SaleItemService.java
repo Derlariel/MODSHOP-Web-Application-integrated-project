@@ -65,45 +65,34 @@ public class SaleItemService {
 
     @Transactional
     public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem) {
+        SaleItem item = new SaleItem();
         if (dtoItem.getBrand() == null || dtoItem.getBrand().getName() == null) {
-            throw new ItemNotFoundException("Brand name must not be null.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand name must not be null.");
         }
-
         Brand brand = brandService.getBrandByName(dtoItem.getBrand().getName());
         if (brand == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Brand not found: " + dtoItem.getBrand().getName());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand not found: " + dtoItem.getBrand().getName());
         }
 
-        String color = dtoItem.getColor();
-        if (color == null || color.trim().isEmpty()) {
-            color = null;
-        } else {
-            color = color.trim();
-        }
-
-        Integer quantity = dtoItem.getQuantity();
-        if (quantity == null || quantity < 1) {
-            quantity = 1;
-        }
-
-        SaleItem item = new SaleItem();
-        item.setModel(dtoItem.getModel());
         item.setBrand(brand);
+        item.setModel(dtoItem.getModel());
         item.setDescription(dtoItem.getDescription());
         item.setPrice(dtoItem.getPrice());
         item.setRamGb(dtoItem.getRamGb());
         item.setScreenSizeInch(dtoItem.getScreenSizeInch());
         item.setStorageGb(dtoItem.getStorageGb());
-        item.setQuantity(quantity);
-        item.setColor(color);
+        item.setQuantity(dtoItem.getQuantity() == null || dtoItem.getQuantity() < 1 ? 1 : dtoItem.getQuantity());
 
-        SaleItem savedItem = saleItemRepository.saveAndFlush(item);
-        entityManager.refresh(savedItem);
+        if (dtoItem.getColor() != null && !dtoItem.getColor().isBlank()) {
+            item.setColor(dtoItem.getColor().trim());
+        }
 
-        SaleItemDetailDto dto = modelMapper.map(savedItem, SaleItemDetailDto.class);
-        dto.setBrandName(savedItem.getBrand().getName());
-        return dto;
+        SaleItem saved = saleItemRepository.saveAndFlush(item);
+        entityManager.refresh(saved);
+
+        SaleItemDetailDto responseDto = modelMapper.map(saved, SaleItemDetailDto.class);
+        responseDto.setBrandName(saved.getBrand().getName());
+        return responseDto;
     }
 
 
