@@ -65,7 +65,7 @@ public class SaleItemService {
         SaleItem item = new SaleItem();
         item.setBrand(brand);
         item.setModel(dtoItem.getModel().trim());
-        item.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
+        item.setDescription(dtoItem.getDescription() == null ? null : dtoItem.getDescription().trim());
         item.setPrice(dtoItem.getPrice());
         item.setRamGb(dtoItem.getRamGb() != null ? dtoItem.getRamGb() : null);
         item.setScreenSizeInch(dtoItem.getScreenSizeInch());

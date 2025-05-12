@@ -17,6 +17,7 @@ public class SaleItemRequestDto {
     @NotNull
     private BrandDto brand;
 
+    @NotBlank 
     private String description;
 
     @NotNull
