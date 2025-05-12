@@ -206,7 +206,7 @@ onMounted(() => {
       <div class="space-y-3 pt-6 border-t border-neutral-800">
         <h3 class="text-lg font-medium text-white mb-4">Inventory</h3>
         <BaseInput
-          class="itbms-quantity"
+           class="itbms-quantity"
            @trim="trimField('quantity')"
             v-model="temp.quantity"
             label="Quantity"
@@ -219,6 +219,7 @@ onMounted(() => {
         <button
           type="submit"
           @click="submit"
+          :disabled="btnNotAvailable"
           class="itbms-save-button"
           :class="
             btnNotAvailable
