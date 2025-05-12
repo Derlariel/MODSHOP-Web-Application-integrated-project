@@ -1,5 +1,5 @@
 
-name: Deploy kk1 sprint 2
+name: Deploy kk1 
 
 on:
   push:
