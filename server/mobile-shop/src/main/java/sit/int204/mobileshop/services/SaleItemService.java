@@ -76,6 +76,7 @@ public class SaleItemService {
         result.setBrandName(item.getBrand().getName());
         return result;
     }
+    @Transactional
     public SaleItemDetailDto updateSaleItemById(Integer id, SaleItemRequestDto dtoItem) {
         SaleItem existingItem = getSaleItemById(id);
 
@@ -129,6 +130,7 @@ public class SaleItemService {
         return result;
     }
 
+    @Transactional
     public void deleteSaleItemById(Integer id) {
         saleItemRepository.delete(getSaleItemById(id));
     }
