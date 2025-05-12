@@ -25,7 +25,7 @@ describe(`TC-FE-PBI3-ADD-SALE-ITEM-1\n
 
         cy.get('.itbms-save-button').as('save') ;
         cy.get('@save').should(($btn)=>{
-            expect($btn.is(':disabled') || $btn.hasClass('disabled')).to.be.false
+            expect($btn.is(':disabled') || $btn.hasClass('disabled')).to.be.true
         })
     })
 

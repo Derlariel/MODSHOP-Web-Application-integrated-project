@@ -194,7 +194,7 @@ onMounted(async () => {
 
                   <div>
                     <h3 class="text-white text-sm font-medium mb-1">Color</h3>
-                    <p class="text-sm">
+                    <p class="itbms-color text-sm">
                       {{ product.color === null || product.color === "" ? "-" : product.color }}
                     </p>
                   </div>
