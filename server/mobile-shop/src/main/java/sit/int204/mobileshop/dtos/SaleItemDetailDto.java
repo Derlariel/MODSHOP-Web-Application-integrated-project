@@ -21,7 +21,6 @@ public class SaleItemDetailDto {
     @Min(value = 0)
     private Integer ramGb;
     private BigDecimal screenSizeInch;
-    @Min(value = 12, message = "Quantity must be at least 12")
     @Min(value = 0)
     private Integer storageGb;
     private String color;
