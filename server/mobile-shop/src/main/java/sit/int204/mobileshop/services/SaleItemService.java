@@ -57,13 +57,12 @@ public class SaleItemService {
         SaleItem item = new SaleItem();
         item.setBrand(brand);
         item.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
-        item.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : "");
+        item.setDescription(dtoItem.getDescription() != null && !dtoItem.getDescription().trim().isEmpty() ? dtoItem.getDescription().trim() : "");
         item.setPrice(dtoItem.getPrice());
         item.setRamGb(dtoItem.getRamGb());
         item.setScreenSizeInch(dtoItem.getScreenSizeInch());
         item.setStorageGb(dtoItem.getStorageGb());
-        item.setQuantity(dtoItem.getQuantity());
-        item.setColor(dtoItem.getColor() != null ? dtoItem.getColor().trim() : "");
+        item.setColor(dtoItem.getColor() != null && !dtoItem.getColor().trim().isEmpty() ? dtoItem.getColor().trim() : "");
 
         saleItemRepository.saveAndFlush(item);
         entityManager.refresh(item);
