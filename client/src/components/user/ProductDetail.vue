@@ -239,14 +239,14 @@ onMounted(async () => {
               <button
                 type="submit"
                 @click="submit"
-                class="flex-1 bg-white text-black py-4 px-6 rounded-full hover:bg-gray-200 transition-colors duration-300 font-medium"
+                class="itbms-edit-button flex-1 bg-white text-black py-4 px-6 rounded-full hover:bg-gray-200 transition-colors duration-300 font-medium"
               >
                 Edit
               </button>
               <button
               @click="deleteSaleItem"
                 type="button"
-                 class="flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-red-500 transition-colors duration-300 font-medium"
+                 class="itbms-delete-button flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-red-500 transition-colors duration-300 font-medium"
               >
                 Delete
               </button>
