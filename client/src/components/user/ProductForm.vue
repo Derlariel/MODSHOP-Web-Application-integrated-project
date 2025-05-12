@@ -217,7 +217,7 @@ onMounted(() => {
 
       <div class="pt-8 flex flex-col sm:flex-row gap-4">
         <button
-          type="submit"
+          type="button"
           @click="submit"
           :disabled="btnNotAvailable"
           class="itbms-save-button"
