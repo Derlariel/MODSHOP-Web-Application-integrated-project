@@ -90,12 +90,23 @@ public class SaleItemService {
         SaleItem saved = saleItemRepository.saveAndFlush(item);
         entityManager.refresh(saved);
 
-        return modelMapper.map(saved, SaleItemDetailDto.class);
+        // manual mapping
+        SaleItemDetailDto dto = new SaleItemDetailDto();
+        dto.setId(saved.getId());
+        dto.setModel(saved.getModel());
+        dto.setBrandName(saved.getBrand().getName());
+        dto.setDescription(saved.getDescription());
+        dto.setPrice(saved.getPrice());
+        dto.setRamGb(saved.getRamGb());
+        dto.setScreenSizeInch(saved.getScreenSizeInch());
+        dto.setStorageGb(saved.getStorageGb());
+        dto.setQuantity(saved.getQuantity());
+        dto.setColor(saved.getColor());
+        dto.setCreatedOn(saved.getCreatedOn());
+        dto.setUpdatedOn(saved.getUpdatedOn());
 
+        return dto;
     }
-
-
-
 
 
     public SaleItemDetailDto updateSaleItemById(Integer id, SaleItemRequestDto dtoItem) {
