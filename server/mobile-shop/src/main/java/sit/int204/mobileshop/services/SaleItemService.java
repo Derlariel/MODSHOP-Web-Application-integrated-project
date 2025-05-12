@@ -90,9 +90,8 @@ public class SaleItemService {
         SaleItem saved = saleItemRepository.saveAndFlush(item);
         entityManager.refresh(saved);
 
-        SaleItemDetailDto responseDto = modelMapper.map(saved, SaleItemDetailDto.class);
-        responseDto.setBrandName(saved.getBrand().getName());
-        return responseDto;
+        return modelMapper.map(saved, SaleItemDetailDto.class);
+
     }
 
 
