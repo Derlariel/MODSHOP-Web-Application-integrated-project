@@ -48,9 +48,7 @@ watch(
     const selectedBrand = brandStore.getBrands().find(
       (brand) => brand.name === props.init.brandName
     );
-    temp.brand = selectedBrand
-      ? { id: selectedBrand.id, name: selectedBrand.name }
-      : { id: null, name: props.init.brandName || null };
+    temp.brand = selectedBrand || { id: null, name: props.init.brandName || null };
   },
   { immediate: true }
 );
@@ -114,7 +112,7 @@ onMounted(() => {
             <option
               v-for="(brand, index) in brands"
               :key="brand.id"
-              :value="{ id: brand.id, name: brand.name }"
+              :value="brand"
             >
               {{ brand.name }}
             </option>
