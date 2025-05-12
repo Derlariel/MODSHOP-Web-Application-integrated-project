@@ -90,7 +90,7 @@ public class SaleItemService {
         SaleItem saved = saleItemRepository.saveAndFlush(item);
         entityManager.refresh(saved);
 
-        // manual mapping
+        // manual mapping when new item
         SaleItemDetailDto dto = new SaleItemDetailDto();
         dto.setId(saved.getId());
         dto.setModel(saved.getModel());
