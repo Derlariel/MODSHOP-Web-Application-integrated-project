@@ -63,7 +63,7 @@ public class SaleItemService {
         item.setScreenSizeInch(dtoItem.getScreenSizeInch());
         item.setStorageGb(dtoItem.getStorageGb());
         item.setQuantity(dtoItem.getQuantity());
-        item.setColor(dtoItem.getColor() != null ? dtoItem.getColor().trim() : null);
+        item.setColor(dtoItem.getColor() != null && !dtoItem.getColor().trim().isEmpty() ? dtoItem.getColor().trim() : "");
 
         saleItemRepository.saveAndFlush(item);
         entityManager.refresh(item);
