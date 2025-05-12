@@ -38,7 +38,7 @@ describe(`TC-FE-PBI3-ADD-SALE-ITEM-4\n
         cy.get('@brandSelect').select('OPPO') ;
 
         cy.get('.itbms-model').as('modelInput') ;
-        cy.get('@modelInput').type('1AR Pro 5G2AR Pro') ;
+        cy.get('@modelInput').type('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro 5G5AR Pro 5G6AR Pro 5G') ;
 
         cy.get('.itbms-price').as('priceInput') ;
         cy.get('@priceInput').type('7999') ;
@@ -78,7 +78,7 @@ describe(`TC-FE-PBI3-ADD-SALE-ITEM-4\n
         cy.get('@brandSelect').select('OPPO') ;
 
         cy.get('.itbms-model').as('modelInput') ;
-        cy.get('@modelInput').type('1AR Pro 5G2AR Pro') ;
+        cy.get('@modelInput').type('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro 5G5AR Pro 5G6AR Pro 5G') ;
 
         cy.get('.itbms-price').as('priceInput') ;
         cy.get('@priceInput').type('7999') ;
@@ -116,10 +116,10 @@ describe(`TC-FE-PBI3-ADD-SALE-ITEM-4\n
     })
 
     it('should have the new sale item in the sale item gallery',()=>{
-        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro').should('exist').as('newSaleItem') 
+        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro 5G5AR Pro 5G6AR Pro 5G').should('exist').as('newSaleItem') 
         cy.get('@newSaleItem').parents('.itbms-row').as('row')
         cy.get('@row').contains('.itbms-brand','OPPO')
-        cy.get('@row').contains('.itbms-model','1AR Pro 5G2AR Pro')
+        cy.get('@row').contains('.itbms-model','1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro 5G5AR Pro 5G6AR Pro 5G')
         cy.get('@row').contains('.itbms-ramGb','6')
         cy.get('@row').contains('.itbms-storageGb','128')
         cy.get('@row').contains('.itbms-storageGb-unit','GB')
@@ -127,13 +127,13 @@ describe(`TC-FE-PBI3-ADD-SALE-ITEM-4\n
     })
 
     it('should have the new sale item in the sale item gallery and should have the detail of the new sale item',()=>{
-        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro').should('exist').as('newSaleItem') 
+        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro 5G5AR Pro 5G6AR Pro 5G').should('exist').as('newSaleItem') 
         cy.get('@newSaleItem').parents('.itbms-row').as('row')
         cy.get('@row').click()
         cy.wait(100)
 
         cy.get('.itbms-brand').contains('OPPO')
-        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro')
+        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro 5G5AR Pro 5G6AR Pro 5G')
         cy.get('.itbms-price').contains('7,999')
         cy.get('.itbms-description').contains('ระบบปฎิบัติการ Android 15 รองรับ 2 ซิม')
         cy.get('.itbms-ramGb').contains('6')
