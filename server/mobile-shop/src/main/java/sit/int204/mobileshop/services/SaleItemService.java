@@ -64,7 +64,9 @@ public class SaleItemService {
         item.setScreenSizeInch(dtoItem.getScreenSizeInch());
         item.setStorageGb(dtoItem.getStorageGb());
         item.setQuantity(dtoItem.getQuantity());
-        item.setColor(dtoItem.getColor() != null ? dtoItem.getColor().trim() : null);
+        item.setColor(dtoItem.getColor() != null && !dtoItem.getColor().trim().isEmpty()
+                ? dtoItem.getColor().trim()
+                : "");
 
 
         saleItemRepository.saveAndFlush(item);
@@ -91,7 +93,6 @@ public class SaleItemService {
 
         dtoItem.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
         dtoItem.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
-        dtoItem.setColor(dtoItem.getColor() != null ? dtoItem.getColor().trim() : null);
 
         if (dtoItem.getColor() != null) {
             dtoItem.setColor(dtoItem.getColor().trim());
@@ -116,7 +117,9 @@ public class SaleItemService {
         existingItem.setScreenSizeInch(dtoItem.getScreenSizeInch());
         existingItem.setQuantity(dtoItem.getQuantity());
         existingItem.setStorageGb(dtoItem.getStorageGb());
-        existingItem.setColor(dtoItem.getColor());
+        existingItem.setColor(dtoItem.getColor() != null && !dtoItem.getColor().trim().isEmpty()
+                ? dtoItem.getColor().trim()
+                : "");
 
         SaleItem updatedItem = saleItemRepository.save(existingItem);
         SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
