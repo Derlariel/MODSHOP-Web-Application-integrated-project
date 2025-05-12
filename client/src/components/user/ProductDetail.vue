@@ -45,12 +45,12 @@ const deleteSaleItem = () => {
 }
 
 const confirm = async () => {
+  await productStore.deleteProduct(productId)
   const result = await productStore.fetchProductDetail(productId);
   if (checkUptodate(result)) {
     router.push("/sale-items");
     return
   }
-  productStore.deleteProduct(productId)
   sessionStorage.setItem("delete-success", "true")
   router.back()
 }
