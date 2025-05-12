@@ -44,7 +44,20 @@ const btnNotAvailable = ref(true);
 watch(
   () => props.init,
   (newValue) => {
-    Object.assign(temp, newValue);
+    Object.assign(temp, {
+      model: newValue.model || "",
+      brand: {
+        id: null,
+        name: newValue.brandName || null,
+      },
+      description: newValue.description || "",
+      price: newValue.price?.toString() || "", // แปลงเป็น string
+      ramGb: newValue.ramGb?.toString() || "", // แปลงเป็น string
+      storageGb: newValue.storageGb?.toString() || "", // แปลงเป็น string
+      screenSizeInch: newValue.screenSizeInch?.toString() || "", // แปลงเป็น string
+      color: newValue.color || "",
+      quantity: newValue.quantity?.toString() || "", // แปลงเป็น string
+    });
     const selectedBrand = brandStore.getBrands().find(
       (brand) => brand.name === props.init.brandName
     );
@@ -65,17 +78,27 @@ watchEffect(() => {
     "color",
     "quantity",
   ];
+
   const requiredFieldsEmpty = requiredFields.some((field) => {
-    return !temp[field];
+    return !temp[field] || temp[field].toString().trim() === "";
   });
 
   if (temp.ramGb === "") temp.ramGb = null;
+  if (temp.storageGb === "") temp.storageGb = null;
+  if (temp.screenSizeInch === "") temp.screenSizeInch = null;
+  if (temp.quantity === "") temp.quantity = null;
+  if (temp.price === "") temp.price = null;
 
-  const isUnchanged =
-    AllFields.every((field) => temp[field] === props.init[field]) &&
-    temp.brand.name === props.init.brandName;
+  const isUnchanged = AllFields.every((field) => {
+    const tempValue = temp[field] === "" ? null : temp[field];
+    const initValue = props.init[field] === undefined ? null : props.init[field];
+    if (field === "price" || field === "ramGb" || field === "storageGb" || field === "screenSizeInch" || field === "quantity") {
+      return Number(tempValue) === Number(initValue);
+    }
+    return tempValue === initValue;
+  }) && temp.brand.name === props.init.brandName;
 
-  btnNotAvailable.value = requiredFieldsEmpty || isUnchanged || !temp.brand.id; 
+  btnNotAvailable.value = requiredFieldsEmpty || isUnchanged || !temp.brand.id;
 });
 
 const submit = () => {
