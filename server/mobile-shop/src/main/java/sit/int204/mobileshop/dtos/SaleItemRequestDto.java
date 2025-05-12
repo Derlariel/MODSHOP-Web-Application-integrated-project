@@ -12,28 +12,21 @@ import java.time.Instant;
 @Getter @Setter
 public class SaleItemRequestDto {
 
-    @NotBlank
     @Size(min = 12)
     private String name;
 
-    @NotBlank
     private String model;
 
-    @NotNull
     private BrandDto brand;
 
-    @NotBlank
     private String description;
 
-    @NotNull
     @Min(0)
     private Integer price;
 
     private Integer ramGb;
     private BigDecimal screenSizeInch;
 
-    @NotNull
-    @Min(0)
     private Integer quantity;
 
     private Integer storageGb;
