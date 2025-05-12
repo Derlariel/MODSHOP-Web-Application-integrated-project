@@ -103,10 +103,10 @@ public class SaleItemService {
         existingItem.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
         existingItem.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
         existingItem.setPrice(dtoItem.getPrice());
-        existingItem.setRamGb(dtoItem.getRamGb() != null ? dtoItem.getRamGb() : 0);
+        existingItem.setRamGb(dtoItem.getRamGb() != null ? dtoItem.getRamGb() : null);
         existingItem.setScreenSizeInch(dtoItem.getScreenSizeInch());
         existingItem.setQuantity(dtoItem.getQuantity());
-        existingItem.setStorageGb(dtoItem.getStorageGb() != null ? dtoItem.getStorageGb() : 0);
+        existingItem.setStorageGb(dtoItem.getStorageGb() != null ? dtoItem.getStorageGb() : null);
         existingItem.setColor(
                 dtoItem.getColor() != null && !dtoItem.getColor().trim().isEmpty() ? dtoItem.getColor().trim() : null);
 

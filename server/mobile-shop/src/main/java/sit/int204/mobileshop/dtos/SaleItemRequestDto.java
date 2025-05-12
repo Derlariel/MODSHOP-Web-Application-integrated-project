@@ -26,7 +26,6 @@ public class SaleItemRequestDto {
     private Integer ramGb;
     private BigDecimal screenSizeInch;
 
-    @NotNull
     private Integer quantity;
 
     private Integer storageGb;
