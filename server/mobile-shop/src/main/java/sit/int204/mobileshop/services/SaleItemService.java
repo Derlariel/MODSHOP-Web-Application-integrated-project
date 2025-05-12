@@ -66,12 +66,15 @@ public class SaleItemService {
     @Transactional
     public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem) {
         SaleItem item = new SaleItem();
+
         if (dtoItem.getBrand() == null || dtoItem.getBrand().getName() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand name must not be null.");
         }
-        Brand brand = brandService.getBrandByName(dtoItem.getBrand().getName());
+
+        Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
         if (brand == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand not found brand name: " + dtoItem.getBrand().getName());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Brand not found, brand id: " + dtoItem.getBrand().getId());
         }
 
         item.setBrand(brand);
@@ -90,11 +93,26 @@ public class SaleItemService {
         SaleItem saved = saleItemRepository.saveAndFlush(item);
         entityManager.refresh(saved);
 
-        return modelMapper.map(saved, SaleItemDetailDto.class);
+        // 🔥 Manual mapping part
+//        SaleItemDetailDto dto = modelMapper.map(saved, SaleItemDetailDto.class);
+//        dto.setBrandName(saved.getBrand().getName());
+//        return dto;
+        SaleItemDetailDto dto = new SaleItemDetailDto();
+        dto.setId(saved.getId());
+        dto.setModel(saved.getModel());
+        dto.setBrandName(saved.getBrand().getName());
+        dto.setDescription(saved.getDescription());
+        dto.setPrice(saved.getPrice());
+        dto.setRamGb(saved.getRamGb());
+        dto.setScreenSizeInch(saved.getScreenSizeInch());
+        dto.setQuantity(saved.getQuantity());
+        dto.setStorageGb(saved.getStorageGb());
+        dto.setColor(saved.getColor());
+        dto.setCreatedOn(saved.getCreatedOn());
+        dto.setUpdatedOn(saved.getUpdatedOn());
 
+        return dto;
     }
-
-
 
 
 
