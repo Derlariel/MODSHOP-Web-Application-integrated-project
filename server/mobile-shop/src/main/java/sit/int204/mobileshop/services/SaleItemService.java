@@ -56,9 +56,9 @@ public class SaleItemService {
         SaleItem item = new SaleItem();
         item.setBrand(brand);
         item.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
-        item.setDescription(dtoItem.getDescription() != null && !dtoItem.getDescription().trim().isEmpty()
-                ? dtoItem.getDescription().trim()
-                : "");
+        item.setDescription(dtoItem.getColor().isBlank() || dtoItem.getColor() == null
+                ? null
+                : dtoItem.getColor().trim());
         item.setPrice(dtoItem.getPrice());
         item.setRamGb(dtoItem.getRamGb());
         item.setScreenSizeInch(dtoItem.getScreenSizeInch());
@@ -82,7 +82,7 @@ public class SaleItemService {
 
         Brand brand;
         if (dtoItem.getBrand() == null || dtoItem.getBrand().getId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null na ja.");
         }
 
 
@@ -111,7 +111,9 @@ public class SaleItemService {
 
         existingItem.setBrand(brand);
         existingItem.setModel(dtoItem.getModel());
-        existingItem.setDescription(dtoItem.getDescription());
+        existingItem.setDescription(dtoItem.getColor().isBlank() || dtoItem.getColor() == null
+                ? null
+                : dtoItem.getColor().trim());
         existingItem.setPrice(dtoItem.getPrice());
         existingItem.setRamGb(dtoItem.getRamGb());
         existingItem.setScreenSizeInch(dtoItem.getScreenSizeInch());
