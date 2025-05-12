@@ -13,10 +13,6 @@ import java.time.Instant;
 public class SaleItemRequestDto {
 
     @NotBlank
-    @Size(min = 12)
-    private String name;
-
-    @NotBlank
     private String model;
 
     @NotNull

@@ -41,28 +41,32 @@ public class SaleItemService {
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
     }
 
+
     @Transactional
     public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem) {
         if (dtoItem.getBrand() == null || dtoItem.getBrand().getId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null.");
         }
 
+        if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 1) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Quantity must be at least 1.");
+        }
+
         Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
 
         SaleItem item = new SaleItem();
         item.setBrand(brand);
-        item.setModel(dtoItem.getModel().trim());
-        item.setDescription(dtoItem.getDescription().trim());
+        item.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
+        item.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
         item.setPrice(dtoItem.getPrice());
         item.setRamGb(dtoItem.getRamGb());
         item.setScreenSizeInch(dtoItem.getScreenSizeInch());
         item.setStorageGb(dtoItem.getStorageGb());
-        item.setQuantity(dtoItem.getQuantity() == null || dtoItem.getQuantity() < 1 ? 12 : dtoItem.getQuantity());
+        item.setQuantity(dtoItem.getQuantity());
         item.setColor(dtoItem.getColor() != null ? dtoItem.getColor().trim() : null);
 
         saleItemRepository.saveAndFlush(item);
         entityManager.refresh(item);
-
 
         return modelMapper.map(item, SaleItemDetailDto.class);
     }
