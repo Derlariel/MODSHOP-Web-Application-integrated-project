@@ -33,7 +33,6 @@ public class SaleItemRequestDto {
     private BigDecimal screenSizeInch;
 
     @NotNull
-    @Min(0)
     private Integer quantity;
 
     private Integer storageGb;
