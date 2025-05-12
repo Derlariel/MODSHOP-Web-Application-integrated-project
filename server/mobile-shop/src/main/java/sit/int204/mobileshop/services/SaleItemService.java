@@ -54,7 +54,6 @@ public class SaleItemService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Price must be non-negative.");
         }
 
-
         if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
             dtoItem.setQuantity(1);
         }
@@ -62,7 +61,7 @@ public class SaleItemService {
 
         Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
 
-  
+
         SaleItem item = new SaleItem();
         item.setBrand(brand);
         item.setModel(dtoItem.getModel().trim());
@@ -95,11 +94,11 @@ public class SaleItemService {
 
         Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
 
-
         if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
             dtoItem.setQuantity(1);
         }
 
+        // อัปเดตข้อมูล
         existingItem.setBrand(brand);
         existingItem.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
         existingItem.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
