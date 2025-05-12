@@ -1,29 +1,20 @@
 package sit.int204.mobileshop.services;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import org.springframework.web.server.ResponseStatusException;
 import sit.int204.mobileshop.dtos.SaleItemDetailDto;
-import sit.int204.mobileshop.dtos.SaleItemDto;
 import sit.int204.mobileshop.dtos.SaleItemRequestDto;
 import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.entities.Brand;
-
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
-import sit.int204.mobileshop.repositories.BrandRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,23 +27,10 @@ public class SaleItemService {
     private BrandService brandService;
 
     @Autowired
-    private BrandRepository brandRepository;
-    @Autowired
     private ModelMapper modelMapper;
 
     @PersistenceContext
     private EntityManager entityManager;
-    private boolean isIdentical(SaleItem item , SaleItemRequestDto dtoItem , Brand brand){
-        return Objects.equals(item.getModel(), dtoItem.getModel().trim()) &&
-                Objects.equals(item.getDescription(), dtoItem.getDescription().trim()) &&
-                Objects.equals(item.getBrand().getId(), brand.getId()) &&
-                Objects.equals(item.getPrice(), dtoItem.getPrice()) &&
-                Objects.equals(item.getRamGb(), dtoItem.getRamGb()) &&
-                Objects.equals(item.getStorageGb(), dtoItem.getStorageGb()) &&
-                Objects.equals(item.getScreenSizeInch(), dtoItem.getScreenSizeInch()) &&
-                Objects.equals(item.getQuantity(), dtoItem.getQuantity()) &&
-                Objects.equals(item.getColor(), dtoItem.getColor() == null ? null : dtoItem.getColor().trim());
-    }
 
     public List<SaleItem> getAllSaleItems() {
         return saleItemRepository.findAll();
@@ -65,66 +43,36 @@ public class SaleItemService {
 
     @Transactional
     public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem) {
-        SaleItem item = new SaleItem();
-
-        if (dtoItem.getBrand() == null || dtoItem.getBrand().getName() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand name must not be null.");
+        if (dtoItem.getBrand() == null || dtoItem.getBrand().getId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null.");
         }
 
         Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
 
-        if (brand == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Brand not found, brand id: " + dtoItem.getBrand().getId());
-        }
-
+        SaleItem item = new SaleItem();
         item.setBrand(brand);
-        item.setModel(dtoItem.getModel());
-        item.setDescription(dtoItem.getDescription());
+        item.setModel(dtoItem.getModel().trim());
+        item.setDescription(dtoItem.getDescription().trim());
         item.setPrice(dtoItem.getPrice());
         item.setRamGb(dtoItem.getRamGb());
         item.setScreenSizeInch(dtoItem.getScreenSizeInch());
         item.setStorageGb(dtoItem.getStorageGb());
         item.setQuantity(dtoItem.getQuantity() == null || dtoItem.getQuantity() < 1 ? 12 : dtoItem.getQuantity());
+        item.setColor(dtoItem.getColor() != null ? dtoItem.getColor().trim() : null);
 
-        if (dtoItem.getColor() != null && !dtoItem.getColor().isBlank()) {
-            item.setColor(dtoItem.getColor().trim());
-        }
+        saleItemRepository.saveAndFlush(item);
+        entityManager.refresh(item);
 
-        SaleItem saved = saleItemRepository.saveAndFlush(item);
-        entityManager.refresh(saved);
-
-        // 🔥 Manual mapping part
-//        SaleItemDetailDto dto = modelMapper.map(saved, SaleItemDetailDto.class);
-//        dto.setBrandName(saved.getBrand().getName());
-//        return dto;
-        SaleItemDetailDto dto = new SaleItemDetailDto();
-        dto.setId(saved.getId());
-        dto.setModel(saved.getModel());
-        dto.setBrandName(saved.getBrand().getName());
-        dto.setDescription(saved.getDescription());
-        dto.setPrice(saved.getPrice());
-        dto.setRamGb(saved.getRamGb());
-        dto.setScreenSizeInch(saved.getScreenSizeInch());
-        dto.setQuantity(saved.getQuantity());
-        dto.setStorageGb(saved.getStorageGb());
-        dto.setColor(saved.getColor());
-        dto.setCreatedOn(saved.getCreatedOn());
-        dto.setUpdatedOn(saved.getUpdatedOn());
-
-        return dto;
+        return modelMapper.map(item, SaleItemDetailDto.class);
     }
 
-
-
     public SaleItemDetailDto updateSaleItemById(Integer id, SaleItemRequestDto dtoItem) {
-        SaleItem existingItem = saleItemRepository.findById(id)
-                .orElseThrow(() -> new ItemNotFoundException("Sale item not found"));
+        SaleItem existingItem = getSaleItemById(id);
 
         Brand brand = brandService.getBrandByName(dtoItem.getBrand().getName());
         if (brand == null) {
             throw new ItemNotFoundException("Brand not found: " + dtoItem.getBrand().getName());
-        }   
+        }
 
         dtoItem.setModel(dtoItem.getModel().trim());
         dtoItem.setDescription(dtoItem.getDescription().trim());
@@ -143,26 +91,27 @@ public class SaleItemService {
         existingItem.setQuantity(dtoItem.getQuantity());
         existingItem.setStorageGb(dtoItem.getStorageGb());
         existingItem.setColor(dtoItem.getColor());
-        SaleItem updatedItem = saleItemRepository.save(existingItem);
 
-        if (updatedItem == null) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update Sale Item");
-        }
-
-
-        return modelMapper.map(updatedItem, SaleItemDetailDto.class);
+        return modelMapper.map(saleItemRepository.save(existingItem), SaleItemDetailDto.class);
     }
 
     public void deleteSaleItemById(Integer id) {
-        SaleItem deletedItem = saleItemRepository.findById(id)
-                .orElseThrow(() -> new ItemNotFoundException("Sale item not found for this id :: " + id));
-        saleItemRepository.delete(deletedItem);
+        saleItemRepository.delete(getSaleItemById(id));
     }
-
 
     public void deleteAllForTest() {
         saleItemRepository.deleteAll();
     }
 
-
+    private boolean isIdentical(SaleItem item, SaleItemRequestDto dtoItem, Brand brand) {
+        return Objects.equals(item.getModel(), dtoItem.getModel().trim()) &&
+                Objects.equals(item.getDescription(), dtoItem.getDescription().trim()) &&
+                Objects.equals(item.getBrand().getId(), brand.getId()) &&
+                Objects.equals(item.getPrice(), dtoItem.getPrice()) &&
+                Objects.equals(item.getRamGb(), dtoItem.getRamGb()) &&
+                Objects.equals(item.getStorageGb(), dtoItem.getStorageGb()) &&
+                Objects.equals(item.getScreenSizeInch(), dtoItem.getScreenSizeInch()) &&
+                Objects.equals(item.getQuantity(), dtoItem.getQuantity()) &&
+                Objects.equals(item.getColor(), dtoItem.getColor() == null ? null : dtoItem.getColor().trim());
+    }
 }

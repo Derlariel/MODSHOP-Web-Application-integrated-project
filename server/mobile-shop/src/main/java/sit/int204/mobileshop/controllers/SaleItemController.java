@@ -1,6 +1,5 @@
 package sit.int204.mobileshop.controllers;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +16,11 @@ import sit.int204.mobileshop.dtos.SaleItemDetailDto;
 import sit.int204.mobileshop.dtos.SaleItemDto;
 import sit.int204.mobileshop.dtos.SaleItemRequestDto;
 import sit.int204.mobileshop.entities.SaleItem;
-import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.exceptions.MyErrorResponse;
 import sit.int204.mobileshop.services.SaleItemService;
 import sit.int204.mobileshop.utils.ListMapper;
 
 import java.util.List;
-import java.util.Map;
 
 @CrossOrigin(origins = "${app.origins}")
 @RestController
@@ -46,10 +43,8 @@ public class SaleItemController {
     })
     @GetMapping("")
     public ResponseEntity<List<SaleItemDto>> getAllProducts() {
-        List<SaleItem> products = saleItemService.getAllSaleItems();
-        if (products.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
+        var products = saleItemService.getAllSaleItems();
+        if (products.isEmpty()) return ResponseEntity.noContent().build();
         return ResponseEntity.ok(listMapper.toListDto(products, SaleItemDto.class, modelMapper));
     }
 
@@ -62,7 +57,8 @@ public class SaleItemController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<SaleItemDetailDto> getProductById(@PathVariable Integer id) {
-        return ResponseEntity.ok(modelMapper.map(saleItemService.getSaleItemById(id), SaleItemDetailDto.class));
+        var item = saleItemService.getSaleItemById(id);
+        return ResponseEntity.ok(modelMapper.map(item, SaleItemDetailDto.class));
     }
 
     @Operation(summary = "Add new sale item", description = "Create a new sale item")
@@ -70,10 +66,9 @@ public class SaleItemController {
             content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class)))
     @PostMapping("")
     public ResponseEntity<SaleItemDetailDto> createSaleItem(@Valid @RequestBody SaleItemRequestDto dtoItem) {
-        SaleItemDetailDto createdItem = saleItemService.createSaleItem(dtoItem);
+        var createdItem = saleItemService.createSaleItem(dtoItem);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdItem);
     }
-
 
     @Operation(summary = "Update sale item", description = "Update an existing sale item")
     @ApiResponses({
@@ -86,14 +81,8 @@ public class SaleItemController {
     })
     @PutMapping("/{id}")
     public ResponseEntity<SaleItemDetailDto> updateSaleItemById(@PathVariable Integer id, @Valid @RequestBody SaleItemRequestDto dtoItem) {
-        try {
-            SaleItemDetailDto updatedItem = saleItemService.updateSaleItemById(id, dtoItem);
-            return ResponseEntity.ok(updatedItem);
-        } catch (ItemNotFoundException e) {
-            throw new ItemNotFoundException("Sale item not found");
-        } catch (Exception e) {
-            throw new RuntimeException("Something went wrong");
-        }
+        var updatedItem = saleItemService.updateSaleItemById(id, dtoItem);
+        return ResponseEntity.ok(updatedItem);
     }
 
     @Operation(summary = "Delete sale item by ID", description = "Delete a specific sale item by its ID")
@@ -103,7 +92,7 @@ public class SaleItemController {
                     content = @Content(schema = @Schema(implementation = MyErrorResponse.class)))
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSaleItemById(@PathVariable Integer id){
+    public ResponseEntity<Void> deleteSaleItemById(@PathVariable Integer id) {
         saleItemService.deleteSaleItemById(id);
         return ResponseEntity.noContent().build();
     }
