@@ -7,6 +7,7 @@ import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import org.springframework.web.server.ResponseStatusException;
@@ -63,7 +64,7 @@ public class SaleItemService {
     }
 
     @Transactional
-    public SaleItemDetailDto  createSaleItem(SaleItemRequestDto dtoItem) {
+    public ResponseEntity<SaleItemDetailDto> createSaleItem(SaleItemRequestDto dtoItem) {
         SaleItem item = new SaleItem();
 
         if (dtoItem.getBrand() == null || dtoItem.getBrand().getName() == null) {
@@ -71,11 +72,19 @@ public class SaleItemService {
         }
 
         Brand brand = brandService.getBrandByName(dtoItem.getBrand().getName());
-
         if (brand == null) {
-            throw new ItemNotFoundException("Brand not found: " + dtoItem.getBrand().getName());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand not found: " + dtoItem.getBrand().getName());
         }
 
+        if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
+            dtoItem.setQuantity(1);
+        }
+
+        if (dtoItem.getColor() == null || dtoItem.getColor().trim().isEmpty()) {
+            dtoItem.setColor(null);
+        } else {
+            dtoItem.setColor(dtoItem.getColor().trim());
+        }
 
         item.setModel(dtoItem.getModel());
         item.setBrand(brand);
@@ -89,10 +98,13 @@ public class SaleItemService {
 
         SaleItem savedItem = saleItemRepository.saveAndFlush(item);
         entityManager.refresh(savedItem);
+
         SaleItemDetailDto dto = modelMapper.map(savedItem, SaleItemDetailDto.class);
         dto.setBrandName(savedItem.getBrand().getName());
-        return dto;
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
+
 
 
     public SaleItemDetailDto updateSaleItemById(Integer id, SaleItemRequestDto dtoItem) {
