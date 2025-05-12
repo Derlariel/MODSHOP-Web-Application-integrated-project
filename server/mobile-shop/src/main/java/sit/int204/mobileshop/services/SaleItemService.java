@@ -47,8 +47,8 @@ public class SaleItemService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null.");
         }
 
-        if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 1) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Quantity must be at least 1.");
+        if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
+            dtoItem.setQuantity(1);
         }
 
         Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
@@ -56,13 +56,17 @@ public class SaleItemService {
         SaleItem item = new SaleItem();
         item.setBrand(brand);
         item.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
-        item.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
+        item.setDescription(dtoItem.getColor().isBlank() || dtoItem.getColor() == null
+                ? null
+                : dtoItem.getColor().trim());
         item.setPrice(dtoItem.getPrice());
         item.setRamGb(dtoItem.getRamGb());
         item.setScreenSizeInch(dtoItem.getScreenSizeInch());
         item.setStorageGb(dtoItem.getStorageGb());
         item.setQuantity(dtoItem.getQuantity());
-        item.setColor(dtoItem.getColor() != null ? dtoItem.getColor().trim() : null);
+        item.setColor(dtoItem.getColor().isBlank() || dtoItem.getColor() == null
+                ? null
+                : dtoItem.getColor().trim());
 
         saleItemRepository.saveAndFlush(item);
         entityManager.refresh(item);
@@ -75,13 +79,11 @@ public class SaleItemService {
     public SaleItemDetailDto updateSaleItemById(Integer id, SaleItemRequestDto dtoItem) {
         SaleItem existingItem = getSaleItemById(id);
 
-
         Brand brand;
         if (dtoItem.getBrand() == null || dtoItem.getBrand().getId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null.");
         }
 
-    
         brand = brandService.getBrandById(dtoItem.getBrand().getId());
         if (brand == null) {
             throw new ItemNotFoundException("Brand not found with id: " + dtoItem.getBrand().getId());
@@ -89,10 +91,10 @@ public class SaleItemService {
 
         dtoItem.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
         dtoItem.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
+
         if (dtoItem.getColor() != null) {
             dtoItem.setColor(dtoItem.getColor().trim());
         }
-
 
         if (isIdentical(existingItem, dtoItem, brand)) {
             SaleItemDetailDto result = modelMapper.map(existingItem, SaleItemDetailDto.class);
@@ -100,19 +102,27 @@ public class SaleItemService {
             return result;
         }
 
+        if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
+            dtoItem.setQuantity(1);
+        }
+
         existingItem.setBrand(brand);
         existingItem.setModel(dtoItem.getModel());
-        existingItem.setDescription(dtoItem.getDescription());
+        existingItem.setDescription(dtoItem.getColor().isBlank() || dtoItem.getColor() == null
+                ? null
+                : dtoItem.getColor().trim());
         existingItem.setPrice(dtoItem.getPrice());
         existingItem.setRamGb(dtoItem.getRamGb());
         existingItem.setScreenSizeInch(dtoItem.getScreenSizeInch());
         existingItem.setQuantity(dtoItem.getQuantity());
         existingItem.setStorageGb(dtoItem.getStorageGb());
-        existingItem.setColor(dtoItem.getColor());
+        existingItem.setColor(dtoItem.getColor().isBlank() || dtoItem.getColor() == null
+                ? null
+                : dtoItem.getColor().trim());
 
         SaleItem updatedItem = saleItemRepository.save(existingItem);
         SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
-        result.setBrandName(brand.getName()); 
+        result.setBrandName(brand.getName());
         return result;
     }
 

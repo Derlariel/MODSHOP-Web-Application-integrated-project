@@ -36,6 +36,7 @@ public class SaleItemRequestDto {
     @Getter
     @Setter
     public static class BrandDto {
+        @NotNull
         private Integer id; 
         private String name; 
     }

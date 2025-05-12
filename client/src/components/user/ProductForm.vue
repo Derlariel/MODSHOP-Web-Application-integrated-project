@@ -77,7 +77,7 @@ watchEffect(() => {
     AllFields.every((field) => temp[field] === props.init[field]) &&
     temp.brand.name === props.init.brandName;
 
-  btnNotAvailable.value = requiredFieldsEmpty || isUnchanged || !temp.brand.id; // ป้องกันการกด Save ถ้า brand.id เป็น null
+  btnNotAvailable.value = requiredFieldsEmpty || isUnchanged || !temp.brand.id; 
 });
 
 const submit = () => {
