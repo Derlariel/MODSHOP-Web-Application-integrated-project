@@ -15,7 +15,7 @@ public class SaleItemRequestDto {
     private String model;
 
     @NotNull
-    private BrandDto brand; 
+    private BrandDto brand;
 
     @NotBlank
     private String description;
@@ -37,7 +37,7 @@ public class SaleItemRequestDto {
     @Setter
     public static class BrandDto {
         @NotNull
-        private Integer id; 
-        private String name; 
+        private Integer id;
+        private String name;
     }
 }
