@@ -8,15 +8,15 @@ import {
   watch,
   watchEffect,
   ref,
-} from "vue";
-import { useBrandStore } from "@/stores/useBrandStore";
-import { useRouter } from "vue-router";
-import BaseInput from "../shared/BaseInput.vue";
+} from 'vue';
+import { useBrandStore } from '@/stores/useBrandStore';
+import { useRouter } from 'vue-router';
+import BaseInput from '../shared/BaseInput.vue';
 
 const router = useRouter();
 const brandStore = useBrandStore();
 const brands = computed(() => brandStore.getBrands());
-const emit = defineEmits(["submit", "cancel"]);
+const emit = defineEmits(['submit', 'cancel']);
 const props = defineProps({
   init: {
     type: Object,
@@ -25,74 +25,85 @@ const props = defineProps({
 });
 
 const temp = reactive({
-  model: "",
-  brand: {
-    id: null,
-    name: null,
-  },
-  description: "",
-  price: "",
-  ramGb: "",
-  storageGb: "",
-  screenSizeInch: "",
-  color: "",
-  quantity: "",
+  model: '',
+  brand: { id: null, name: null },
+  description: '',
+  price: '',
+  ramGb: '',
+  storageGb: '',
+  screenSizeInch: '',
+  color: '',
+  quantity: '',
 });
 
 const btnNotAvailable = ref(true);
+const isLoading = ref(true);
+
 
 watch(
   () => props.init,
-  (newValue) => {
+  async (newValue) => {
+
+    await brandStore.loadBrands();
+    const availableBrands = brandStore.getBrands();
+
+
+    console.log('props.init:', newValue);
+    console.log('availableBrands:', availableBrands);
+
+
     Object.assign(temp, {
-      model: newValue.model || "",
-      brand: {
-        id: null,
-        name: newValue.brandName || null,
-      },
-      description: newValue.description || "",
-      price: newValue.price?.toString() || "", // แปลงเป็น string
-      ramGb: newValue.ramGb?.toString() || "", // แปลงเป็น string
-      storageGb: newValue.storageGb?.toString() || "", // แปลงเป็น string
-      screenSizeInch: newValue.screenSizeInch?.toString() || "", // แปลงเป็น string
-      color: newValue.color || "",
-      quantity: newValue.quantity?.toString() || "", // แปลงเป็น string
+      model: newValue.model || '',
+      description: newValue.description || '',
+      price: newValue.price?.toString() || '',
+      ramGb: newValue.ramGb?.toString() || '',
+      storageGb: newValue.storageGb?.toString() || '',
+      screenSizeInch: newValue.screenSizeInch?.toString() || '',
+      color: newValue.color || '',
+      quantity: newValue.quantity?.toString() || '',
     });
-    const selectedBrand = brandStore.getBrands().find(
-      (brand) => brand.name === props.init.brandName
+
+    const selectedBrand = availableBrands.find(
+      (brand) => brand.name === newValue.brandName
     );
-    temp.brand = selectedBrand || { id: null, name: props.init.brandName || null };
+
+    temp.brand = selectedBrand || { id: null, name: newValue.brandName || null };
+
+    console.log('selectedBrand:', selectedBrand);
+    console.log('temp.brand:', temp.brand);
+
+    isLoading.value = false;
   },
   { immediate: true }
 );
 
 watchEffect(() => {
-  const requiredFields = ["model", "price", "quantity", "description"];
-  const AllFields = [
-    "model",
-    "description",
-    "price",
-    "ramGb",
-    "storageGb",
-    "screenSizeInch",
-    "color",
-    "quantity",
+  const requiredFields = ['model', 'price', 'quantity', 'description'];
+  const allFields = [
+    'model',
+    'description',
+    'price',
+    'ramGb',
+    'storageGb',
+    'screenSizeInch',
+    'color',
+    'quantity',
   ];
 
   const requiredFieldsEmpty = requiredFields.some((field) => {
-    return !temp[field] || temp[field].toString().trim() === "";
+    return !temp[field] || temp[field].toString().trim() === '';
   });
 
-  if (temp.ramGb === "") temp.ramGb = null;
-  if (temp.storageGb === "") temp.storageGb = null;
-  if (temp.screenSizeInch === "") temp.screenSizeInch = null;
-  if (temp.quantity === "") temp.quantity = null;
-  if (temp.price === "") temp.price = null;
+  if (temp.ramGb === '') temp.ramGb = null;
+  if (temp.storageGb === '') temp.storageGb = null;
+  if (temp.screenSizeInch === '') temp.screenSizeInch = null;
+  if (temp.quantity === '') temp.quantity = null;
+  if (temp.price === '') temp.price = null;
 
-  const isUnchanged = AllFields.every((field) => {
-    const tempValue = temp[field] === "" ? null : temp[field];
+  const isUnchanged = allFields.every((field) => {
+    const tempValue = temp[field] === '' ? null : temp[field];
     const initValue = props.init[field] === undefined ? null : props.init[field];
-    if (field === "price" || field === "ramGb" || field === "storageGb" || field === "screenSizeInch" || field === "quantity") {
+    if (['price', 'ramGb', 'storageGb', 'screenSizeInch', 'quantity'].includes(field)) {
       return Number(tempValue) === Number(initValue);
     }
     return tempValue === initValue;
@@ -102,25 +113,34 @@ watchEffect(() => {
 });
 
 const submit = () => {
-  if (btnNotAvailable.value === true) return;
+  if (btnNotAvailable.value) return;
   if (!temp.brand.id) {
-    alert("Please select a brand.");
+    alert('Please select a brand.');
     return;
   }
-  emit("submit", temp);
+  emit('submit', {
+    ...temp,
+    price: temp.price ? Number(temp.price) : null,
+    ramGb: temp.ramGb ? Number(temp.ramGb) : null,
+    storageGb: temp.storageGb ? Number(temp.storageGb) : null,
+    screenSizeInch: temp.screenSizeInch ? Number(temp.screenSizeInch) : null,
+    quantity: temp.quantity ? Number(temp.quantity) : null,
+  });
 };
 
 const trimField = (field) => {
-  temp[field] = temp[field].trim();
+  if (typeof temp[field] === 'string') {
+    temp[field] = temp[field].trim() || '';
+  }
 };
 
 onMounted(() => {
-  brandStore.loadBrands();
+  brandStore.loadBrands(); 
 });
 </script>
 
 <template>
-  <div>
+  <div v-if="!isLoading">
     <form @submit.prevent class="space-y-8">
       <div class="space-y-3">
         <label for="brand" class="block text-sm font-medium text-gray-300">Brand</label>
@@ -132,11 +152,7 @@ onMounted(() => {
             required
           >
             <option :value="{ id: null, name: null }" disabled>Select a brand</option>
-            <option
-              v-for="(brand, index) in brands"
-              :key="brand.id"
-              :value="brand"
-            >
+            <option v-for="brand in brands" :key="brand.id" :value="brand">
               {{ brand.name }}
             </option>
           </select>
