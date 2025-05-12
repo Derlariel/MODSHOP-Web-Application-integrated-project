@@ -64,7 +64,7 @@ public class SaleItemService {
     }
 
     @Transactional
-    public ResponseEntity<SaleItemDetailDto> createSaleItem(SaleItemRequestDto dtoItem) {
+    public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem) {
         SaleItem item = new SaleItem();
 
         if (dtoItem.getBrand() == null || dtoItem.getBrand().getName() == null) {
@@ -101,9 +101,9 @@ public class SaleItemService {
 
         SaleItemDetailDto dto = modelMapper.map(savedItem, SaleItemDetailDto.class);
         dto.setBrandName(savedItem.getBrand().getName());
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        return dto;
     }
+
 
 
 
