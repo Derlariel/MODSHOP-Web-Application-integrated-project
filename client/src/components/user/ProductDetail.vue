@@ -43,18 +43,18 @@ const showDelete = ref(false)
 const deleteSaleItem = () => {
   showDelete.value = true
 }
-
 const confirm = async () => {
-  await productStore.deleteProduct(productId)
-  sessionStorage.setItem("delete-success", "true")
-  const result = await productStore.fetchProductDetail(productId);
-  if (checkUptodate(result)) {
+  try {
+    await productStore.deleteProduct(productId);
+    sessionStorage.setItem("delete-success", "true");
     router.push("/sale-items");
-    return
+  } catch (error) {
+    if (error.response?.status === 404) {
+      sessionStorage.setItem("error-message", "true")
+      router.push("/sale-items");
+    } 
   }
-  router.back()
-}
-
+};
 const showSuccess = ref(false)
 
 onMounted(async () => {
