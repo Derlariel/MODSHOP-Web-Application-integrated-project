@@ -133,14 +133,14 @@ onMounted(() => {
       <BaseInput
         @trim="trimField('model')"
         v-model="temp.model"
-        class="itbms-model"
+        cypress="itbms-model"
         placeholder="IPhone 15"
         label="Model"
       />
 
       <BaseInput
         v-model="temp.price"
-        class="itbms-price"
+        cypress="itbms-price"
         placeholder="0.00"
         type="number"
         step="0.01"
@@ -149,7 +149,7 @@ onMounted(() => {
       />
 
       <div class="space-y-3">
-        <label for="description" class="itbms-description block text-sm font-medium text-gray-300"
+        <label for="description" class="block text-sm font-medium text-gray-300"
           >Description</label
         >
         <textarea
@@ -157,7 +157,7 @@ onMounted(() => {
           v-model="temp.description"
           id="description"
           rows="4"
-          class="w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white"
+          class="itbms-description w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white"
           placeholder="Enter product description"
         ></textarea>
       </div>
@@ -168,7 +168,7 @@ onMounted(() => {
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <BaseInput
-            class="itbms-ramGb"
+            cypress="itbms-ramGb"
             v-model="temp.ramGb"
             label="RAM (GB)"
             type="number"
@@ -176,7 +176,7 @@ onMounted(() => {
             id="ram"
           />
           <BaseInput
-            class="itbms-screenSizeInch"
+            cypress="itbms-screenSizeInch"
             v-model="temp.screenSizeInch"
             label="Screen Size (Inches)"
             placeholder="6.1"
@@ -185,7 +185,7 @@ onMounted(() => {
             id="screenSize"
           />
           <BaseInput
-            class="itbms-storageGb"
+            cypress="itbms-storageGb"
             v-model="temp.storageGb"
             label="Storage (GB)"
             placeholder="128"
@@ -193,7 +193,7 @@ onMounted(() => {
             id="storage"
           />
           <BaseInput
-           class="itbms-color"
+           cypress="itbms-color"
            @trim="trimField('color')"
             v-model="temp.color"
             label="Color"
@@ -206,7 +206,7 @@ onMounted(() => {
       <div class="space-y-3 pt-6 border-t border-neutral-800">
         <h3 class="text-lg font-medium text-white mb-4">Inventory</h3>
         <BaseInput
-           class="itbms-quantity"
+           cypress="itbms-quantity"
            @trim="trimField('quantity')"
             v-model="temp.quantity"
             label="Quantity"

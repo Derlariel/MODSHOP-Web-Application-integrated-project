@@ -14,7 +14,8 @@ defineProps({
   error: String,
   helper: String,
   prefix: String, 
-  step: String
+  step: String,
+  cypress: String
 });
 
 const preventNegative = (e) => {
@@ -54,6 +55,7 @@ const handle = () => {
         :placeholder="placeholder"
         @input="preventNegative"
         :class="[
+          cypress,
           'w-full py-3.5 pr-4 rounded-xl border transition-all bg-neutral-800 text-white',
           prefix ? 'pl-12' : 'px-4',
           error
