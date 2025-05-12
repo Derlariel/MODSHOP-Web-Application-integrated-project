@@ -12,6 +12,8 @@ import java.time.Instant;
 @Getter @Setter
 public class SaleItemRequestDto {
 
+
+
     @NotBlank
     private String model;
 

@@ -68,7 +68,9 @@ public class SaleItemService {
         saleItemRepository.saveAndFlush(item);
         entityManager.refresh(item);
 
-        return modelMapper.map(item, SaleItemDetailDto.class);
+        SaleItemDetailDto result = modelMapper.map(item, SaleItemDetailDto.class);
+        result.setBrandName(item.getBrand().getName());
+        return result;
     }
 
     public SaleItemDetailDto updateSaleItemById(Integer id, SaleItemRequestDto dtoItem) {
