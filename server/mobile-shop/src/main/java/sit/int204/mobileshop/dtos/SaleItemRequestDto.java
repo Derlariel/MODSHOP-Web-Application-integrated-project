@@ -12,7 +12,9 @@ import java.time.Instant;
 @Getter @Setter
 public class SaleItemRequestDto {
 
-
+    @NotBlank
+    @Size(min = 12)
+    private String name;
 
     @NotBlank
     private String model;
@@ -31,10 +33,9 @@ public class SaleItemRequestDto {
     private BigDecimal screenSizeInch;
 
     @NotNull
-    @Min(1)
+    @Min(0)
     private Integer quantity;
 
-    @Min(value = 12, message = "storageGb must be at least 12")
     private Integer storageGb;
     private String color;
 }
