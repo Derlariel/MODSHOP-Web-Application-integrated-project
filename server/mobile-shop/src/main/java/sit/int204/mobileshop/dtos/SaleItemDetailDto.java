@@ -16,6 +16,7 @@ public class SaleItemDetailDto {
     private String model;
     private String brandName;
     private String description;
+    private Integer quantity;
     @Min(value = 0)
     private Integer price;
     @Min(value = 0)
