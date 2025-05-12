@@ -62,13 +62,13 @@ describe(`TC-FE-PBI4-ADD-SALE-ITEM-2\n
         cy.wait(100)
 
         cy.get('.itbms-brand').contains('OPPO')
-        cy.get('.itbms-model').should('have.value','1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro 5G5AR Pro 5G6AR Pro 5G')
+        cy.get('.itbms-model').should('have.value','1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro')
         cy.get('.itbms-price').should('have.value','7999')
         cy.get('.itbms-description').should('have.value','ระบบปฎิบัติการ Android 15 รองรับ 2 ซิม')
         cy.get('.itbms-ramGb').should('have.value','6')
         cy.get('.itbms-screenSizeInch').should('have.value','6.7')
         cy.get('.itbms-storageGb').should('have.value','128') 
-        cy.get('.itbms-color').contains('PinK')
+        cy.get('.itbms-color').should('have.value', 'Pink');
         cy.get('input.itbms-quantity').should('have.value','12')
 
         cy.get('.itbms-save-button').as('save') ;

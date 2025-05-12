@@ -148,20 +148,20 @@ onMounted(async () => {
                 <div class="grid grid-cols-3 gap-4">
                   <div class="bg-neutral-800/50 rounded-xl p-4 text-center">
                     <p class="text-xs text-gray-400 mb-1">RAM</p>
-                    <p class="itbms-ramGb font-medium">{{ product.ramGb }}GB</p>
+                    <p class="itbms-ramGb font-medium">{{ product.ramGb === null || product.ramGb === "" ? "-" : product.ramGb }}GB</p>
                   </div>
 
                   <div class="bg-neutral-800/50 rounded-xl p-4 text-center">
                     <p class="text-xs text-gray-400 mb-1">Storage</p>
                     <p class="itbms-storageGb font-medium">
-                      {{ product.storageGb }}GB
+                      {{ product.storageGb === null || product.storageGb === "" ? "-" : product.storageGb }}GB
                     </p>
                   </div>
 
                   <div class="bg-neutral-800/50 rounded-xl p-4 text-center">
                     <p class="text-xs text-gray-400 mb-1">Screen</p>
                     <p class="itbms-screenSizeInch font-medium">
-                      {{ product.screenSizeInch }}"
+                      {{ product.screenSizeInch === null || product.screenSizeInch === "" ? "-" : product.screenSizeInch }}"
                     </p>
                   </div>
                 </div>
@@ -189,13 +189,13 @@ onMounted(async () => {
 
                   <div>
                     <h3 class="text-white text-sm font-medium mb-1">Storage</h3>
-                    <p class="text-sm">{{ product.storageGb }} GB</p>
+                    <p class="text-sm">{{ product.storageGb === null || product.storageGb === "" ? "-" : product.storageGb }} GB</p>
                   </div>
 
                   <div>
                     <h3 class="text-white text-sm font-medium mb-1">Color</h3>
                     <p class="text-sm">
-                      {{ product.color === null ? "-" : product.color }}
+                      {{ product.color === null || product.color === "" ? "-" : product.color }}
                     </p>
                   </div>
                 </div>
