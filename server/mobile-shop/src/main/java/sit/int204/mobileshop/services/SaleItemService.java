@@ -94,8 +94,23 @@ public class SaleItemService {
         entityManager.refresh(saved);
 
         // 🔥 Manual mapping part
-        SaleItemDetailDto dto = modelMapper.map(saved, SaleItemDetailDto.class);
+//        SaleItemDetailDto dto = modelMapper.map(saved, SaleItemDetailDto.class);
+//        dto.setBrandName(saved.getBrand().getName());
+//        return dto;
+        SaleItemDetailDto dto = new SaleItemDetailDto();
+        dto.setId(saved.getId());
+        dto.setModel(saved.getModel());
         dto.setBrandName(saved.getBrand().getName());
+        dto.setDescription(saved.getDescription());
+        dto.setPrice(saved.getPrice());
+        dto.setRamGb(saved.getRamGb());
+        dto.setScreenSizeInch(saved.getScreenSizeInch());
+        dto.setQuantity(saved.getQuantity());
+        dto.setStorageGb(saved.getStorageGb());
+        dto.setColor(saved.getColor());
+        dto.setCreatedOn(saved.getCreatedOn());
+        dto.setUpdatedOn(saved.getUpdatedOn());
+
         return dto;
     }
 
