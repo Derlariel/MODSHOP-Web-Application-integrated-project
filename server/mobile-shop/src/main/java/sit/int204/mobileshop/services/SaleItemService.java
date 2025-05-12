@@ -63,6 +63,7 @@ public class SaleItemService {
         saleItemRepository.saveAndFlush(item);
         entityManager.refresh(item);
 
+
         return modelMapper.map(item, SaleItemDetailDto.class);
     }
 
