@@ -12,7 +12,7 @@ const props = defineProps({
   },
   message: {
     type: String,
-    default: 'Are you sure you want to delete this item? This action cannot be undone.'
+    default: 'Do you want to delete this sale item?'
   },
   confirmText: {
     type: String,

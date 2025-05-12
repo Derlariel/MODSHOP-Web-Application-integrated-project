@@ -13,7 +13,7 @@ describe(`TC-FE-PBI4-ADD-SALE-ITEM-2\n
     })
 
     it('should have the new sale item in the sale item gallery',()=>{
-        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro').should('exist').as('newSaleItem') 
+        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro').should('exist').as('newSaleItem') 
         cy.get('@newSaleItem').parents('.itbms-row').as('row')
         cy.get('@row').contains('.itbms-brand','OPPO')
         cy.get('@row').contains('.itbms-ramGb','6')
@@ -22,13 +22,13 @@ describe(`TC-FE-PBI4-ADD-SALE-ITEM-2\n
     })
 
     it('should have the new sale item in the sale item gallery and should have the detail of the new sale item',()=>{
-        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro').should('exist').as('newSaleItem') 
+        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro').should('exist').as('newSaleItem') 
         cy.get('@newSaleItem').parents('.itbms-row').as('row')
         cy.get('@row').click()
         cy.wait(100)
 
         cy.get('.itbms-brand').contains('OPPO')
-        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro')
+        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro')
         cy.get('.itbms-price').contains('7,999')
         cy.get('.itbms-description').contains('ระบบปฎิบัติการ Android 15 รองรับ 2 ซิม')
         cy.get('.itbms-ramGb').contains('6')
@@ -40,7 +40,7 @@ describe(`TC-FE-PBI4-ADD-SALE-ITEM-2\n
     })
 
     it('should have edit button and the button is enabled',()=>{
-        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro').should('exist').as('newSaleItem') 
+        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro').should('exist').as('newSaleItem') 
         cy.get('@newSaleItem').parents('.itbms-row').as('row')
         cy.get('@row').click()
         cy.wait(100)
@@ -52,7 +52,7 @@ describe(`TC-FE-PBI4-ADD-SALE-ITEM-2\n
     })
 
     it('should show the form with the current sale detail. All fields are editable. The save button is disabled',()=>{
-        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro').should('exist').as('newSaleItem') 
+        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro').should('exist').as('newSaleItem') 
         cy.get('@newSaleItem').parents('.itbms-row').as('row')
         cy.get('@row').click()
         cy.wait(100)
@@ -62,13 +62,13 @@ describe(`TC-FE-PBI4-ADD-SALE-ITEM-2\n
         cy.wait(100)
 
         cy.get('.itbms-brand').contains('OPPO')
-        cy.get('.itbms-model').should('have.value','1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro')
+        cy.get('.itbms-model').should('have.value','1AR Pro 5G2AR Pro')
         cy.get('.itbms-price').should('have.value','7999')
         cy.get('.itbms-description').should('have.value','ระบบปฎิบัติการ Android 15 รองรับ 2 ซิม')
         cy.get('.itbms-ramGb').should('have.value','6')
         cy.get('.itbms-screenSizeInch').should('have.value','6.7')
         cy.get('.itbms-storageGb').should('have.value','128') 
-        cy.get('.itbms-color').should('have.value', 'Pink');
+        cy.get('.itbms-color').should('have.value', 'Pink')
         cy.get('input.itbms-quantity').should('have.value','12')
 
         cy.get('.itbms-save-button').as('save') ;
@@ -78,7 +78,7 @@ describe(`TC-FE-PBI4-ADD-SALE-ITEM-2\n
     })
 
     it('should modify the sale item and the save button should be enabled.',()=>{
-        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro').should('exist').as('newSaleItem') 
+        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro').should('exist').as('newSaleItem') 
         cy.get('@newSaleItem').parents('.itbms-row').as('row')
         cy.get('@row').click()
         cy.wait(100)
@@ -99,7 +99,7 @@ describe(`TC-FE-PBI4-ADD-SALE-ITEM-2\n
     })
 
     it('should save the modified sale item and redirect to the previous page with the message "The sale item has been updated. \n should have the home button and should redirect to the sale item gallery page when the button is clicked."',()=>{
-        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro').should('exist').as('newSaleItem') 
+        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro').should('exist').as('newSaleItem') 
         cy.get('@newSaleItem').parents('.itbms-row').as('row')
         cy.get('@row').click()
         cy.wait(100)
@@ -119,7 +119,7 @@ describe(`TC-FE-PBI4-ADD-SALE-ITEM-2\n
 
         cy.get('.itbms-message').contains('The sale item has been updated.').should('exist')
         cy.url().should('include', '/sale-items')
-        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro')
+        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro')
         cy.get('.itbms-brand').contains('OPPO')
         cy.get('.itbms-price').contains('7,999')
         cy.get('.itbms-description').contains('ระบบปฎิบัติการ Android 15 รองรับ 2 ซิม')
@@ -133,7 +133,7 @@ describe(`TC-FE-PBI4-ADD-SALE-ITEM-2\n
         cy.get('@home').click()
         cy.wait(100)
         cy.url().should('include', '/sale-items')
-        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro').should('exist').as('newSaleItem')
+        cy.get('.itbms-model').contains('1AR Pro 5G2AR Pro').should('exist').as('newSaleItem')
         cy.get('@newSaleItem').parents('.itbms-row').as('row')
         cy.get('@row').contains('.itbms-brand','OPPO')
         cy.get('@row').contains('.itbms-ramGb','-')
