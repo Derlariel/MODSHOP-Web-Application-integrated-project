@@ -95,6 +95,7 @@ export const useProductStore = defineStore("product", {
         this.products = this.products.filter(p => p.id !== id);
       } catch (err) {
         console.error("Failed to delete product", err);
+        throw err;
       }
     },
   },

@@ -51,7 +51,9 @@ async function initProducts() {
 }
 
 function checkForErrorModal() {
-  isModalOpen.value = sessionStorage.getItem("error-message") !== null;
+  if (sessionStorage.getItem("error-message") === "true") {
+    isModalOpen.value = true
+  }
 }
 
 onMounted(async () => {
