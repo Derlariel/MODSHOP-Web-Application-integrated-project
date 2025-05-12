@@ -47,8 +47,8 @@ public class SaleItemService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null.");
         }
 
-        if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 1) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Quantity must be at least 1.");
+        if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
+            dtoItem.setQuantity(1);
         }
 
         Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
@@ -101,13 +101,13 @@ public class SaleItemService {
 
         existingItem.setBrand(brand);
         existingItem.setModel(dtoItem.getModel());
-        existingItem.setDescription(dtoItem.getDescription());
+        existingItem.setDescription(dtoItem.getDescription() != null && !dtoItem.getDescription().trim().isEmpty() ? dtoItem.getDescription().trim() : "");
         existingItem.setPrice(dtoItem.getPrice());
         existingItem.setRamGb(dtoItem.getRamGb());
         existingItem.setScreenSizeInch(dtoItem.getScreenSizeInch());
         existingItem.setQuantity(dtoItem.getQuantity());
         existingItem.setStorageGb(dtoItem.getStorageGb());
-        existingItem.setColor(dtoItem.getColor());
+        existingItem.setColor(dtoItem.getColor() != null && !dtoItem.getColor().trim().isEmpty() ? dtoItem.getColor().trim() : "");
 
         SaleItem updatedItem = saleItemRepository.save(existingItem);
         SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
