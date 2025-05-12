@@ -10,7 +10,6 @@ import java.time.Instant;
 
 @Getter
 @Setter
-
 public class SaleItemDetailDto {
     private Integer id;
     private String model;

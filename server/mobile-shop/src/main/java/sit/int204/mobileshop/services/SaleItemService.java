@@ -43,82 +43,73 @@ public class SaleItemService {
 
     @Transactional
     public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem) {
+
         if (dtoItem.getBrand() == null || dtoItem.getBrand().getId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null.");
         }
+        if (dtoItem.getModel() == null || dtoItem.getModel().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Model must not be blank.");
+        }
+        if (dtoItem.getPrice() == null || dtoItem.getPrice() < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Price must be non-negative.");
+        }
+
 
         if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
             dtoItem.setQuantity(1);
         }
 
+
         Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
 
+  
         SaleItem item = new SaleItem();
         item.setBrand(brand);
-        item.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
-        item.setDescription(dtoItem.getColor().isBlank() || dtoItem.getColor() == null
-                ? null
-                : dtoItem.getColor().trim());
+        item.setModel(dtoItem.getModel().trim());
+        item.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
         item.setPrice(dtoItem.getPrice());
-        item.setRamGb(dtoItem.getRamGb());
+        item.setRamGb(dtoItem.getRamGb() != null ? dtoItem.getRamGb() : 0);
         item.setScreenSizeInch(dtoItem.getScreenSizeInch());
-        item.setStorageGb(dtoItem.getStorageGb());
+        item.setStorageGb(dtoItem.getStorageGb() != null ? dtoItem.getStorageGb() : 0);
         item.setQuantity(dtoItem.getQuantity());
-        item.setColor(dtoItem.getColor().isBlank() || dtoItem.getColor() == null
-                ? null
-                : dtoItem.getColor().trim());
+        item.setColor(
+                dtoItem.getColor() != null && !dtoItem.getColor().trim().isEmpty() ? dtoItem.getColor().trim() : null);
 
-        saleItemRepository.saveAndFlush(item);
-        entityManager.refresh(item);
 
-        SaleItemDetailDto result = modelMapper.map(item, SaleItemDetailDto.class);
-        result.setBrandName(item.getBrand().getName());
+        SaleItem savedItem = saleItemRepository.saveAndFlush(item);
+        entityManager.refresh(savedItem);
+
+
+        SaleItemDetailDto result = modelMapper.map(savedItem, SaleItemDetailDto.class);
+        result.setBrandName(brand.getName());
         return result;
     }
+
 
     public SaleItemDetailDto updateSaleItemById(Integer id, SaleItemRequestDto dtoItem) {
         SaleItem existingItem = getSaleItemById(id);
 
-        Brand brand;
         if (dtoItem.getBrand() == null || dtoItem.getBrand().getId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null na.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null.");
         }
 
-        brand = brandService.getBrandById(dtoItem.getBrand().getId());
-        if (brand == null) {
-            throw new ItemNotFoundException("Brand not found with id: " + dtoItem.getBrand().getId());
-        }
+        Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
 
-        dtoItem.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
-        dtoItem.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
-
-        if (dtoItem.getColor() != null) {
-            dtoItem.setColor(dtoItem.getColor().trim());
-        }
-
-        if (isIdentical(existingItem, dtoItem, brand)) {
-            SaleItemDetailDto result = modelMapper.map(existingItem, SaleItemDetailDto.class);
-            result.setBrandName(brand.getName());
-            return result;
-        }
 
         if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
             dtoItem.setQuantity(1);
         }
 
         existingItem.setBrand(brand);
-        existingItem.setModel(dtoItem.getModel());
-        existingItem.setDescription(dtoItem.getColor().isBlank() || dtoItem.getColor() == null
-                ? null
-                : dtoItem.getColor().trim());
+        existingItem.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
+        existingItem.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
         existingItem.setPrice(dtoItem.getPrice());
-        existingItem.setRamGb(dtoItem.getRamGb());
+        existingItem.setRamGb(dtoItem.getRamGb() != null ? dtoItem.getRamGb() : 0);
         existingItem.setScreenSizeInch(dtoItem.getScreenSizeInch());
         existingItem.setQuantity(dtoItem.getQuantity());
-        existingItem.setStorageGb(dtoItem.getStorageGb());
-        existingItem.setColor(dtoItem.getColor().isBlank() || dtoItem.getColor() == null
-                ? null
-                : dtoItem.getColor().trim());
+        existingItem.setStorageGb(dtoItem.getStorageGb() != null ? dtoItem.getStorageGb() : 0);
+        existingItem.setColor(
+                dtoItem.getColor() != null && !dtoItem.getColor().trim().isEmpty() ? dtoItem.getColor().trim() : null);
 
         SaleItem updatedItem = saleItemRepository.save(existingItem);
         SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
@@ -132,17 +123,5 @@ public class SaleItemService {
 
     public void deleteAllForTest() {
         saleItemRepository.deleteAll();
-    }
-
-    private boolean isIdentical(SaleItem item, SaleItemRequestDto dtoItem, Brand brand) {
-        return Objects.equals(item.getModel(), dtoItem.getModel()) &&
-                Objects.equals(item.getDescription(), dtoItem.getDescription()) &&
-                Objects.equals(item.getBrand().getId(), brand.getId()) &&
-                Objects.equals(item.getPrice(), dtoItem.getPrice()) &&
-                Objects.equals(item.getRamGb(), dtoItem.getRamGb()) &&
-                Objects.equals(item.getStorageGb(), dtoItem.getStorageGb()) &&
-                Objects.equals(item.getScreenSizeInch(), dtoItem.getScreenSizeInch()) &&
-                Objects.equals(item.getQuantity(), dtoItem.getQuantity()) &&
-                Objects.equals(item.getColor(), dtoItem.getColor());
     }
 }
