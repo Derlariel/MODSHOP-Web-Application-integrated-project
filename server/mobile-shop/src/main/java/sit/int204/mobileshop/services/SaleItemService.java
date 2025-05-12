@@ -72,6 +72,7 @@ public class SaleItemService {
         }
 
         Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
+
         if (brand == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Brand not found, brand id: " + dtoItem.getBrand().getId());
@@ -84,7 +85,7 @@ public class SaleItemService {
         item.setRamGb(dtoItem.getRamGb());
         item.setScreenSizeInch(dtoItem.getScreenSizeInch());
         item.setStorageGb(dtoItem.getStorageGb());
-        item.setQuantity(dtoItem.getQuantity() == null || dtoItem.getQuantity() < 1 ? 1 : dtoItem.getQuantity());
+        item.setQuantity(dtoItem.getQuantity() == null || dtoItem.getQuantity() < 1 ? 12 : dtoItem.getQuantity());
 
         if (dtoItem.getColor() != null && !dtoItem.getColor().isBlank()) {
             item.setColor(dtoItem.getColor().trim());
