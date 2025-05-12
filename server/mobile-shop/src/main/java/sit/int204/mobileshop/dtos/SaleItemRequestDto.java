@@ -21,14 +21,12 @@ public class SaleItemRequestDto {
     private String description;
 
     @NotNull
-    @Min(0)
     private Integer price;
 
     private Integer ramGb;
     private BigDecimal screenSizeInch;
 
     @NotNull
-    @Min(0)
     private Integer quantity;
 
     private Integer storageGb;
