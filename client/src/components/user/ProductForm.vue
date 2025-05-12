@@ -27,7 +27,8 @@ const props = defineProps({
 const temp = reactive({
   model: "",
   brand: {
-    name: "",
+    id: null,
+    name: null,
   },
   description: "",
   price: "",
