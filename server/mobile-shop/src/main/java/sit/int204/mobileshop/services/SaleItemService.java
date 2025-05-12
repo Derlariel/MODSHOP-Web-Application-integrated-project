@@ -82,7 +82,7 @@ public class SaleItemService {
 
         Brand brand;
         if (dtoItem.getBrand() == null || dtoItem.getBrand().getId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null na.");
         }
 
 
