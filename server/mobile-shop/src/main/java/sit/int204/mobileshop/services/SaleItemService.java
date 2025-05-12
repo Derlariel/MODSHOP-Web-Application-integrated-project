@@ -71,7 +71,7 @@ public class SaleItemService {
         }
         Brand brand = brandService.getBrandByName(dtoItem.getBrand().getName());
         if (brand == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand not found brand name: " + dtoItem.getBrand().getName());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand not found : " + dtoItem.getBrand().getName());
         }
 
         item.setBrand(brand);
