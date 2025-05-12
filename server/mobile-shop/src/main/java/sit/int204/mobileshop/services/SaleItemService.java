@@ -124,7 +124,7 @@ public class SaleItemService {
         Brand brand = brandService.getBrandByName(dtoItem.getBrand().getName());
         if (brand == null) {
             throw new ItemNotFoundException("Brand not found: " + dtoItem.getBrand().getName());
-        }
+        }   
 
         dtoItem.setModel(dtoItem.getModel().trim());
         dtoItem.setDescription(dtoItem.getDescription().trim());
