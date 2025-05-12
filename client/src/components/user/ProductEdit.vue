@@ -17,7 +17,7 @@ const brandStore = useBrandStore();
 const edit = (data) => {
   productStore.updateProduct(data)
   sessionStorage.setItem("edit-success", "true");
-  router.go(-1)
+  router.back()
 }
 
 const title = computed(() => {
