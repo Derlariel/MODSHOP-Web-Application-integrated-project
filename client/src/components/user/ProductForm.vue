@@ -38,7 +38,7 @@ const temp = reactive({
   quantity: "",
 });
 
-const btnNotAvailable = ref(false);
+const btnNotAvailable = ref(true);
 
 watch(
   () => props.init,

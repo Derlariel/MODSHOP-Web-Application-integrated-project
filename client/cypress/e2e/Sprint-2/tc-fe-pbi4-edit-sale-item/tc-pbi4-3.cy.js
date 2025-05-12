@@ -69,7 +69,7 @@ describe(`TC-FE-PBI4-ADD-SALE-ITEM-2\n
         cy.get('.itbms-screenSizeInch').should('have.value','6.7')
         cy.get('.itbms-storageGb').should('have.value','128') 
         cy.get('.itbms-color').should('have.value','Pink')
-        cy.get('input.itbms-quantity').should('have.value','12')
+        cy.get('.itbms-quantity').should('have.value','12')
 
         cy.get('.itbms-save-button').as('save') ;
         cy.get('@save').should(($btn)=>{

@@ -29,7 +29,7 @@ describe(`TC-FE-PBI3-ADD-SALE-ITEM-1\n
         })
     })
 
-    it('should be disable the save button after adding data for Brand, Model, Price and Description',()=>{
+    it('should be enabled the save button after adding data for Brand, Model, Price and Description',()=>{
         cy.get('.itbms-sale-item-add').should('exist').as('addSaleItemButton'); 
         cy.get('@addSaleItemButton').click();
         cy.wait(100)
@@ -48,7 +48,7 @@ describe(`TC-FE-PBI3-ADD-SALE-ITEM-1\n
 
         cy.get('.itbms-save-button').as('save') ;
         cy.get('@save').should(($btn)=>{
-            expect($btn.is(':disabled') || $btn.hasClass('disabled')).to.be.true
+            expect($btn.is(':disabled') || $btn.hasClass('disabled')).to.be.false
         })
     })
 

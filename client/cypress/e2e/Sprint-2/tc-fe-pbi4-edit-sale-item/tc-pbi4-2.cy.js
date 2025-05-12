@@ -122,7 +122,7 @@ describe(`TC-FE-PBI4-ADD-SALE-ITEM-2\n
 
         cy.get('.itbms-save-button').as('save') ;
         cy.get('@save').click({force:true})
-        cy.wait(1000)
+        cy.wait(100)
 
         cy.get('.itbms-message').contains('The sale item has been updated.').should('exist')
         cy.url().should('include', '/sale-items')

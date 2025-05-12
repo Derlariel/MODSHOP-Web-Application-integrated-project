@@ -38,7 +38,7 @@ describe(`TC-FE-PBI3-ADD-SALE-ITEM-4\n
         cy.get('@brandSelect').select('OPPO') ;
 
         cy.get('.itbms-model').as('modelInput') ;
-        cy.get('@modelInput').type('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro 5G5AR Pro 5G6AR Pro 5G') ;
+        cy.get('@modelInput').type('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro 5G5AR Pro 5G6AR Pro 5G7AR Pro 5G') ;
 
         cy.get('.itbms-price').as('priceInput') ;
         cy.get('@priceInput').type('7999') ;
@@ -78,7 +78,7 @@ describe(`TC-FE-PBI3-ADD-SALE-ITEM-4\n
         cy.get('@brandSelect').select('OPPO') ;
 
         cy.get('.itbms-model').as('modelInput') ;
-        cy.get('@modelInput').type('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro 5G5AR Pro 5G6AR Pro 5G') ;
+        cy.get('@modelInput').type('1AR Pro 5G2AR Pro 5G3AR Pro 5G4AR Pro 5G5AR Pro 5G6AR Pro 5G7AR Pro 5G') ;
 
         cy.get('.itbms-price').as('priceInput') ;
         cy.get('@priceInput').type('7999') ;
