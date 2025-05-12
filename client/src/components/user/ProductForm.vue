@@ -13,7 +13,7 @@ import { useBrandStore } from "@/stores/useBrandStore";
 import { useRouter } from "vue-router";
 import BaseInput from "../shared/BaseInput.vue";
 
-const router = useRouter()
+const router = useRouter();
 const brandStore = useBrandStore();
 const brands = computed(() => brandStore.getBrands());
 const emit = defineEmits(["submit", "cancel"]);
@@ -45,14 +45,18 @@ watch(
   () => props.init,
   (newValue) => {
     Object.assign(temp, newValue);
-    temp.brand.name = props.init.brandName;
+    const selectedBrand = brandStore.getBrands().find(
+      (brand) => brand.name === props.init.brandName
+    );
+    temp.brand = selectedBrand
+      ? { id: selectedBrand.id, name: selectedBrand.name }
+      : { id: null, name: props.init.brandName || null };
   },
   { immediate: true }
 );
 
 watchEffect(() => {
   const requiredFields = ["model", "price", "quantity", "description"];
-
   const AllFields = [
     "model",
     "description",
@@ -67,22 +71,26 @@ watchEffect(() => {
     return !temp[field];
   });
 
-  if (temp.ramGb === "") temp.ramGb = null
-  
+  if (temp.ramGb === "") temp.ramGb = null;
+
   const isUnchanged =
     AllFields.every((field) => temp[field] === props.init[field]) &&
     temp.brand.name === props.init.brandName;
 
-  btnNotAvailable.value = requiredFieldsEmpty || isUnchanged;
+  btnNotAvailable.value = requiredFieldsEmpty || isUnchanged || !temp.brand.id; // ป้องกันการกด Save ถ้า brand.id เป็น null
 });
 
 const submit = () => {
-  if(btnNotAvailable.value === true) return
+  if (btnNotAvailable.value === true) return;
+  if (!temp.brand.id) {
+    alert("Please select a brand.");
+    return;
+  }
   emit("submit", temp);
 };
 
 const trimField = (field) => {
-  temp[field] = temp[field].trim()
+  temp[field] = temp[field].trim();
 };
 
 onMounted(() => {
@@ -94,20 +102,19 @@ onMounted(() => {
   <div>
     <form @submit.prevent class="space-y-8">
       <div class="space-y-3">
-        <label for="brand" class="block text-sm font-medium text-gray-300"
-          >Brand</label
-        >
+        <label for="brand" class="block text-sm font-medium text-gray-300">Brand</label>
         <div class="relative">
           <select
             v-model="temp.brand"
             id="brand"
             class="itbms-brand w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white appearance-none"
+            required
           >
-            <option :value="{ id: null, name: null}" disabled selected>Select a brand</option>
+            <option :value="{ id: null, name: null }" disabled>Select a brand</option>
             <option
               v-for="(brand, index) in brands"
               :key="brand.id"
-              :value="brand"
+              :value="{ id: brand.id, name: brand.name }"
             >
               {{ brand.name }}
             </option>
@@ -138,6 +145,7 @@ onMounted(() => {
         cypress="itbms-model"
         placeholder="IPhone 15"
         label="Model"
+        required
       />
 
       <BaseInput
@@ -148,12 +156,11 @@ onMounted(() => {
         step="0.01"
         label="Price (Baht)"
         prefix="฿"
+        required
       />
 
       <div class="space-y-3">
-        <label for="description" class="block text-sm font-medium text-gray-300"
-          >Description</label
-        >
+        <label for="description" class="block text-sm font-medium text-gray-300">Description</label>
         <textarea
           @blur="trimField('description')"
           v-model="temp.description"
@@ -161,13 +168,12 @@ onMounted(() => {
           rows="4"
           class="itbms-description w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white"
           placeholder="Enter product description"
+          required
         ></textarea>
       </div>
 
       <div class="pt-2">
-        <h3 class="text-lg font-medium text-white mb-4">
-          Technical Specifications
-        </h3>
+        <h3 class="text-lg font-medium text-white mb-4">Technical Specifications</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <BaseInput
             cypress="itbms-ramGb"
@@ -195,8 +201,8 @@ onMounted(() => {
             id="storage"
           />
           <BaseInput
-           cypress="itbms-color"
-           @trim="trimField('color')"
+            cypress="itbms-color"
+            @trim="trimField('color')"
             v-model="temp.color"
             label="Color"
             placeholder="Black"
@@ -208,13 +214,14 @@ onMounted(() => {
       <div class="space-y-3 pt-6 border-t border-neutral-800">
         <h3 class="text-lg font-medium text-white mb-4">Inventory</h3>
         <BaseInput
-           cypress="itbms-quantity"
-           @trim="trimField('quantity')"
-            v-model="temp.quantity"
-            label="Quantity"
-            placeholder="10"
-            id="color"
-          />
+          cypress="itbms-quantity"
+          @trim="trimField('quantity')"
+          v-model="temp.quantity"
+          label="Quantity"
+          placeholder="10"
+          type="number"
+          required
+        />
       </div>
 
       <div class="pt-8 flex flex-col sm:flex-row gap-4">
@@ -234,12 +241,7 @@ onMounted(() => {
         <button
           @click="router.back()"
           type="button"
-          class="itbms-cancel-button"
-          :class="
-            btnNotAvailable
-              ? 'flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium'
-              : 'flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium'
-          "
+          class="itbms-cancel-button flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium"
         >
           Cancel
         </button>
