@@ -48,7 +48,7 @@ const handle = () => {
 
       <input
         v-model="model"
-        :max="maxInput"
+        :maxlength="maxInput"
         :min="type === 'number' ? 0 : undefined"
         @blur="handle"
         :step="step"

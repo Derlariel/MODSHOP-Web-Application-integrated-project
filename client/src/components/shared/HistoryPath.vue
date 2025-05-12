@@ -14,7 +14,7 @@ const router = useRouter()
 
 <template>
   <div class="flex cursor-pointer font-light mb-5 space-x-2.5">
-    <p class="itbms-home-button" @click="router.go(-props.previous)">Home</p>
+    <p class="itbms-home-button" @click="router.push('/sale-items')">Home</p>
     <p>/</p>
     <p
       @click="router.go(-props.next)"
