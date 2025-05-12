@@ -56,7 +56,9 @@ public class SaleItemService {
         SaleItem item = new SaleItem();
         item.setBrand(brand);
         item.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
-        item.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
+        item.setDescription(dtoItem.getDescription() != null && !dtoItem.getDescription().trim().isEmpty()
+                ? dtoItem.getDescription().trim()
+                : "");
         item.setPrice(dtoItem.getPrice());
         item.setRamGb(dtoItem.getRamGb());
         item.setScreenSizeInch(dtoItem.getScreenSizeInch());
@@ -87,7 +89,14 @@ public class SaleItemService {
         }
 
         dtoItem.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
-        dtoItem.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
+        dtoItem.setDescription(dtoItem.getDescription() != null && !dtoItem.getDescription().trim().isEmpty()
+                ? dtoItem.getDescription().trim()
+                : "");
+
+        dtoItem.setColor(dtoItem.getColor() != null && !dtoItem.getColor().trim().isEmpty()
+                ? dtoItem.getColor().trim()
+                : "");
+
         if (dtoItem.getColor() != null) {
             dtoItem.setColor(dtoItem.getColor().trim());
         }
@@ -99,6 +108,10 @@ public class SaleItemService {
             return result;
         }
 
+        if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
+            dtoItem.setQuantity(1);
+        }
+
         existingItem.setBrand(brand);
         existingItem.setModel(dtoItem.getModel());
         existingItem.setDescription(dtoItem.getDescription());
@@ -107,7 +120,7 @@ public class SaleItemService {
         existingItem.setScreenSizeInch(dtoItem.getScreenSizeInch());
         existingItem.setQuantity(dtoItem.getQuantity());
         existingItem.setStorageGb(dtoItem.getStorageGb());
-        existingItem.setColor(dtoItem.getColor() != null && !dtoItem.getColor().trim().isEmpty() ? dtoItem.getColor().trim() : "");
+        existingItem.setColor(dtoItem.getColor());
 
         SaleItem updatedItem = saleItemRepository.save(existingItem);
         SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
