@@ -5,7 +5,7 @@ import successIcon from '@/assets/database-success-svgrepo-com.svg'
 const props = defineProps({
   visible: { type: Boolean, default: false },
   message: { type: String},
-  duration: { type: Number, default: 2000 }
+  duration: { type: Number, default: 50 }
 });
 
 const emit = defineEmits(['close']);
@@ -17,7 +17,7 @@ const closeModal = () => {
   setTimeout(() => {
     isVisible.value = false;
     emit('close');
-  }, 300);
+  }, 50);
 };
 
 const showModal = () => {
