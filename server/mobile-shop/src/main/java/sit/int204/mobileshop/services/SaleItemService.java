@@ -65,10 +65,17 @@ public class SaleItemService {
     @Transactional
     public SaleItemDetailDto  createSaleItem(SaleItemRequestDto dtoItem) {
         SaleItem item = new SaleItem();
+
+        if (dtoItem.getBrand() == null || dtoItem.getBrand().getName() == null) {
+            throw new ItemNotFoundException("Brand name must not be null.");
+        }
+
         Brand brand = brandService.getBrandByName(dtoItem.getBrand().getName());
+
         if (brand == null) {
             throw new ItemNotFoundException("Brand not found: " + dtoItem.getBrand().getName());
         }
+
 
         item.setModel(dtoItem.getModel());
         item.setBrand(brand);
@@ -83,6 +90,7 @@ public class SaleItemService {
         SaleItem savedItem = saleItemRepository.saveAndFlush(item);
         entityManager.refresh(savedItem);
         SaleItemDetailDto dto = modelMapper.map(savedItem, SaleItemDetailDto.class);
+        dto.setBrandName(savedItem.getBrand().getName());
         return dto;
     }
 
