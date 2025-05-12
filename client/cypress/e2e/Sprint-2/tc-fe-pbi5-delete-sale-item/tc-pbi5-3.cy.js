@@ -89,7 +89,7 @@ describe(`TC-FE-PBI4-ADD-SALE-ITEM-3\n
         cy.get('@delete').click() 
         cy.wait(100)
 
-         cy.intercept('DELETE', `${baseAPI}/v1/**`).as('deleteRequest') ;
+        cy.intercept('DELETE', `${baseAPI}/v1/**`).as('deleteRequest') ;
 
         cy.get('.itbms-message').should('exist') 
         cy.get('.itbms-message').should('contain.text', 'Do you want to delete this sale item?') ;
