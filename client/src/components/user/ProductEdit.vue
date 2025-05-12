@@ -14,10 +14,10 @@ const product = ref(null)
 const productStore = useProductStore()
 const brandStore = useBrandStore();
 
-const edit = (data) => {
-  productStore.updateProduct(data)
+const edit = async (data) => {
+  await productStore.updateProduct(data);
   sessionStorage.setItem("edit-success", "true");
-  router.back()
+  router.push(`/sale-items/${params.productId}`);
 }
 
 const title = computed(() => {
