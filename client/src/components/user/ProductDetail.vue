@@ -50,6 +50,7 @@ const confirm = async () => {
     router.push("/sale-items");
   } catch (error) {
     if (error.response?.status === 404) {
+      sessionStorage.setItem("error-message", "true")
       router.push("/sale-items");
     } 
   }
