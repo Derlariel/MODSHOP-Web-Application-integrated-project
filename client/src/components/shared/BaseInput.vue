@@ -15,7 +15,8 @@ defineProps({
   helper: String,
   prefix: String, 
   step: String,
-  cypress: String
+  cypress: String,
+  maxInput: Number
 });
 
 const preventNegative = (e) => {
@@ -47,6 +48,7 @@ const handle = () => {
 
       <input
         v-model="model"
+        :max="maxInput"
         :min="type === 'number' ? 0 : undefined"
         @blur="handle"
         :step="step"

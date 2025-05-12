@@ -132,6 +132,7 @@ onMounted(() => {
 
       <BaseInput
         @trim="trimField('model')"
+        :maxInput="60"
         v-model="temp.model"
         cypress="itbms-model"
         placeholder="IPhone 15"
