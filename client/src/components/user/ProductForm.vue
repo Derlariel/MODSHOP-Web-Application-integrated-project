@@ -86,7 +86,6 @@ const trimField = (field) => {
 
 onMounted(() => {
   brandStore.loadBrands();
-  btnNotAvailable.value = false
 });
 </script>
 
