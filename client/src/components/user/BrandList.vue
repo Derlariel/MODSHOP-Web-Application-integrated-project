@@ -1,11 +1,11 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, getCurrentInstance } from "vue";
 import { useBrandStore } from "@/stores/useBrandStore";
 import { useRouter } from "vue-router";
 import SuccessModal from "../shared/modal/SuccessModal.vue";
 import ListModel from "../shared/ListModel.vue";
 import HistoryPath from "../shared/HistoryPath.vue";
-
+const { proxy } = getCurrentInstance();
 const router = useRouter();
 const brandStore = useBrandStore();
 const isLoading = ref(true);
@@ -35,8 +35,7 @@ onMounted(async () => {
 
 const formatDate = (dateString) => {
   if (!dateString) return "-";
-  const date = new Date(dateString);
-  return date.toLocaleString();
+  return proxy.$formatToThaiTime(dateString);
 };
 
 const handleAddBrand = () => {
