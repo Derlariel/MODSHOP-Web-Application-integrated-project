@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import sit.int204.mobileshop.dtos.BrandDetailDto;
 import sit.int204.mobileshop.dtos.BrandDto;
-import sit.int204.mobileshop.dtos.BrandRequestDto;
-import sit.int204.mobileshop.dtos.BrandResponseDto;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.services.BrandService;
 import sit.int204.mobileshop.utils.ListMapper;
@@ -41,16 +39,16 @@ public class BrandController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BrandResponseDto> getBrand(@PathVariable Integer id) {
+    public ResponseEntity<BrandDetailDto> getBrand(@PathVariable Integer id) {
         Brand brand = brandService.getBrandById(id);
-        BrandResponseDto brandResponseDto = modelMapper.map(brand, BrandResponseDto.class);
+        BrandDetailDto brandResponseDto = modelMapper.map(brand, BrandDetailDto.class);
         brandResponseDto.setSaleItemsCount(brand.getSaleItems().size());
         return ResponseEntity.ok(brandResponseDto);
     }
 
     @PostMapping("")
-    public ResponseEntity<BrandDetailDto> postBrand(@RequestBody Brand brand) {
-        Brand brandResponse = brandService.createBrandByName(brand).get();
-        return ResponseEntity.status(HttpStatus.CREATED).body(modelMapper.map(brandResponse, BrandDetailDto.class));
+    public ResponseEntity<BrandDetailDto> postBrand(@RequestBody BrandDetailDto brand) {
+        BrandDetailDto brandResponse = brandService.createBrandByName(brand).get();
+        return ResponseEntity.status(HttpStatus.CREATED).body(brandResponse);
     }
 }

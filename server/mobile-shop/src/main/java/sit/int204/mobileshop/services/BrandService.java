@@ -1,5 +1,6 @@
 package sit.int204.mobileshop.services;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.client.HttpClientErrorException.NotFound;
 
+import sit.int204.mobileshop.dtos.BrandDetailDto;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.exceptions.BrandAlreadyExitsException;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
@@ -20,6 +22,9 @@ public class BrandService {
     @Autowired
     private BrandRepository brandRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     public List<Brand> getAllBrands() {
         return brandRepository.findAll();
     }
@@ -28,13 +33,15 @@ public class BrandService {
         return brandRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Not found"));
     }
 
-    public Optional<Brand> createBrandByName(Brand brand) {
-        if (brandRepository.existsByName(brand.getName())) {
-            throw new BrandAlreadyExitsException("Brand with name" + brand.getName() + "already exits.");
+    public Optional<BrandDetailDto> createBrandByName(BrandDetailDto brandDetailDto) {
+        if (brandRepository.existsByName(brandDetailDto.getName())) {
+            throw new BrandAlreadyExitsException("Brand with name" + brandDetailDto.getName() + "already exits.");
         }
 
-        brandRepository.save(brand);
-        return Optional.of(brand);
+        brandDetailDto.setId(null);
+        Brand brand = modelMapper.map(brandDetailDto, Brand.class);
+        return Optional.of(modelMapper.map(brandRepository.saveAndFlush(brand), BrandDetailDto.class));
     }
+
 
 }
