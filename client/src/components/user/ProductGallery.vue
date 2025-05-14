@@ -52,7 +52,7 @@ async function initProducts() {
 
 function checkForErrorModal() {
   if (sessionStorage.getItem("error-message") === "true") {
-    isModalOpen.value = true
+    isModalOpen.value = true;
   }
 }
 
@@ -62,7 +62,7 @@ onMounted(async () => {
 });
 
 if (sessionStorage.getItem("add-success") === "true") {
-  alertMessage.value = 'The sale item has been successfully added.';
+  alertMessage.value = "The sale item has been successfully added.";
   showSuccess.value = true;
   sessionStorage.removeItem("add-success");
   setTimeout(() => {
@@ -87,12 +87,8 @@ const detail = (productId) => {
 };
 </script>
 
-
-
 <template>
-  
-
-<div
+  <div
     v-if="!isLoading && product.length > 0"
     class="min-h-screen bg-black text-white"
   >
@@ -107,23 +103,31 @@ const detail = (productId) => {
         </p>
         <SuccessModal :message="alertMessage" :visible="showSuccess" />
         <div class="space-x-4 m-auto">
-        <button
-          @click="add"
-          class="itbms-sale-item-add mt-8 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200"
-        >
-          Add Sale Item
-        </button>
-        <button>
-          <router-link
-            to="/sale-items/list"
-            class=" mt-8 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200 cursor-default"
+          <div
+            @click="
+              router.push({
+                path: `/sale-items/${product.id}`,
+                query: { from: 'gallery' },
+              })
+            "
           >
-            Manage Sale Item
+            <!-- ส่วนแสดงสินค้า -->
+          </div>
+          <router-link
+            :to="{ path: '/sale-items/add', query: { from: 'gallery' } }"
+            class="mt-8 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200 cursor-default"
+          >
+            Add Sale Item
           </router-link>
-        </button>
+          <button>
+            <router-link
+              to="/sale-items/list"
+              class="mt-8 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200 cursor-default"
+            >
+              Manage Sale Item
+            </router-link>
+          </button>
         </div>
-
-        
       </div>
     </div>
 
