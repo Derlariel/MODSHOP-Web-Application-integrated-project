@@ -5,6 +5,7 @@ import HomePage from '@/pages/HomePage.vue';
 import MainPage from '@/components/user/MainPage.vue';
 import ProductManager from '@/components/user/ProductManager.vue';
 import ProductDetail from '@/components/user/ProductDetail.vue';
+import ProductList from '@/components/user/ProductList.vue';
 import ProductAdd from '@/components/user/ProductCreate.vue';
 import ProductEdit from '@/components/user/ProductEdit.vue';
 
@@ -33,6 +34,11 @@ const routes = [
         path: 'sale-items',
         component: ProductManager,
         children: [
+          {
+            path: 'list',
+            component: ProductList,
+            name: 'product-list',
+          },
           {
             path: 'add',
             component: ProductAdd,

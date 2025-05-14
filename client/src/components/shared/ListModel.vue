@@ -49,11 +49,27 @@ const appStore = useAppStore();
     </div>
 
     <div v-else>
-      <div class="grid grid-cols-7 gap-4 px-2 py-3 bg-gray-100 font-semibold text-gray-600 text-sm border rounded-t-md">
-        <slot name="listHeader" />
-      </div>
-      <div v-for="(item, index) in saleItems" :key="index" class="px-2 py-3 ">
-        <slot name="listItems" :Item="item" :viewType="currentView" />
+      <!-- Table Header -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-black border border-neutral-800 rounded-md">
+          <thead>
+            <tr class="bg-neutral-900 text-white text-left">
+              <slot name="tableHeader" />
+            </tr>
+          </thead>
+          <tbody>
+            <template v-if="saleItems && saleItems.length > 0">
+              <tr v-for="(item, index) in saleItems" :key="index" class="border-t border-neutral-800 hover:bg-neutral-800 transition-colors itbms-row">
+                <slot name="listItems" :Item="item" :viewType="currentView" />
+              </tr>
+            </template>
+            <template v-else>
+              <tr>
+                <td colspan="9" class="py-4 text-center text-gray-400">no sale item</td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
