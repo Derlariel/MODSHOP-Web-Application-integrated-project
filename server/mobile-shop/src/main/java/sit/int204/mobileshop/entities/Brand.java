@@ -23,7 +23,7 @@ public class Brand {
 
     @Size(max = 30)
     @NotNull
-    @Column(name = "name", nullable = false, length = 30)
+    @Column(name = "name", nullable = false, length = 30, unique = true)
     private String name;
 
     @Size(max = 40)
@@ -47,6 +47,18 @@ public class Brand {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "updated_on", nullable = false)
     private Instant updatedOn;
+
+    @PrePersist
+    public void create() {
+        Instant now = Instant.now();
+        this.createdOn = now;
+        this.updatedOn = now;
+    }
+
+    @PreUpdate
+    public void update() {
+        this.updatedOn = Instant.now();
+    }
 
     @OneToMany(mappedBy = "brand")
     private Set<sit.int204.mobileshop.entities.SaleItem> saleItems = new LinkedHashSet<>();

@@ -98,7 +98,7 @@ public class SaleItemService {
             dtoItem.setQuantity(1);
         }
 
-        // อัปเดตข้อมูล
+
         existingItem.setBrand(brand);
         existingItem.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
         existingItem.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
