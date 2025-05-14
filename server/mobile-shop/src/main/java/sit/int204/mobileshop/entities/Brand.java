@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.LinkedHashSet;
@@ -23,7 +25,7 @@ public class Brand {
 
     @Size(max = 30)
     @NotNull
-    @Column(name = "name", nullable = false, length = 30)
+    @Column(name = "name", nullable = false, length = 30, unique = true)
     private String name;
 
     @Size(max = 40)
@@ -38,15 +40,17 @@ public class Brand {
     @Column(name = "country_of_origin", length = 80)
     private String countryOfOrigin;
 
-    @NotNull
+
     @ColumnDefault("CURRENT_TIMESTAMP")
+    @CreationTimestamp
     @Column(name = "created_on", nullable = false)
     private Instant createdOn;
 
-    @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
+    @UpdateTimestamp
     @Column(name = "updated_on", nullable = false)
     private Instant updatedOn;
+
 
     @OneToMany(mappedBy = "brand")
     private Set<sit.int204.mobileshop.entities.SaleItem> saleItems = new LinkedHashSet<>();
