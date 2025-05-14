@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
-import ProductList from "./ProductList.vue";
+import ProductGallery from "./ProductGallery.vue";
 import { useRoute } from "vue-router";
 const route = useRoute()
 
@@ -15,7 +15,7 @@ onMounted(async () => {
  
 <template>
 <div>
-    <ProductList v-if="!['product-detail','product-add'].includes(route.name)"/>
+    <ProductGallery v-if="!['product-detail','product-add','product-list'].includes(route.name)"/>
     <router-view></router-view>
 </div>
 </template>
