@@ -73,7 +73,6 @@ const handleAddBrand = () => {
           </button>
         </div>
 
-        <!-- Using the ListModel component -->
         <ListModel
           :saleItems="brandStore.brands"
           :viewType="viewType"
