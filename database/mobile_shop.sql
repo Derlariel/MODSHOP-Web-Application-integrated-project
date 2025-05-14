@@ -9,10 +9,10 @@ CREATE TABLE brand (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(30) NOT NULL,
     website_url VARCHAR(40),
-    is_active BOOLEAN DEFAULT TRUE,
+    is_active TINYINT DEFAULT 1,
     country_of_origin VARCHAR(80),
-    created_on DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_on DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 DELIMITER //
@@ -47,8 +47,8 @@ CREATE TABLE sale_item (
     storage_gb INT,
 	color VARCHAR(30),
     quantity INT NOT NULL DEFAULT 1,
-    created_on DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_on DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT chk_rate CHECK (rate >= 0.0 AND rate <= 5.0),
     FOREIGN KEY (brand_id) REFERENCES brand(id)
 );
@@ -76,27 +76,27 @@ DELIMITER ;
 CREATE INDEX idx_sale_item_created_on ON sale_item(created_on);
 CREATE INDEX idx_brand_created_on ON brand(created_on);
 
-INSERT INTO brand (id, name, website_url, is_active, country_of_origin, created_on, updated_on) VALUES
-(1, 'Samsung', 'https://www.samsung.com', TRUE, 'South Korea', '1938-03-01 00:00:00', '2024-01-01 12:00:00'),
-(2, 'Apple', 'https://www.apple.com', TRUE, 'United States', '1976-04-01 00:00:00', '2024-01-01 12:00:00'),
-(3, 'Xiaomi', 'https://www.mi.com', TRUE, 'China', '2010-04-06 00:00:00', '2024-01-01 12:00:00'),
-(4, 'Huawei', 'https://www.huawei.com', TRUE, 'China', '1987-09-15 00:00:00', '2024-01-01 12:00:00'),
-(5, 'OnePlus', 'https://www.oneplus.com', TRUE, 'China', '2013-12-16 00:00:00', '2024-01-01 12:00:00'),
-(6, 'Sony', 'https://www.sony.com', TRUE, 'Japan', '1946-05-07 00:00:00', '2024-01-01 12:00:00'),
-(7, 'LG', 'https://www.lg.com', TRUE, 'South Korea', '1947-10-01 00:00:00', '2024-01-01 12:00:00'),
-(8, 'Nokia', 'https://www.nokia.com', FALSE, 'Finland', '1865-05-12 00:00:00', '2022-01-01 12:00:00'),
-(9, 'Motorola', 'https://www.motorola.com', FALSE, 'United States', '1928-09-25 00:00:00', '2022-01-01 12:00:00'),
-(10, 'OPPO', 'https://www.oppo.com', TRUE, 'China', '2004-10-10 00:00:00', '2024-01-01 12:00:00'),
-(11, 'Vivo', 'https://www.vivo.com', TRUE, 'China', '2009-11-01 00:00:00', '2024-01-01 12:00:00'),
-(12, 'ASUS', 'https://www.asus.com', TRUE, 'Taiwan', '1989-04-02 00:00:00', '2024-01-01 12:00:00'),
-(13, 'Google', 'https://store.google.com', TRUE, 'United States', '1998-09-04 00:00:00', '2024-01-01 12:00:00'),
-(14, 'Realme', 'https://www.realme.com', TRUE, 'China', '2018-05-04 00:00:00', '2024-01-01 12:00:00'),
-(15, 'BlackBerry', 'https://www.blackberry.com', TRUE, 'Canada', '1984-03-07 00:00:00', '2024-01-01 12:00:00'),
-(16, 'HTC', 'https://www.htc.com', TRUE, 'Taiwan', '1997-05-15 00:00:00', '2024-01-01 12:00:00'),
-(17, 'ZTE', 'https://www.zte.com', TRUE, 'China', '1985-03-01 00:00:00', '2024-01-01 12:00:00'),
-(18, 'Lenovo', 'https://www.lenovo.com', TRUE, 'China', '1984-11-01 00:00:00', '2024-01-01 12:00:00'),
-(19, 'Honor', 'https://www.hihonor.com', TRUE, 'China', '2013-12-16 00:00:00', '2024-01-01 12:00:00'),
-(20, 'Nothing', 'https://nothing.tech', TRUE, 'United Kingdom', '2020-01-01 00:00:00', '2024-01-01 12:00:00');
+INSERT INTO brand (id, name, website_url, is_active, country_of_origin) VALUES
+(1, 'Samsung', 'https://www.samsung.com', 1, 'South Korea'),
+(2, 'Apple', 'https://www.apple.com', 1, 'United States'),
+(3, 'Xiaomi', 'https://www.mi.com', 1, 'China'),
+(4, 'Huawei', 'https://www.huawei.com', 1, 'China'),
+(5, 'OnePlus', 'https://www.oneplus.com', 1, 'China'),
+(6, 'Sony', 'https://www.sony.com', 1, 'Japan'),
+(7, 'LG', 'https://www.lg.com', 1, 'South Korea'),
+(8, 'Nokia', 'https://www.nokia.com', 0, 'Finland'),
+(9, 'Motorola', 'https://www.motorola.com', 0, 'United States'),
+(10, 'OPPO', 'https://www.oppo.com', 1, 'China'),
+(11, 'Vivo', 'https://www.vivo.com', 1, 'China'),
+(12, 'ASUS', 'https://www.asus.com', 1, 'Taiwan'),
+(13, 'Google', 'https://store.google.com', 1, 'United States'),
+(14, 'Realme', 'https://www.realme.com', 1, 'China'),
+(15, 'BlackBerry', 'https://www.blackberry.com', 1, 'Canada'),
+(16, 'HTC', 'https://www.htc.com', 1, 'Taiwan'),
+(17, 'ZTE', 'https://www.zte.com', 1, 'China'),
+(18, 'Lenovo', 'https://www.lenovo.com', 1, 'China'),
+(19, 'Honor', 'https://www.hihonor.com', 1, 'China'),
+(20, 'Nothing', 'https://nothing.tech', 1, 'United Kingdom');
 
 INSERT INTO sale_item (id, brand_id, model, description, quantity, price, screen_size_inch, ram_gb, storage_gb, color, created_on, updated_on, rate) VALUES
 -- Apple products (brand_id = 2)

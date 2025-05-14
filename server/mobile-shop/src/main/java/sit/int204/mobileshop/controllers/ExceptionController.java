@@ -2,6 +2,8 @@ package sit.int204.mobileshop.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.CannotCreateTransactionException;
@@ -9,6 +11,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import sit.int204.mobileshop.exceptions.BrandAlreadyExitsException;
 import sit.int204.mobileshop.exceptions.DatabaseCommunicationException;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.exceptions.MyErrorResponse;
@@ -19,14 +23,32 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class ExceptionController {
 
+        @ExceptionHandler(BrandAlreadyExitsException.class)
+        public ResponseEntity<MyErrorResponse> handleBrandAlreadyExitsException(
+                        BrandAlreadyExitsException e,
+                        HttpServletRequest request) {
+                MyErrorResponse myErrorResponse = new MyErrorResponse(
+                                HttpStatus.BAD_REQUEST.value(), HttpStatus.NOT_FOUND.getReasonPhrase(), e.getMessage(),
+                                request.getRequestURI());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(myErrorResponse);
+        }
+
     @ExceptionHandler(ItemNotFoundException.class)
     public ResponseEntity<MyErrorResponse> handleItemNotFoundException(ItemNotFoundException e,
-                                                                       HttpServletRequest request) {
-        MyErrorResponse myErrorResponse = new MyErrorResponse(
-                HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND.getReasonPhrase(), e.getMessage(), request.getRequestURI()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(myErrorResponse);
+                    HttpServletRequest request) {
+            MyErrorResponse myErrorResponse = new MyErrorResponse(
+                            HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND.getReasonPhrase(), e.getMessage(),
+                            request.getRequestURI());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(myErrorResponse);
     }
+    
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<MyErrorResponse> handleResourceNotFoundException(ResourceNotFoundException e,
+                    HttpServletRequest request) {
+                MyErrorResponse myErrorResponse = new MyErrorResponse(HttpStatus.NOT_FOUND.value()
+                                , HttpStatus.NOT_FOUND.getReasonPhrase(), e.getMessage(), request.getRequestURI());
+                                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(myErrorResponse);
+        }
 
     @ExceptionHandler({DataAccessException.class, SQLException.class, CannotCreateTransactionException.class, DatabaseCommunicationException.class})
     public ResponseEntity<MyErrorResponse> handleDatabaseError(Exception e, HttpServletRequest request) {
