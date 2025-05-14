@@ -6,7 +6,7 @@ import ProductPicture from "./ProductPicture.vue";
 import HistoryPath from "../shared/HistoryPath.vue";
 import ConfirmModal from "../shared/modal/ConfirmModal.vue";
 import SuccessModal from "../shared/modal/SuccessModal.vue";
-import { checkUptodate } from '../../utils/validate'
+import { checkUptodate } from "../../utils/validate";
 
 const router = useRouter();
 const route = useRoute();
@@ -18,43 +18,42 @@ const isData = ref(true);
 
 const submit = () => {
   router.push({
-    name: 'sale-items-edit',
-    params: {
-      productId: productId
-    }
-  })
-}
+    name: "sale-items-edit",
+    params: { productId: product.value.id },
+    query: { from: "detail", returnTo: referrer },
+  });
+};
 
 const title = computed(() => {
-  if (!product.value) return '';
+  if (!product.value) return "";
 
   const {
-    brandName = '',
-    model = '',
-    ramGb = '',
-    storageGb = '',
-    color = ''
+    brandName = "",
+    model = "",
+    ramGb = "",
+    storageGb = "",
+    color = "",
   } = product.value;
 
   return `${brandName} ${model} ${ramGb}/${storageGb}GB ${color}`.trim();
 });
 
-const showDelete = ref(false)
+const showDelete = ref(false);
 const deleteSaleItem = () => {
-  showDelete.value = true
-}
+  showDelete.value = true;
+};
 const confirm = async () => {
   try {
     await productStore.deleteProduct(productId);
     sessionStorage.setItem("delete-success", "true");
     router.push("/sale-items");
   } catch (error) {
-      sessionStorage.setItem("error-message", "true")
-      console.log(sessionStorage.getItem("error-message"));
-      router.push("/sale-items");
+    sessionStorage.setItem("error-message", "true");
+    console.log(sessionStorage.getItem("error-message"));
+    router.push("/sale-items");
   }
 };
-const showSuccess = ref(false)
+const showSuccess = ref(false);
 
 onMounted(async () => {
   await productStore.loadProducts();
@@ -62,31 +61,52 @@ onMounted(async () => {
   product.value = result;
 
   if (checkUptodate(result)) {
-    showSuccess.value = false
+    showSuccess.value = false;
     router.push("/sale-items");
   }
 
   if (sessionStorage.getItem("edit-success") === "true") {
-    showSuccess.value = true
-    sessionStorage.removeItem("edit-success")
+    showSuccess.value = true;
+    sessionStorage.removeItem("edit-success");
     setTimeout(() => {
-      showSuccess.value = false
-    },3000)
+      showSuccess.value = false;
+    }, 3000);
   }
-
-
-
   isLoading.value = false;
 });
+
+const referrer = route.query.from || "gallery";
+const previousPath = computed(() => {
+  if (referrer === "list") {
+    return {
+      name: "Sale Items List",
+      path: "/sale-items/list",
+    };
+  } else {
+    return {
+      name: "Sale Items",
+      path: "/sale-items",
+    };
+  }
+});
+
 </script>
 
 <template>
   <div class="min-h-screen bg-black text-white">
     <div v-if="!isLoading && product && isData" class="pt-24 pb-20">
-      <SuccessModal :visible="showSuccess" message="The sale item has been updated."/>
+      <SuccessModal
+        :visible="showSuccess"
+        message="The sale item has been updated."
+      />
       <ConfirmModal @confirm="confirm" :visible="showDelete" />
       <div class="max-w-[1200px] mx-auto px-6">
-        <HistoryPath :previous="1" :name-path="title" /> 
+        <HistoryPath
+          :name-path="product?.model || 'Product Detail'"
+          :previous="1"
+          :previousPathName="previousPath.name"
+          :previousPath="previousPath.path"
+        />
         <div class="itbms-row grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           <ProductPicture />
 
@@ -140,27 +160,41 @@ onMounted(async () => {
             <div class="border-t border-neutral-800 pt-6">
               <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-medium">Specifications</h2>
-                
               </div>
 
               <div class="text-gray-400 space-y-4 animate-fadeIn">
                 <div class="grid grid-cols-3 gap-4">
                   <div class="bg-neutral-800/50 rounded-xl p-4 text-center">
                     <p class="text-xs text-gray-400 mb-1">RAM</p>
-                    <p class="itbms-ramGb font-medium">{{ product.ramGb === null || product.ramGb === "" ? "-" : product.ramGb }}GB</p>
+                    <p class="itbms-ramGb font-medium">
+                      {{
+                        product.ramGb === null || product.ramGb === ""
+                          ? "-"
+                          : product.ramGb
+                      }}GB
+                    </p>
                   </div>
 
                   <div class="bg-neutral-800/50 rounded-xl p-4 text-center">
                     <p class="text-xs text-gray-400 mb-1">Storage</p>
                     <p class="itbms-storageGb font-medium">
-                      {{ product.storageGb === null || product.storageGb === "" ? "-" : product.storageGb }}GB
+                      {{
+                        product.storageGb === null || product.storageGb === ""
+                          ? "-"
+                          : product.storageGb
+                      }}GB
                     </p>
                   </div>
 
                   <div class="bg-neutral-800/50 rounded-xl p-4 text-center">
                     <p class="text-xs text-gray-400 mb-1">Screen</p>
                     <p class="itbms-screenSizeInch font-medium">
-                      {{ product.screenSizeInch === null || product.screenSizeInch === "" ? "-" : product.screenSizeInch }}"
+                      {{
+                        product.screenSizeInch === null ||
+                        product.screenSizeInch === ""
+                          ? "-"
+                          : product.screenSizeInch
+                      }}"
                     </p>
                   </div>
                 </div>
@@ -188,13 +222,24 @@ onMounted(async () => {
 
                   <div>
                     <h3 class="text-white text-sm font-medium mb-1">Storage</h3>
-                    <p class="text-sm">{{ product.storageGb === null || product.storageGb === "" ? "-" : product.storageGb }} GB</p>
+                    <p class="text-sm">
+                      {{
+                        product.storageGb === null || product.storageGb === ""
+                          ? "-"
+                          : product.storageGb
+                      }}
+                      GB
+                    </p>
                   </div>
 
                   <div>
                     <h3 class="text-white text-sm font-medium mb-1">Color</h3>
                     <p class="itbms-color text-sm">
-                      {{ product.color === null || product.color === "" ? "-" : product.color }}
+                      {{
+                        product.color === null || product.color === ""
+                          ? "-"
+                          : product.color
+                      }}
                     </p>
                   </div>
                 </div>
@@ -243,9 +288,9 @@ onMounted(async () => {
                 Edit
               </button>
               <button
-              @click="deleteSaleItem"
+                @click="deleteSaleItem"
                 type="button"
-                 class="itbms-delete-button flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-red-500 transition-colors duration-300 font-medium"
+                class="itbms-delete-button flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-red-500 transition-colors duration-300 font-medium"
               >
                 Delete
               </button>

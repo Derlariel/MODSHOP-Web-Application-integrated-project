@@ -6,6 +6,7 @@ import { useRouter } from "vue-router";
 import DEFAULT_IMAGE from "@/assets/default.jpg";
 import ConfirmModal from "../shared/modal/ConfirmModal.vue";
 import SuccessModal from "../shared/modal/SuccessModal.vue";
+import HistoryPath from "../shared/HistoryPath.vue";
 
 const router = useRouter();
 const productStore = useProductStore();
@@ -31,13 +32,17 @@ const handleItemClick = (productId) => {
   router.push({
     name: "product-detail",
     params: { productId },
+    query: { from: 'list' }
   });
 };
 
 const handleEditClick = (productId) => {
   router.push({
-    name: "sale-items-edit",
-    params: { productId },
+    path: `/sale-items/${productId}/edit`,
+    query: { 
+      from: 'list',
+      returnTo: 'list'
+    }
   });
 };
 
@@ -77,7 +82,7 @@ async function fetchAllProductDetails() {
     const productsList = productStore.allProducts;
     if (!productsList || productsList.length === 0) {
       products.value = [];
-      router.push({ path: '/error', query: { code: 'NODATA' } });
+      router.push({ path: "/error", query: { code: "NODATA" } });
       return;
     }
 
@@ -89,14 +94,16 @@ async function fetchAllProductDetails() {
       }
     }
     if (detailedProducts.length === 0) {
-      router.push({ path: '/error', query: { code: 'NODATA' } });
+      router.push({ path: "/error", query: { code: "NODATA" } });
       return;
     }
     products.value = detailedProducts;
   } catch (error) {
     console.error("Failed to fetch product details:", error);
-    router.push({ path: '/error', query: { code: 'ERROR', message: error.message } });
-
+    router.push({
+      path: "/error",
+      query: { code: "ERROR", message: error.message },
+    });
   } finally {
     isLoading.value = false;
   }
@@ -120,7 +127,6 @@ onMounted(async () => {
 <template>
   <div class="min-h-screen bg-black text-white pt-24 pb-16 px-4">
     <div class="max-w-7xl mx-auto">
-
       <div v-if="isLoading" class="text-center py-12">
         <div
           class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mx-auto"
@@ -138,13 +144,29 @@ onMounted(async () => {
 
         <SuccessModal :visible="showSuccessModal" :message="alertMessage" />
 
-        <div class="flex justify-end mb-6 space-x-4">
-          <router-link to="/sale-items/add" class="itbms-sale-item-add bg-white text-black px-4 py-2 rounded hover:bg-gray-200 transition-colors duration-200 font-medium">
-            Add Sale Item
-          </router-link>
-          <router-link to="/brands" class="itbms-manage-brand bg-neutral-800 text-white px-4 py-2 rounded hover:bg-neutral-700 hover:ring-1 hover:ring-white transition-colors duration-200 font-medium">
-            Manage Brand
-          </router-link>
+        <div class="flex justify-between mb-6 space-x-4">
+          <div>
+            <HistoryPath
+              name-path="Sale Items List"
+              :previous="1"
+              previousPathName="Sale Items"
+              previousPath="/sale-items"
+            />
+          </div>
+          <div class="flex space-x-4">
+            <router-link
+              :to="{ path: '/sale-items/add', query: { from: 'list' } }"
+              class="itbms-sale-item-add bg-white text-black px-4 py-2 rounded hover:bg-gray-200"
+            >
+              Add Sale Item
+            </router-link>
+            <router-link
+              to="/brands"
+              class="itbms-manage-brand bg-neutral-800 text-white px-4 py-2 rounded hover:bg-neutral-700 hover:ring-1 hover:ring-white transition-colors duration-200 font-medium"
+            >
+              Manage Brand
+            </router-link>
+          </div>
         </div>
 
         <ListModel
@@ -167,76 +189,76 @@ onMounted(async () => {
 
           <template #listItems="{ Item: product, viewType }">
             <template v-if="viewType === 'list'">
-                <td
-                  @click="handleItemClick(product.id)"
-                  class="px-4 py-3 itbms-id"
-                >
-                  {{ product.id }}
-                </td>
-                <td
-                  @click="handleItemClick(product.id)"
-                  class="px-4 py-3 itbms-brand"
-                >
-                  {{ product.brandName }}
-                </td>
-                <td
-                  @click="handleItemClick(product.id)"
-                  class="px-4 py-3 itbms-model"
-                >
-                  {{ product.model }}
-                </td>
-                <td
-                  @click="handleItemClick(product.id)"
-                  class="px-4 py-3 itbms-ramGb"
-                >
-                  {{ product.ramGb || "-" }}
-                </td>
-                <td
-                  @click="handleItemClick(product.id)"
-                  class="px-4 py-3 itbms-storageGb"
-                >
-                  {{ product.storageGb || "-" }}
-                </td>
-                <td
-                  @click="handleItemClick(product.id)"
-                  class="px-4 py-3 itbms-color"
-                >
-                  {{ product.color || "-" }}
-                </td>
-                <td
-                  @click="handleItemClick(product.id)"
-                  class="px-4 py-3 itbms-screenSizeInch"
-                >
-                  {{ product.screenSizeInch || "-" }}
-                </td>
-                <td
-                  @click="handleItemClick(product.id)"
-                  class="px-4 py-3 itbms-price"
-                >
-                  {{ product.price?.toLocaleString() || "-" }}
-                </td>
-                <td
-                  @click="handleItemClick(product.id)"
-                  class="px-4 py-3 itbms-quantity"
-                >
-                  {{ product.quantity || "-" }}
-                </td>
-                <td class="px-4 py-3">
-                  <div class="flex space-x-2">
-                    <button
-                      @click.stop="handleEditClick(product.id)"
-                      class="itbms-edit-button bg-white text-black px-3 py-1.5 rounded hover:bg-gray-300 transition-colors duration-200"
-                    >
-                      EDIT
-                    </button>
-                    <button
-                      @click.stop="handleDeleteClick(product.id)"
-                      class="itbms-delete-button bg-neutral-800 text-white px-3 py-1.5 rounded hover:bg-black transition-colors duration-200 text-sm font-medium"
-                    >
-                      DELETE
-                    </button>
-                  </div>
-                </td>
+              <td
+                @click="handleItemClick(product.id)"
+                class="px-4 py-3 itbms-id"
+              >
+                {{ product.id }}
+              </td>
+              <td
+                @click="handleItemClick(product.id)"
+                class="px-4 py-3 itbms-brand"
+              >
+                {{ product.brandName }}
+              </td>
+              <td
+                @click="handleItemClick(product.id)"
+                class="px-4 py-3 itbms-model"
+              >
+                {{ product.model }}
+              </td>
+              <td
+                @click="handleItemClick(product.id)"
+                class="px-4 py-3 itbms-ramGb"
+              >
+                {{ product.ramGb || "-" }}
+              </td>
+              <td
+                @click="handleItemClick(product.id)"
+                class="px-4 py-3 itbms-storageGb"
+              >
+                {{ product.storageGb || "-" }}
+              </td>
+              <td
+                @click="handleItemClick(product.id)"
+                class="px-4 py-3 itbms-color"
+              >
+                {{ product.color || "-" }}
+              </td>
+              <td
+                @click="handleItemClick(product.id)"
+                class="px-4 py-3 itbms-screenSizeInch"
+              >
+                {{ product.screenSizeInch || "-" }}
+              </td>
+              <td
+                @click="handleItemClick(product.id)"
+                class="px-4 py-3 itbms-price"
+              >
+                {{ product.price?.toLocaleString() || "-" }}
+              </td>
+              <td
+                @click="handleItemClick(product.id)"
+                class="px-4 py-3 itbms-quantity"
+              >
+                {{ product.quantity || "-" }}
+              </td>
+              <td class="px-4 py-3">
+                <div class="flex space-x-2">
+                  <button
+                    @click.stop="handleEditClick(product.id)"
+                    class="itbms-edit-button bg-white text-black px-3 py-1.5 rounded hover:bg-gray-300 transition-colors duration-200"
+                  >
+                    EDIT
+                  </button>
+                  <button
+                    @click.stop="handleDeleteClick(product.id)"
+                    class="itbms-delete-button bg-neutral-800 text-white px-3 py-1.5 rounded hover:bg-black transition-colors duration-200 text-sm font-medium"
+                  >
+                    DELETE
+                  </button>
+                </div>
+              </td>
             </template>
           </template>
         </ListModel>
