@@ -74,7 +74,7 @@ const handleAddBrand = () => {
         </div>
 
         <ListModel
-          :saleItems="brandStore.brands"
+          :items="brandStore.brands"
           :viewType="viewType"
           @update:viewType="viewType = $event"
         >

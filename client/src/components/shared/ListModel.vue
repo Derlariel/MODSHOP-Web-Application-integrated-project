@@ -4,7 +4,7 @@ import { ref, watch } from 'vue';
 import { useAppStore } from '@/stores/useAppStore';
 
 const props = defineProps({
-  saleItems: Array,
+  items: Array,
   viewType: {
     type: String,
     default: 'gallery',
@@ -43,7 +43,7 @@ const appStore = useAppStore();
 
     <!-- Views -->
     <div v-if="currentView === 'gallery'" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-8 gap-x-10">
-      <div v-for="(item, index) in saleItems" :key="index">
+      <div v-for="(item, index) in items" :key="index">
         <slot name="listItems" :Item="item" :viewType="currentView" />
       </div>
     </div>
@@ -58,14 +58,14 @@ const appStore = useAppStore();
             </tr>
           </thead>
           <tbody>
-            <template v-if="saleItems && saleItems.length > 0">
-              <tr v-for="(item, index) in saleItems" :key="index" class="border-t border-neutral-800 hover:bg-neutral-800 transition-colors itbms-row">
+            <template v-if="items && items.length > 0">
+              <tr v-for="(item, index) in items" :key="index" class="border-t border-neutral-800 hover:bg-neutral-800 transition-colors itbms-row">
                 <slot name="listItems" :Item="item" :viewType="currentView" />
               </tr>
             </template>
             <template v-else>
               <tr>
-                <td colspan="9" class="py-4 text-center text-gray-400">no sale item</td>
+                <td colspan="9" class="py-4 text-center text-gray-400">no item</td>
               </tr>
             </template>
           </tbody>

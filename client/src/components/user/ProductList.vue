@@ -170,7 +170,7 @@ onMounted(async () => {
         </div>
 
         <ListModel
-          :saleItems="sortedProducts"
+          :items="sortedProducts"
           :viewType="viewType"
           @update:viewType="viewType = $event"
         >

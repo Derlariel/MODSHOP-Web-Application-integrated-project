@@ -140,7 +140,7 @@ const detail = (productId) => {
 
       <div v-if="!isLoading && !isModalOpen" class="flex-1 overflow-y-auto">
         <ListModel
-          :saleItems="productStore.allProducts"
+          :items="productStore.allProducts"
           :viewType="viewType"
           :adminMode="adminMode"
         >
