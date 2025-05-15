@@ -4,9 +4,10 @@ import BrandList from "./BrandList.vue";
 import { useRoute } from "vue-router";
 const route = useRoute()
 
+import { useBrandStore } from "@/stores/useBrandStore";
 
 onMounted(async () => {
-    await useBrandStore.loadBrands();
+    await useBrandStore().loadBrands();
     
 });
 </script>
