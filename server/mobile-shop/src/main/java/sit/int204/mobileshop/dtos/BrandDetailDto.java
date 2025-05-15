@@ -12,5 +12,4 @@ public class BrandDetailDto {
     private Boolean isActive;
     private Instant createdOn;
     private Instant updatedOn;
-    private Integer saleItemsCount;
 }
