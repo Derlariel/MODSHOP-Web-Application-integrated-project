@@ -27,6 +27,7 @@ jobs:
           cp /tmp/db_secrets/db_password secrets/db_password || true
 
           docker compose down -v
-          docker compose up -d --build
+          docker compose build --no-cache
+          docker compose up -d 
           docker image prune -f
           # docker builder prune -f 
