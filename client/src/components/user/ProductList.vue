@@ -1,9 +1,8 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed,watch } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
 import ListModel from "../shared/ListModel.vue";
 import { useRouter } from "vue-router";
-import DEFAULT_IMAGE from "@/assets/default.jpg";
 import ConfirmModal from "../shared/modal/ConfirmModal.vue";
 import SuccessModal from "../shared/modal/SuccessModal.vue";
 import HistoryPath from "../shared/HistoryPath.vue";
@@ -112,6 +111,20 @@ async function fetchAllProductDetails() {
 onMounted(async () => {
   await fetchAllProductDetails();
 
+  checkForSuccess();
+});
+
+const checkForSuccess = () => {
+  if (sessionStorage.getItem("edit-success") === "true") {
+    alertMessage.value = "The sale item has been updated.";
+    showSuccessModal.value = true;
+    sessionStorage.removeItem("edit-success");
+
+    setTimeout(() => {
+      showSuccessModal.value = false;
+    }, 3000);
+  }
+  
   if (sessionStorage.getItem("delete-success") === "true") {
     alertMessage.value = "The sale item has been deleted.";
     showSuccessModal.value = true;
@@ -121,7 +134,14 @@ onMounted(async () => {
       showSuccessModal.value = false;
     }, 3000);
   }
-});
+};
+
+watch(
+  () => router.currentRoute.value.fullPath,
+  () => {
+    checkForSuccess();
+  }
+);
 </script>
 
 <template>

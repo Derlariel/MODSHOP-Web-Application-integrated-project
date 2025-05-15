@@ -12,6 +12,7 @@ import BrandManager from '@/components/user/BrandManager.vue';
 import BrandDetail from '@/components/user/BrandDetail.vue';
 import BrandCreate from '@/components/user/BrandCreate.vue';
 
+import BrandEdit from '@/components/user/BrandEdit.vue';
 
 const routes = [
   {
@@ -78,6 +79,11 @@ const routes = [
             name: 'brand-detail',
           },
         ],
+      },
+      {
+        path: 'brands/:brandId/edit',
+        component: BrandEdit,
+        name: 'brands-edit',
       },
       
 

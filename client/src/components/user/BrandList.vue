@@ -41,6 +41,14 @@ const formatDate = (dateString) => {
 const handleAddBrand = () => {
   router.push("/brands/add");
 };
+
+const goToBrandEdit = (brandId) => {
+  router.push({
+    name: 'brands-edit',
+    params: { brandId }
+  });
+};
+
 </script>
 
 <template>
@@ -115,6 +123,7 @@ const handleAddBrand = () => {
               <td class="px-4 py-3">
                 <div class="flex space-x-2">
                   <button
+                    @click.stop="goToBrandEdit(brand.id)"
                     class="itbms-brand-edit-button bg-white text-black px-3 py-1.5 rounded hover:bg-gray-300 transition-colors duration-200"
                   >
                     EDIT

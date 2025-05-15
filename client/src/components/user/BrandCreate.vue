@@ -29,9 +29,7 @@ const previousPath = computed(() => {
   <div class="min-h-screen bg-black text-white">
     <div class="pt-24 pb-20">
       <div class="max-w-[1200px] mx-auto px-6">
-        <h1 class="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-          Add New Brand
-        </h1>
+
         <HistoryPath
           name-path="Add Brand"
           :previous="1"
