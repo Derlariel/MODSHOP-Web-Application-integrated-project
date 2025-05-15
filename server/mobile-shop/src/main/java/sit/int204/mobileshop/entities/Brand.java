@@ -43,13 +43,14 @@ public class Brand {
 
     @ColumnDefault("CURRENT_TIMESTAMP")
     @CreationTimestamp
-    @Column(name = "created_on", nullable = false)
+    @Column(name = "created_on", nullable = false, updatable = false)
     private Instant createdOn;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
     @UpdateTimestamp
     @Column(name = "updated_on", nullable = false)
     private Instant updatedOn;
+
 
 
     @OneToMany(mappedBy = "brand")
