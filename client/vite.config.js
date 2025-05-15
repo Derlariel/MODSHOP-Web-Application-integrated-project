@@ -5,7 +5,7 @@ import { fileURLToPath, URL } from "node:url";
 import path from "node:path";
 
 export default defineConfig({
-  base: '/kk1/',
+  base: '/kk1/itb-mshop/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)), 
@@ -19,7 +19,7 @@ export default defineConfig({
   port: 4173,
   proxy: {
     '/kk1/itb-mshop': {
-      target: 'http://localhost:8080',
+      target: 'http://intproj24.sit.kmutt.ac.th',
       changeOrigin: true,
       // ไม่ต้องกังวลเรื่อง CORS
        rewrite: (path) => path.replace(/^\/kk1\/itb-mshop/, ''),
