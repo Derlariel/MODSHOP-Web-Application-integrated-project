@@ -81,7 +81,7 @@ const routes = [
 ];
 
 const router = createRouter ({
-  history: createWebHistory ('/kk1/'),
+  history: createWebHistory ('/kk1/itb-mshop/'),
   routes,
 });
 
