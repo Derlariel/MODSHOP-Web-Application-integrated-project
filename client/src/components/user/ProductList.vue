@@ -3,7 +3,6 @@ import { ref, onMounted, computed } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
 import ListModel from "../shared/ListModel.vue";
 import { useRouter } from "vue-router";
-import DEFAULT_IMAGE from "@/assets/default.jpg";
 import ConfirmModal from "../shared/modal/ConfirmModal.vue";
 import SuccessModal from "../shared/modal/SuccessModal.vue";
 import HistoryPath from "../shared/HistoryPath.vue";
