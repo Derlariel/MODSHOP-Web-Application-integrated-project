@@ -48,7 +48,7 @@ services:
   api:
     build:
       context: ./server
-    container_name: api
+    container_name: backend
     ports:
       - "8080:8080"
     depends_on:
