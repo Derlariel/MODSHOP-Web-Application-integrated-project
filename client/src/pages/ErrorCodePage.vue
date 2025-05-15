@@ -3,6 +3,7 @@ import { useRoute } from "vue-router";
 
 const route = useRoute();
 const code = (route.query.code || "500").toUpperCase(); 
+const BASE_URL = import.meta.env.BASE_URL;
 
 const errorMessages = {
   NODATA: "No sale items", 
@@ -26,7 +27,7 @@ const imageFile = errorImages[code] || errorImages.default;
 
 <template>
   <div class="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-    <img :src="`/images/error/${imageFile}`" alt="error image" class="w-96 mb-6" />
+    <img :src="`${BASE_URL}images/error/${imageFile}`" alt="error image" class="w-96 mb-6" />
     <!-- ใช้ v-if ตรวจสอบค่า code แทนที่ Nodata -->
     <h1 v-if="code !== 'NODATA'" class="text-4xl font-bold text-red-600 mb-2">Error {{ code }}</h1>
     <h1 v-else class="text-4xl font-bold text-red-600 mb-2">{{ message }}</h1>
