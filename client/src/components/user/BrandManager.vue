@@ -2,12 +2,11 @@
 import { onMounted, ref } from "vue";
 import BrandList from "./BrandList.vue";
 import { useRoute } from "vue-router";
-const route = useRoute()    
-import { useBrandStore } from "@/stores/useBrandStore";
+const route = useRoute()
 
 
 onMounted(async () => {
-    await useBrandStore().loadBrands();
+    await useBrandStore.loadBrands();
     
 });
 </script>
