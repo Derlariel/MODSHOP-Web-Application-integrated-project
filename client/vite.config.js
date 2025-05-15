@@ -22,7 +22,7 @@ export default defineConfig({
       target: 'http://localhost:8080',
       changeOrigin: true,
       // ไม่ต้องกังวลเรื่อง CORS
-      rewrite: (path) => path.replace(/^\/kk1\/itb-mshop/, ''),
+       rewrite: (path) => path.replace(/^\/kk1\/itb-mshop/, ''),
     }
   }
 }
