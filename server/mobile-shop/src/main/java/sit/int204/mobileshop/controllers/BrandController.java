@@ -23,7 +23,6 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PathVariable;
 
 
-@CrossOrigin(origins = "${app.origins}")
 @RestController
 @RequestMapping("/v1/brands")
 public class BrandController {
