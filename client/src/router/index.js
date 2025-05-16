@@ -11,6 +11,7 @@ import ProductEdit from '@/components/user/ProductEdit.vue';
 import BrandManager from '@/components/user/BrandManager.vue';
 
 import BrandCreate from '@/components/user/BrandCreate.vue';
+import BrandEdit from '@/components/user/BrandEdit.vue';
 
 const routes = [
   {
