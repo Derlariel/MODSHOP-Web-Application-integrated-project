@@ -68,13 +68,20 @@ public class BrandService {
 
          if (getBrandById(id) == null)
              throw new ItemNotFoundException(null);
+
             
          Brand brand = getBrandById(id);
          if (brand.getSaleItems().size() > 0) {
              throw new BrandAlreadyExitsException(null);
          }
 
-        brandRepository.deleteById(id);
+         if (brand.getIsActive() == false) {
+             throw new ItemNotFoundException(null);
+         }
+
+         brand.setIsActive(false);
+
+         brandRepository.save(brand);
     }
     
 
