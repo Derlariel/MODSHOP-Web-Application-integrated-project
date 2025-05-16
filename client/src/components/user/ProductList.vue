@@ -32,17 +32,12 @@ const handleItemClick = (productId) => {
   router.push({
     name: "product-detail",
     params: { productId },
-    query: { from: 'list' }
   });
 };
 
 const handleEditClick = (productId) => {
   router.push({
     path: `/sale-items/${productId}/edit`,
-    query: { 
-      from: 'list',
-      returnTo: 'list'
-    }
   });
 };
 

@@ -7,14 +7,6 @@ const props = defineProps({
     next: Number,
     namePath: {
         type: String,
-    },
-    previousPathName: {
-        type: String,
-        default: 'Home'
-    },
-    previousPath: {
-        type: String,
-        default: '/sale-items'
     }
 })
 const router = useRouter()
@@ -22,7 +14,7 @@ const router = useRouter()
 
 <template>
   <div class="flex cursor-pointer font-light mb-5 space-x-2.5">
-    <p class="itbms-home-button" @click="router.push(props.previousPath)">{{ previousPathName }}</p>
+     <p class="itbms-home-button" @click="router.push('/sale-items')">Home</p>
     <p>/</p>
     <p
       @click="router.go(-props.next)"

@@ -18,30 +18,31 @@ const isData = ref(true);
 
 const submit = () => {
   router.push({
-    name: "sale-items-edit",
-    params: { productId: product.value.id },
-    query: { from: "detail", returnTo: referrer },
-  });
-};
+    name: 'sale-items-edit',
+    params: {
+      productId: productId
+    }
+  })
+}
 
 const title = computed(() => {
-  if (!product.value) return "";
+  if (!product.value) return '';
 
   const {
-    brandName = "",
-    model = "",
-    ramGb = "",
-    storageGb = "",
-    color = "",
+    brandName = '',
+    model = '',
+    ramGb = '',
+    storageGb = '',
+    color = ''
   } = product.value;
 
   return `${brandName} ${model} ${ramGb}/${storageGb}GB ${color}`.trim();
 });
 
-const showDelete = ref(false);
+const showDelete = ref(false)
 const deleteSaleItem = () => {
-  showDelete.value = true;
-};
+  showDelete.value = true
+}
 const confirm = async () => {
   try {
     await productStore.deleteProduct(productId);
@@ -75,20 +76,6 @@ onMounted(async () => {
   isLoading.value = false;
 });
 
-const referrer = route.query.from || "gallery";
-const previousPath = computed(() => {
-  if (referrer === "list") {
-    return {
-      name: "Sale Items List",
-      path: "/sale-items/list",
-    };
-  } else {
-    return {
-      name: "Sale Items",
-      path: "/sale-items",
-    };
-  }
-});
 
 </script>
 
@@ -101,12 +88,7 @@ const previousPath = computed(() => {
       />
       <ConfirmModal @confirm="confirm" :visible="showDelete" />
       <div class="max-w-[1200px] mx-auto px-6">
-        <HistoryPath
-          :name-path="product?.model || 'Product Detail'"
-          :previous="1"
-          :previousPathName="previousPath.name"
-          :previousPath="previousPath.path"
-        />
+        <HistoryPath :previous="1" :name-path="title" /> 
         <div class="itbms-row grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           <ProductPicture />
 
