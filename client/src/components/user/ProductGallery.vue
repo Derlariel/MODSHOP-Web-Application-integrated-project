@@ -113,14 +113,7 @@ const detail = (productId) => {
         >
           Add Sale Item
         </button>
-        <button>
-          <router-link
-            to="/sale-items/list"
-            class=" mt-8 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200 cursor-default"
-          >
-            Manage Sale Item
-          </router-link>
-        </button>
+
         </div>
 
         

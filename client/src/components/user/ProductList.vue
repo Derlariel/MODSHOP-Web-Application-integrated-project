@@ -18,7 +18,6 @@ const alertMessage = ref("");
 
 const products = computed(() => productStore.allProducts);
 
-// Sort products by created time in ascending order
 const sortedProducts = computed(() => {
   if (!products.value || products.value.length === 0) return [];
 
