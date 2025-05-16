@@ -2,6 +2,7 @@ package sit.int204.mobileshop.dtos;
 
 
 import lombok.Data;
+import lombok.Builder.Default;
 
 
 
@@ -11,6 +12,6 @@ public class BrandInfoDto {
     private String name;
     private String websiteUrl;
     private String countryOfOrigin;
-    private Boolean isActive;
-    private Integer noOfSaleItems;
+    private Boolean isActive = true;
+    private Integer noOfSaleItems = 0;
 }
