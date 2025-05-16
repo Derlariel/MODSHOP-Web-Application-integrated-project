@@ -50,7 +50,7 @@ public class BrandController {
     public ResponseEntity<BrandInfoDto> getBrand(@PathVariable Integer id) {
         Brand brand = brandService.getBrandById(id);
         BrandInfoDto brandInfoDto = modelMapper.map(brand, BrandInfoDto.class);
-        brandInfoDto.setSaleItemsCount(brand.getSaleItems().size());
+        brandInfoDto.setNoOfSaleItems(brand.getSaleItems().size());
         return ResponseEntity.ok(brandInfoDto);
     }
 
