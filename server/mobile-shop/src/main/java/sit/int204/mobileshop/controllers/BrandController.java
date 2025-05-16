@@ -55,7 +55,15 @@ public class BrandController {
     }
 
     @PostMapping("")
-    public ResponseEntity<BrandInfoDto> postBrand(@RequestBody BrandInfoDto brand) {
+    public ResponseEntity<BrandInfoDto> postBrand(@Valid @RequestBody BrandInfoDto brand) {
+
+        if (brand.getName() != null) 
+            brand.setName(brand.getName().trim());
+        
+
+        if (brand.getIsActive() == null)
+            brand.setIsActive(true);
+
         BrandInfoDto brandInfoDto = brandService.createBrandByName(brand).get();
         return ResponseEntity.status(HttpStatus.CREATED).body(brandInfoDto);
     }
