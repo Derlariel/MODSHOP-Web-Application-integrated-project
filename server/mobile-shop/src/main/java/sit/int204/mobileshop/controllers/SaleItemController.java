@@ -18,7 +18,7 @@ import java.util.List;
 @CrossOrigin(origins = "${app.origins}")
 @RestController
 @RequestMapping("/v1/sale-items")
-public class SaleItemController {
+public class  SaleItemController {
     @Autowired
     private SaleItemService saleItemService;
 
