@@ -71,6 +71,11 @@ const routes = [
           },
         ]
       },
+      {
+        path: 'brands/:brandId/edit',
+        component: BrandEdit,
+        name: 'brands-edit',
+      },
       
 
       {

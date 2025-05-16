@@ -33,37 +33,7 @@ export const useBrandStore = defineStore(
       }
     };
 
-    const addBrand = async (brandData) => {
-      try {
-        // Trim string values before sending to backend
-        const trimmedData = {
-          ...brandData,
-          name: brandData.name?.trim(),
-          websiteUrl: brandData.websiteUrl?.trim(),
-          countryOfOrigin: brandData.countryOfOrigin?.trim()
-        };
-        
-        const response = await fetch(`${BASE_URL}/v1/brands`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(trimmedData)
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Failed to add brand');
-        }
-
-        const data = await response.json();
-        await loadBrands(); 
-        return { success: true, data };
-      } catch (err) {
-        console.error('Error adding brand:', err);
-        return { success: false, error: err.message || 'Failed to add brand' };
-      }
-    };
+  
 
     return {
       brands,
@@ -71,7 +41,6 @@ export const useBrandStore = defineStore(
       error,
       getBrands,
       loadBrands,
-      addBrand
     };
   },
   {
