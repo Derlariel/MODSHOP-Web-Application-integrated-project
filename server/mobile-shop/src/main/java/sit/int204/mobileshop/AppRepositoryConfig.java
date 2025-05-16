@@ -9,12 +9,16 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 @Configuration
 public class AppRepositoryConfig implements RepositoryRestConfigurer {
 
-
+    @Value("${app.origins}")
+    private String origin;
 
     @Override
     public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config, CorsRegistry cors) {
         config.setExposeRepositoryMethodsByDefault(false);
 
-
+        cors.addMapping("/**")
+                .allowedOrigins(origin)
+                .allowedMethods("GET","POST","PUT","DELETE","OPTIONS")
+                .allowCredentials(true);
     }
 }
