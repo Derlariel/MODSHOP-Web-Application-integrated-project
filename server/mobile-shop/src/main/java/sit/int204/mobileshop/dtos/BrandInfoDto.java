@@ -19,5 +19,9 @@ public class BrandInfoDto {
     private String countryOfOrigin;
 
     private Boolean isActive = true; 
-    private Integer noOfSaleItems = 0; 
+    private Integer noOfSaleItems = 0;
+    
+    public void setName(String name) {
+        this.name = name != null ? name.trim() : null;
+    }
 }
