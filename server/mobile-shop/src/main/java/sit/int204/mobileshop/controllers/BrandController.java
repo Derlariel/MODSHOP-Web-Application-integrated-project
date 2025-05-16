@@ -55,7 +55,7 @@ public class BrandController {
     }
 
     @PostMapping("")
-    public ResponseEntity<BrandInfoDto> postBrand(@Valid @RequestBody BrandInfoDto brand) {
+    public ResponseEntity<BrandInfoDto> postBrand(@RequestBody BrandInfoDto brand) {
 
         if (brand.getIsActive() == null)
             brand.setIsActive(true);
