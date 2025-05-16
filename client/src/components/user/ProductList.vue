@@ -182,7 +182,6 @@ onMounted(async () => {
             <th class="px-4 py-3 font-medium">Color</th>
             <th class="px-4 py-3 font-medium">Screen Size (Inches)</th>
             <th class="px-4 py-3 font-medium">Price (THB)</th>
-            <th class="px-4 py-3 font-medium">Quantity</th>
             <th class="px-4 py-3 font-medium">Actions</th>
           </template>
 
@@ -235,12 +234,6 @@ onMounted(async () => {
                 class="px-4 py-3 itbms-price"
               >
                 {{ product.price?.toLocaleString() || "-" }}
-              </td>
-              <td
-                @click="handleItemClick(product.id)"
-                class="px-4 py-3 itbms-quantity"
-              >
-                {{ product.quantity || "-" }}
               </td>
               <td class="px-4 py-3">
                 <div class="flex space-x-2">
