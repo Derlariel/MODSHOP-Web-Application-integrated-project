@@ -59,7 +59,7 @@ const appStore = useAppStore();
           </thead>
           <tbody>
             <template v-if="saleItems && saleItems.length > 0">
-              <tr v-for="(item, index) in saleItems" :key="index" class="border-t border-neutral-800 hover:bg-neutral-800 transition-colors itbms-row">
+              <tr v-for="(item, index) in saleItems" :key="index" class="border-t border-neutral-800 hover:bg-neutral-800 transition-colors">
                 <slot name="listItems" :Item="item" :viewType="currentView" />
               </tr>
             </template>
