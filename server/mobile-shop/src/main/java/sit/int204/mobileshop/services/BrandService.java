@@ -37,7 +37,7 @@ public class BrandService {
     }
 
     public Optional<BrandInfoDto> createBrandByName(BrandInfoDto brandInfoDto) {
-        if (brandRepository.existsByName(brandInfoDto.getName())) {
+        if (brandRepository.existsByNameIgnoreCase(brandInfoDto.getName())) {
             throw new BrandAlreadyExitsException("Brand with name" + brandInfoDto.getName() + "already exits.");
         }
 
@@ -53,12 +53,12 @@ public class BrandService {
 
         Brand brand = getBrandById(id);
 
-        if (!brand.getName().equals(brandInfoDto.getName()) && brandRepository.existsByName(brandInfoDto.getName())) {
+        if (!brand.getName().equals(brandInfoDto.getName()) && brandRepository.existsByNameIgnoreCase(brandInfoDto.getName())) {
             throw new BrandAlreadyExitsException("Brand name '" + brandInfoDto.getName() + "' is already used.");
         }
 
         brandInfoDto.setId(id);
-        brandInfoDto.setSaleItemsCount(brand.getSaleItems().size());
+        brandInfoDto.setNoOfSaleItems(brand.getSaleItems().size());
 
         return Optional.of(modelMapper.map(brandRepository.saveAndFlush(
                 modelMapper.map(brandInfoDto, Brand.class)), BrandInfoDto.class));

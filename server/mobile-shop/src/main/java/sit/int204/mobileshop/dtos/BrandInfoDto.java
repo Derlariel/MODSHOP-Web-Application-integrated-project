@@ -12,5 +12,5 @@ public class BrandInfoDto {
     private String websiteUrl;
     private String countryOfOrigin;
     private Boolean isActive;
-    private Integer saleItemsCount;
+    private Integer noOfSaleItems;
 }
