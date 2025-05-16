@@ -48,7 +48,7 @@ public class BrandService {
 
     public Optional<BrandInfoDto> updateBrand(Integer id, BrandInfoDto brandInfoDto) {
 
-        if (getBrandById(id) == null)
+        if (getBrandById(id) == null || brandRepository.existsByNameIgnoreCase(brandInfoDto.getName()))
             throw new ItemNotFoundException(null);
 
         Brand brand = getBrandById(id);
