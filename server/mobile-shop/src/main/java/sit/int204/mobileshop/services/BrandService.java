@@ -48,12 +48,13 @@ public class BrandService {
 
     public Optional<BrandInfoDto> updateBrand(Integer id, BrandInfoDto brandInfoDto) {
 
-        if (getBrandById(id) == null || brandRepository.existsByNameIgnoreCase(brandInfoDto.getName()))
+        if (getBrandById(id) == null)
             throw new ItemNotFoundException(null);
 
         Brand brand = getBrandById(id);
 
-        if (!brand.getName().equals(brandInfoDto.getName()) && brandRepository.existsByNameIgnoreCase(brandInfoDto.getName())) {
+        if (!brand.getName().equals(brandInfoDto.getName())
+                && brandRepository.existsByNameIgnoreCase(brandInfoDto.getName())) {
             throw new BrandAlreadyExitsException("Brand name '" + brandInfoDto.getName() + "' is already used.");
         }
 
@@ -63,6 +64,19 @@ public class BrandService {
         return Optional.of(modelMapper.map(brandRepository.saveAndFlush(
                 modelMapper.map(brandInfoDto, Brand.class)), BrandInfoDto.class));
 
+    }
+    
+    public void removeBrand(Integer id) {
+
+         if (getBrandById(id) == null)
+             throw new ItemNotFoundException(null);
+            
+         Brand brand = getBrandById(id);
+         if (brand.getSaleItems().size() > 0) {
+             throw new BrandAlreadyExitsException(null);
+         }
+
+        brandRepository.deleteById(id);
     }
     
 
