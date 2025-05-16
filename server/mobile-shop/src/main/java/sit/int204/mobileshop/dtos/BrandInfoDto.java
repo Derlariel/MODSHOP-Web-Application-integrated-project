@@ -1,6 +1,7 @@
 package sit.int204.mobileshop.dtos;
 
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -8,7 +9,7 @@ import lombok.Data;
 public class BrandInfoDto {
     private Integer id;
 
-    @Size
+    @NotBlank
     @Size(max = 30, message = "Brand name must not exceed 30 characters")
     private String name;
 
