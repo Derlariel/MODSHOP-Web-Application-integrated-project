@@ -9,11 +9,19 @@ import org.springframework.web.bind.annotation.*;
 
 import sit.int204.mobileshop.dtos.BrandDetailDto;
 import sit.int204.mobileshop.dtos.BrandDto;
+import sit.int204.mobileshop.dtos.BrandInfoDto;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.services.BrandService;
 import sit.int204.mobileshop.utils.ListMapper;
 
 import java.util.List;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import jakarta.validation.Valid;
+
+import org.springframework.web.bind.annotation.PathVariable;
+
 
 @CrossOrigin(origins = "${app.origins}")
 @RestController
@@ -30,25 +38,31 @@ public class BrandController {
 
 
     @GetMapping("")
-    public ResponseEntity<List<BrandDto>> getAllBrands() {
+    public ResponseEntity<List<BrandDetailDto>> getAllBrands() {
         List<Brand> brands = brandService.getAllBrands();
         if (brands.isEmpty()) {
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.ok(listMapper.toListDto(brands, BrandDto.class, modelMapper));
+        return ResponseEntity.ok(listMapper.toListDto(brands, BrandDetailDto.class, modelMapper));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BrandDetailDto> getBrand(@PathVariable Integer id) {
+    public ResponseEntity<BrandInfoDto> getBrand(@PathVariable Integer id) {
         Brand brand = brandService.getBrandById(id);
-        BrandDetailDto brandResponseDto = modelMapper.map(brand, BrandDetailDto.class);
-        brandResponseDto.setSaleItemsCount(brand.getSaleItems().size());
-        return ResponseEntity.ok(brandResponseDto);
+        BrandInfoDto brandInfoDto = modelMapper.map(brand, BrandInfoDto.class);
+        brandInfoDto.setSaleItemsCount(brand.getSaleItems().size());
+        return ResponseEntity.ok(brandInfoDto);
     }
 
     @PostMapping("")
-    public ResponseEntity<BrandDetailDto> postBrand(@RequestBody BrandDetailDto brand) {
-        BrandDetailDto brandResponse = brandService.createBrandByName(brand).get();
-        return ResponseEntity.status(HttpStatus.CREATED).body(brandResponse);
+    public ResponseEntity<BrandInfoDto> postBrand(@RequestBody BrandInfoDto brand) {
+        BrandInfoDto brandInfoDto = brandService.createBrandByName(brand).get();
+        return ResponseEntity.status(HttpStatus.CREATED).body(brandInfoDto);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BrandInfoDto> putBrand(@PathVariable Integer id,@Valid @RequestBody BrandInfoDto brandInfoDto) {
+        brandService.updateBrand(id, brandInfoDto);
+        return ResponseEntity.ok().body(brandInfoDto);
     }
 }

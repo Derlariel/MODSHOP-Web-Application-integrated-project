@@ -8,6 +8,8 @@ import ProductDetail from '@/components/user/ProductDetail.vue';
 import ProductList from '@/components/user/ProductList.vue';
 import ProductAdd from '@/components/user/ProductCreate.vue';
 import ProductEdit from '@/components/user/ProductEdit.vue';
+import BrandList from '@/components/user/BrandList.vue';
+
 
 const routes = [
   {
@@ -57,6 +59,12 @@ const routes = [
         component: ProductEdit,
         name: 'sale-items-edit',
       },
+      {
+        path: 'brands',
+        name: 'brand-list',
+        component: BrandList,
+      },
+      
 
       {
         path: '/error',

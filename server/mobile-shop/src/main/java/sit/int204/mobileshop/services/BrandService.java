@@ -9,9 +9,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.client.HttpClientErrorException.NotFound;
 
 import sit.int204.mobileshop.dtos.BrandDetailDto;
+import sit.int204.mobileshop.dtos.BrandInfoDto;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.exceptions.BrandAlreadyExitsException;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
+import sit.int204.mobileshop.exceptions.BrandAlreadyExitsException;
 import sit.int204.mobileshop.repositories.BrandRepository;
 
 import java.util.List;
@@ -30,18 +32,38 @@ public class BrandService {
     }
 
     public Brand getBrandById(Integer id) {
-        return brandRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Not found"));
+        return brandRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Brand not found with id: " + id));
     }
 
-    public Optional<BrandDetailDto> createBrandByName(BrandDetailDto brandDetailDto) {
-        if (brandRepository.existsByName(brandDetailDto.getName())) {
-            throw new BrandAlreadyExitsException("Brand with name" + brandDetailDto.getName() + "already exits.");
+    public Optional<BrandInfoDto> createBrandByName(BrandInfoDto brandInfoDto) {
+        if (brandRepository.existsByName(brandInfoDto.getName())) {
+            throw new BrandAlreadyExitsException("Brand with name" + brandInfoDto.getName() + "already exits.");
         }
 
-        brandDetailDto.setId(null);
-        Brand brand = modelMapper.map(brandDetailDto, Brand.class);
-        return Optional.of(modelMapper.map(brandRepository.saveAndFlush(brand), BrandDetailDto.class));
+        brandInfoDto.setId(null);
+        Brand brand = modelMapper.map(brandInfoDto, Brand.class);
+        return Optional.of(modelMapper.map(brandRepository.saveAndFlush(brand), BrandInfoDto.class));
     }
 
+    public Optional<BrandInfoDto> updateBrand(Integer id, BrandInfoDto brandInfoDto) {
+
+        if (getBrandById(id) == null)
+            throw new ItemNotFoundException(null);
+
+        Brand brand = getBrandById(id);
+
+        if (!brand.getName().equals(brandInfoDto.getName()) && brandRepository.existsByName(brandInfoDto.getName())) {
+            throw new BrandAlreadyExitsException("Brand name '" + brandInfoDto.getName() + "' is already used.");
+        }
+
+        brandInfoDto.setId(id);
+        brandInfoDto.setSaleItemsCount(brand.getSaleItems().size());
+
+        return Optional.of(modelMapper.map(brandRepository.saveAndFlush(
+                modelMapper.map(brandInfoDto, Brand.class)), BrandInfoDto.class));
+
+    }
+    
 
 }

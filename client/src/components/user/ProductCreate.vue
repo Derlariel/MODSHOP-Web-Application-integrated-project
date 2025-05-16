@@ -1,31 +1,53 @@
 <script setup>
-import { } from "vue";
+import {} from "vue";
 import ProductPicture from "./ProductPicture.vue";
 import ProductForm from "./ProductForm.vue";
 import { useProductStore } from "@/stores/useProductStore";
 import { useRouter, useRoute } from "vue-router";
+import { computed } from "vue";
 import HistoryPath from "../shared/HistoryPath.vue";
 
-const router = useRouter()
-const route = useRoute()
+const router = useRouter();
+const route = useRoute();
 
-const productStore = useProductStore()
+const productStore = useProductStore();
 
 const add = (data) => {
-  productStore.createProduct(data)
+  productStore.createProduct(data);
   sessionStorage.setItem("add-success", "true");
-  router.back()
-}
+  router.back();
+};
 
+const referrer = route.query.from || "list";
+
+const previousPath = computed(() => {
+  if (referrer === "gallery") {
+    return {
+      name: "Sale Items",
+      path: "/sale-items",
+    };
+  } else {
+    return {
+      name: "Sale Items List",
+      path: "/sale-items/list",
+    };
+  }
+});
 </script>
 
 <template>
   <div class="min-h-screen bg-black text-white">
     <div class="pt-24 pb-20">
       <div class="max-w-[1200px] mx-auto px-6">
-        <h1 class="text-xl md:text-4xl font-semibold tracking-tight mb-4">Create New Product</h1>
-        <HistoryPath :previous="1" name-path="New Sale Item" />
-      
+        <h1 class="text-xl md:text-4xl font-semibold tracking-tight mb-4">
+          Create New Product
+        </h1>
+        <HistoryPath
+          name-path="Add Sale Item"
+          :previous="1"
+          :previousPathName="previousPath.name"
+          :previousPath="previousPath.path"
+        />
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           <ProductPicture />
           <ProductForm @submit="add" />
@@ -36,7 +58,6 @@ const add = (data) => {
 </template>
 
 <style>
-
 .perspective {
   perspective: 1000px;
 }
