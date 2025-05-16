@@ -35,6 +35,9 @@ const productStore = useProductStore()
           />
         </SwiperSlide>
       </Swiper>
+      <div class="text-center">
+        สวัสดีจร้า sss ทดลองๆๆ เทสaaaa สวัสดีเทสasdasd
+      </div>
     </div>
   </template>
   

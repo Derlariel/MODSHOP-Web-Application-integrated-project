@@ -6,7 +6,6 @@ import {
   UserCog,
   Menu,
 } from "lucide-vue-next";
-import ThemeToggle from "./ThemeToggle.vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/useAppStore";
 import { ref } from "vue";
