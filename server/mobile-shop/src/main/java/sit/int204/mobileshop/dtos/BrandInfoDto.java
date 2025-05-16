@@ -19,10 +19,14 @@ public class BrandInfoDto {
     @Size(max = 80, message = "Country of origin must not exceed 80 characters")
     private String countryOfOrigin;
 
-    private Boolean isActive = true; 
+    private Boolean isActive; 
     private Integer noOfSaleItems = 0;
     
     public void setName(String name) {
         this.name = name != null ? name.trim() : null;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive != null ? isActive : true;
     }
 }
