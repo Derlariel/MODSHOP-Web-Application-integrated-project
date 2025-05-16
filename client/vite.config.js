@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
-  base: '/kk1/itb-mshop/',
+  base: '/kk1/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)), 
@@ -17,7 +17,7 @@ export default defineConfig({
   preview: {
   port: 4173,
   proxy: {
-    '/kk1/itb-mshop/': {
+    '/kk1/': {
       target: 'http://localhost:8080',
       changeOrigin: true,
       // ไม่ต้องกังวลเรื่อง CORS
