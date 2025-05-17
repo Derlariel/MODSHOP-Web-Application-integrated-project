@@ -1,7 +1,9 @@
 services:
   frontend:
+    container_name: frontend
     build: 
       context: ./client
+      
       args:
         - NODE_ENV=production
     ports:
