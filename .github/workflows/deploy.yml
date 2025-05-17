@@ -15,12 +15,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Auto Deploy container application itb-mshop 
-        env:
-         GH_PAH_TOKEN: ${{ secrets.GH_PAH_TOKEN }}
         run: |
           set -x  
           cd /home/sysadmin/2-2567_INT221_KK-1 
-          git pull https://napatzzz:${GH_PAH_TOKEN}@github.com/Derlariel/2-2567_INT221_KK-1.git pre-dev
+          git pull https://napatzzz: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@github.com/Derlariel/2-2567_INT221_KK-1.git pre-dev
           
           mkdir -p /tmp/db_secrets
           echo "ip24kk1@super-secrets" > /tmp/db_secrets/db_password
