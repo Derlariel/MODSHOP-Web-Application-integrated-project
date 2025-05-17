@@ -38,12 +38,12 @@ public class BrandController {
 
 
     @GetMapping("")
-    public ResponseEntity<List<BrandInfoDto>> getAllBrands() {
+    public ResponseEntity<List<BrandDetailDto>> getAllBrands() {
         List<Brand> brands = brandService.getAllBrands();
         if (brands.isEmpty()) {
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.ok(listMapper.toListDto(brands, BrandInfoDto.class, modelMapper));
+        return ResponseEntity.ok(listMapper.toListDto(brands, BrandDetailDto.class, modelMapper));
     }
 
     @GetMapping("/{id}")
