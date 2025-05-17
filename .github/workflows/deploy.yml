@@ -17,7 +17,6 @@ jobs:
       - name: Auto Deploy container application itb-mshop 
         env:
           GH_PAT_TOKEN: ${{ secrets.GH_PAH_TOKEN }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           set -x  
           cd /home/sysadmin/2-2567_INT221_KK-1 
