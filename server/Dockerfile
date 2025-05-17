@@ -28,7 +28,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY --from=builder /backend/target/*.jar /app/app.jar
 
-COPY ./server/entrypoint.sh /entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 RUN chmod 755 /app && \
