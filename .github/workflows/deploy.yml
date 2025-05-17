@@ -18,6 +18,7 @@ jobs:
         run: |
           set -x  
           cd /home/sysadmin/2-2567_INT221_KK-1 
+          rm -f .env 
           git pull https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git pre-dev
           
           
