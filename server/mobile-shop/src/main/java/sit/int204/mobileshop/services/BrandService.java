@@ -11,7 +11,6 @@ import sit.int204.mobileshop.dtos.BrandInfoDto;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.exceptions.BrandAlreadyExitsException;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
-import sit.int204.mobileshop.exceptions.BrandAlreadyExitsException;
 import sit.int204.mobileshop.repositories.BrandRepository;
 
 import java.util.List;
@@ -63,21 +62,20 @@ public class BrandService {
                 modelMapper.map(brandInfoDto, Brand.class)), BrandInfoDto.class));
 
     }
-    
+
     public void removeBrand(Integer id) {
 
-         if (getBrandById(id) == null)
-             throw new ItemNotFoundException(null);
-            
-         Brand brand = getBrandById(id);
-         if (brand.getSaleItems().size() > 0) {
-             throw new BrandAlreadyExitsException(null);
-         }
+        if (getBrandById(id) == null)
+            throw new ItemNotFoundException(null);
+
+        Brand brand = getBrandById(id);
+        if (brand.getSaleItems().size() > 0) {
+            throw new BrandAlreadyExitsException(null);
+        }
 
         //  brand.setIsActive(false);
 
         brandRepository.deleteById(id);
     }
     
-
 }

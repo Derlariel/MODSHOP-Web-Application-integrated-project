@@ -1,10 +1,8 @@
-<script setup>
-</script>
+<script setup></script>
 
 <template>
- <div
- class="relative min-h-screen bg-[linear-gradient(135deg,_#383838_3%,_#080808_43%)] text-white"
-
+  <div
+    class="relative min-h-screen bg-[linear-gradient(135deg,_#383838_3%,_#080808_43%)] text-white"
   >
     <!-- Hero Section -->
     <div
@@ -25,16 +23,28 @@
           find in stores anymore. We care about quality, not just flashy names.
           So what the hell are you waiting for? Order now and thank us later!
         </p>
-        <router-link
-          to="/main"
-          class="flex items-center px-4 py-2 w-full max-w-md"
-        >
-          <button
-            class="itmbs-shopnow bg-[#3D5AFE] text-white px-4 py-2 rounded-full font-semibold"
+        <div class="flex flex-col md:flex-row gap-1">
+          <router-link
+            to="/main"
+            class="flex items-center w-30   "
           >
-            Shop Now!
-          </button>
-        </router-link>
+            <button
+              class="itmbs-shopnow bg-[#3D5AFE] text-white px-4 py-2 rounded-full font-semibold"
+            >
+              Shop Now!
+            </button>
+          </router-link>
+          <router-link
+            :to="{ name : 'product-list'}"
+            class="flex items-center w-30  "
+          >
+            <button
+              class="itmbs-seller bg-[#3D5AFE] text-white px-4 py-2 rounded-full font-semibold"
+            >
+              Seller
+            </button>
+          </router-link>
+        </div>
       </div>
 
       <!-- Right Image -->
@@ -47,7 +57,6 @@
       </div>
     </div>
   </div>
-  
 </template>
 
 <style scoped></style>

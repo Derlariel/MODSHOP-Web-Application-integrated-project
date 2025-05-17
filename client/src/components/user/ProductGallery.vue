@@ -61,14 +61,6 @@ onMounted(async () => {
   checkForErrorModal();
 });
 
-if (sessionStorage.getItem("add-success") === "true") {
-  alertMessage.value = "The sale item has been successfully added.";
-  showSuccess.value = true;
-  sessionStorage.removeItem("add-success");
-  setTimeout(() => {
-    showSuccess.value = false;
-  }, 2000);
-}
 
 if (sessionStorage.getItem("delete-success") === "true") {
   alertMessage.value = "The sale item has been deleted.";
@@ -103,30 +95,13 @@ const detail = (productId) => {
         </p>
         <SuccessModal :message="alertMessage" :visible="showSuccess" />
         <div class="space-x-4 m-auto">
-          <div
-            @click="
-              router.push({
-                path: `/sale-items/${product.id}`,
-                query: { from: 'gallery' },
-              })
-            "
-          >
-            <!-- ส่วนแสดงสินค้า -->
-          </div>
-          <router-link
-            :to="{ path: '/sale-items/add', query: { from: 'gallery' } }"
-            class="mt-8 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200 cursor-default"
-          >
-            Add Sale Item
-          </router-link>
-          <button>
-            <router-link
-              to="/sale-items/list"
-              class="mt-8 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200 cursor-default"
-            >
-              Manage Sale Item
-            </router-link>
-          </button>
+        <button
+          @click="add"
+          class="itbms-sale-item-add mt-8 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200"
+        >
+          Add Sale Item
+        </button>
+
         </div>
       </div>
     </div>

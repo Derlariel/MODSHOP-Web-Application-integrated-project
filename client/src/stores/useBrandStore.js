@@ -4,6 +4,9 @@ import { ref } from 'vue'
 import {
   getProducts,
   getProductById,
+  addProduct,
+  updateProductById,
+  deleteProductById
 } from '@/utils/tool';
 
 
@@ -33,35 +36,56 @@ export const useBrandStore = defineStore(
       }
     };
 
-    const addBrand = async (brandData) => {
+    const createBrand = async (brandData) => {
       try {
-        // Trim string values before sending to backend
-        const trimmedData = {
-          ...brandData,
-          name: brandData.name?.trim(),
-          websiteUrl: brandData.websiteUrl?.trim(),
-          countryOfOrigin: brandData.countryOfOrigin?.trim()
-        };
+        isLoading.value = true;
+        error.value = null;
         
-        const response = await fetch(`${BASE_URL}/v1/brands`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(trimmedData)
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Failed to add brand');
-        }
-
-        const data = await response.json();
-        await loadBrands(); 
-        return { success: true, data };
+        // Create the new brand via API
+        const response = await addProduct(`${BASE_URL}/v1/brands`, brandData);
+        
+        // Refresh brands list
+        await loadBrands();
+        
+        return response;
       } catch (err) {
-        console.error('Error adding brand:', err);
-        return { success: false, error: err.message || 'Failed to add brand' };
+        console.error('Error creating brand:', err);
+        error.value = 'Failed to create brand';
+        throw err;
+      } finally {
+        isLoading.value = false;
+      }
+    };
+    
+    // Add edit and delete functions for future PBIs
+    const updateBrand = async (id, brandData) => {
+      try {
+        isLoading.value = true;
+        error.value = null;
+        const response = await updateProductById(`${BASE_URL}/v1/brands`, id, brandData);
+        await loadBrands();
+        return response;
+      } catch (err) {
+        console.error('Error updating brand:', err);
+        error.value = 'Failed to update brand';
+        throw err;
+      } finally {
+        isLoading.value = false;
+      }
+    };
+    
+    const deleteBrand = async (id) => {
+      try {
+        isLoading.value = true;
+        error.value = null;
+        await deleteProductById(`${BASE_URL}/v1/brands`, id);
+        await loadBrands();
+      } catch (err) {
+        console.error('Error deleting brand:', err);
+        error.value = 'Failed to delete brand';
+        throw err;
+      } finally {
+        isLoading.value = false;
       }
     };
 
@@ -71,7 +95,9 @@ export const useBrandStore = defineStore(
       error,
       getBrands,
       loadBrands,
-      addBrand
+      createBrand,
+      updateBrand,
+      deleteBrand
     };
   },
   {

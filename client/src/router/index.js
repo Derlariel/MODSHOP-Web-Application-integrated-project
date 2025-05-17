@@ -8,8 +8,10 @@ import ProductDetail from '@/components/user/ProductDetail.vue';
 import ProductList from '@/components/user/ProductList.vue';
 import ProductAdd from '@/components/user/ProductCreate.vue';
 import ProductEdit from '@/components/user/ProductEdit.vue';
-import BrandList from '@/components/user/BrandList.vue';
+import BrandManager from '@/components/user/BrandManager.vue';
 
+import BrandCreate from '@/components/user/BrandCreate.vue';
+import BrandEdit from '@/components/user/BrandEdit.vue';
 
 const routes = [
   {
@@ -61,8 +63,20 @@ const routes = [
       },
       {
         path: 'brands',
-        name: 'brand-list',
-        component: BrandList,
+        name: 'brands-list',
+        component: BrandManager,
+        children: [
+            {
+            path: 'add',
+            component: BrandCreate,
+            name: 'brand-add',
+          },
+        ]
+      },
+      {
+        path: 'brands/:brandId/edit',
+        component: BrandEdit,
+        name: 'brands-edit',
       },
       
 

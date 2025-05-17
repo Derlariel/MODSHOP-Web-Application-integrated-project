@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import sit.int204.mobileshop.dtos.BrandDetailDto;
-import sit.int204.mobileshop.dtos.BrandDto;
+
 import sit.int204.mobileshop.dtos.BrandInfoDto;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.services.BrandService;

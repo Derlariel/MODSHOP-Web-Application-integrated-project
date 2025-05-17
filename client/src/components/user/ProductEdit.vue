@@ -17,34 +17,26 @@ const brandStore = useBrandStore();
 const edit = async (data) => {
   await productStore.updateProduct(data);
   sessionStorage.setItem("edit-success", "true");
-  if (referrer === 'list') {
-    router.push('/sale-items/list');
-  } else {
-    router.push(`/sale-items/${params.productId}`);
-  }
+  router.push(`/sale-items/${params.productId}`);
 };
+
+const title = computed(() => {
+  if (!product.value) return "";
+
+  const {
+    brandName = "",
+    model = "",
+    ramGb = "",
+    storageGb = "",
+    color = "",
+  } = product.value;
+
+  return `${brandName} ${model} ${ramGb}/${storageGb}GB ${color}`.trim();
+});
 
 onMounted(async () => {
   brandStore.loadBrands();
   product.value = await productStore.fetchProductDetail(params.productId);
-});
-
-const route = useRoute();
-const referrer = route.query.from || "detail";
-const returnTo = route.query.returnTo || "gallery";
-
-const previousPath = computed(() => {
-  if (referrer === 'list') {
-    return {
-      name: 'Sale Items List',
-      path: '/sale-items/list'
-    };
-  } else {
-    return {
-      name: `${product.value?.model || "Product"}`,
-      path: `/sale-items/${route.params.productId}?from=${returnTo}`
-    };
-  }
 });
 </script>
 
@@ -55,12 +47,7 @@ const previousPath = computed(() => {
         <h1 class="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
           Edit Product
         </h1>
-        <HistoryPath
-          name-path="Edit Sale Item"
-          :previous="1"
-          :previousPathName="previousPath.name"
-          :previousPath="previousPath.path"
-        />
+        <HistoryPath :name-path="title" :previous="2" :next="1" />
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           <ProductPicture />
           <ProductForm @submit="edit" v-if="product" :init="product" />
