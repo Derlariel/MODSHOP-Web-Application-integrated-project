@@ -1,35 +1,35 @@
 <script setup>
-import { reactive, computed, watch } from 'vue';
-import BaseInput from '../shared/BaseInput.vue';
+import { reactive, computed, watch } from "vue";
+import BaseInput from "../shared/BaseInput.vue";
 
 const props = defineProps({
   initialData: {
     type: Object,
     default: () => ({
-      name: '',
-      websiteUrl: '',
-      countryOfOrigin: '',
-      isActive: true
-    })
+      name: "",
+      websiteUrl: "",
+      countryOfOrigin: "",
+      isActive: true,
+    }),
   },
   isSubmitting: {
     type: Boolean,
-    default: false
+    default: false,
   },
   mode: {
     type: String,
-    default: 'create',
-    validator: (value) => ['create', 'edit'].includes(value)
-  }
+    default: "create",
+    validator: (value) => ["create", "edit"].includes(value),
+  },
 });
 
-const emit = defineEmits(['submit', 'cancel']);
+const emit = defineEmits(["submit", "cancel"]);
 
 const formData = reactive({
-  name: '',
-  websiteUrl: '',
-  countryOfOrigin: '',
-  isActive: true
+  name: "",
+  websiteUrl: "",
+  countryOfOrigin: "",
+  isActive: true,
 });
 
 watch(
@@ -41,35 +41,35 @@ watch(
 );
 
 const errors = reactive({
-  name: ''
+  name: "",
 });
 
 const validateName = () => {
   if (!formData.name.trim()) {
-    errors.name = 'Brand name is required';
+    errors.name = "Brand name is required";
     return false;
   }
-  errors.name = '';
+  errors.name = "";
   return true;
 };
 
 const isFormValid = computed(() => {
-  return formData.name.trim() !== '';
+  return formData.name.trim() !== "";
 });
 
 const handleSubmit = () => {
   if (validateName()) {
-    emit('submit', {
+    emit("submit", {
       name: formData.name.trim(),
       websiteUrl: formData.websiteUrl.trim(),
       countryOfOrigin: formData.countryOfOrigin.trim(),
-      isActive: formData.isActive
+      isActive: formData.isActive,
     });
   }
 };
 
 const handleCancel = () => {
-  emit('cancel');
+  emit("cancel");
 };
 </script>
 
@@ -85,7 +85,6 @@ const handleCancel = () => {
       :error="errors.name"
       @blur="validateName"
     />
-
 
     <BaseInput
       v-model="formData.websiteUrl"
@@ -104,15 +103,24 @@ const handleCancel = () => {
       class="itbms-countryOfOrigin"
     />
 
-    <div class="flex items-center space-x-2">
-      <input
-        v-model="formData.isActive"
-        type="checkbox"
-        id="active-status"
-        class="itbms-isActive w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-      />
-      <label for="active-status" class="text-sm font-medium text-gray-300">
-        Active Brand
+    <div class="flex items-center space-x-3">
+      <button
+        type="button"
+        @click="formData.isActive = !formData.isActive"
+        class="itbms-isActive relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-neutral-800"
+        :class="formData.isActive ? 'bg-blue-600' : 'bg-neutral-700'"
+        role="switch"
+        :aria-checked="formData.isActive"
+      >
+        <span class="sr-only">Active Brand</span>
+        <span
+          aria-hidden="true"
+          class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+          :class="formData.isActive ? 'translate-x-5' : 'translate-x-0'"
+        ></span>
+      </button>
+      <label class="text-sm font-medium text-gray-300">
+        {{ formData.isActive ? "Active" : "Inactive" }} Brand
       </label>
     </div>
 
@@ -130,7 +138,13 @@ const handleCancel = () => {
         class="itbms-save-button bg-white text-black px-6 py-2.5 rounded hover:bg-gray-200 transition-colors duration-200 font-medium"
         :disabled="isSubmitting || !isFormValid"
       >
-        {{ isSubmitting ? 'Saving...' : props.mode === 'create' ? 'Save' : 'Update' }}
+        {{
+          isSubmitting
+            ? "Saving..."
+            : props.mode === "create"
+            ? "Save"
+            : "Update"
+        }}
       </button>
     </div>
   </form>
