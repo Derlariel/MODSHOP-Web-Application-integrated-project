@@ -23,7 +23,7 @@ jobs:
           
           mkdir -p secrets
           echo "${{ secrets.DB_PASSWORD }}" > secrets/db_password
-
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" > .env
 
         
 
