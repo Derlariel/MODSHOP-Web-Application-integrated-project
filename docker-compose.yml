@@ -84,4 +84,3 @@ volumes:
 secrets:
   db_password:
     file: ./secrets/db_password
-
