@@ -5,8 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.client.HttpClientErrorException.NotFound;
 
 import sit.int204.mobileshop.dtos.BrandDetailDto;
 import sit.int204.mobileshop.dtos.BrandInfoDto;
@@ -80,5 +78,4 @@ public class BrandService {
         brandRepository.deleteById(id);
     }
     
-
 }
