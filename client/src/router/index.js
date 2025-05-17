@@ -63,6 +63,7 @@ const routes = [
       },
       {
         path: 'brands',
+        name: 'brands-list',
         component: BrandManager,
         children: [
             {

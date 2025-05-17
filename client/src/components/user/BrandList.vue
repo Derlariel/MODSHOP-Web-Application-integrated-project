@@ -5,6 +5,7 @@ import { useRouter } from "vue-router";
 import SuccessModal from "../shared/modal/SuccessModal.vue";
 import ConfirmModal from "../shared/modal/ConfirmModal.vue";
 import ListModel from "../shared/ListModel.vue";
+import SkeletonLoader from "../shared/SkeletonLoader.vue";
 
 const router = useRouter();
 const brandStore = useBrandStore();
@@ -14,9 +15,8 @@ const showDeleteModal = ref(false);
 const showSuccessModal = ref(false);
 const selectedBrandId = ref(null);
 const alertMessage = ref("");
-const viewType = ref("list"); // Default to list view
+const viewType = ref("list");
 
-// Load brands on component mount
 onMounted(async () => {
   try {
     await brandStore.loadBrands();
@@ -26,11 +26,19 @@ onMounted(async () => {
     isLoading.value = false;
   }
 
-  // Check for success message from session storage
   if (sessionStorage.getItem("brand-add-success") === "true") {
     alertMessage.value = "The brand has been added.";
     showSuccessModal.value = true;
     sessionStorage.removeItem("brand-add-success");
+    setTimeout(() => {
+      showSuccessModal.value = false;
+    }, 3000);
+  }
+
+  if (sessionStorage.getItem("brand-edit-success") === "true") {
+    alertMessage.value = "The brand has been updated.";
+    showSuccessModal.value = true;
+    sessionStorage.removeItem("brand-edit-success");
     setTimeout(() => {
       showSuccessModal.value = false;
     }, 3000);
@@ -46,27 +54,23 @@ onMounted(async () => {
   }
 });
 
-// Navigate to add brand page
 const addBrand = () => {
   router.push({ name: "brand-add" });
 };
 
-// Navigate to edit brand page
 const editBrand = (brandId) => {
   router.push({ name: "brands-edit", params: { brandId } });
 };
 
-// Show delete confirmation modal
 const deleteBrand = (brandId) => {
   selectedBrandId.value = brandId;
   showDeleteModal.value = true;
 };
 
-// Confirm brand deletion
 const confirmDelete = async () => {
   try {
     await brandStore.deleteBrand(selectedBrandId.value);
-    await brandStore.loadBrands(); // Reload brands
+    await brandStore.loadBrands();
 
     alertMessage.value = "The brand has been deleted.";
     showSuccessModal.value = true;
@@ -83,13 +87,11 @@ const confirmDelete = async () => {
   }
 };
 
-// Cancel deletion
 const cancelDelete = () => {
   showDeleteModal.value = false;
   selectedBrandId.value = null;
 };
 
-// Navigate to sale items list
 const navigateToSaleItems = () => {
   router.push({ name: "product-list" });
 };
@@ -98,17 +100,11 @@ const navigateToSaleItems = () => {
 <template>
   <div class="min-h-screen bg-black text-white pt-24 pb-16 px-4">
     <div class="max-w-7xl mx-auto">
-      <!-- Loading state -->
-      <div v-if="isLoading" class="text-center py-12">
-        <div
-          class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mx-auto"
-        ></div>
-        <p class="mt-4">Loading brands...</p>
+      <div v-if="isLoading">
+        <SkeletonLoader />
       </div>
 
-      <!-- Loaded content -->
       <div v-else>
-        <!-- Modals -->
         <ConfirmModal
           :visible="showDeleteModal"
           @confirm="confirmDelete"
@@ -119,20 +115,24 @@ const navigateToSaleItems = () => {
         <SuccessModal :visible="showSuccessModal" :message="alertMessage" />
 
         <div class="flex justify-between items-center mb-8">
-          <div class="flex space-x-4">
-            <button
-              @click="navigateToSaleItems"
-              class="itbms-item-list bg-neutral-800 text-white px-4 py-2 rounded hover:bg-neutral-700 transition-colors duration-200 font-medium"
-            >
+          <div class="flex cursor-pointer font-light space-x-2.5">
+            <p class="itbms-item-list" @click="navigateToSaleItems">
               Sale Item List
-            </button>
-            <button
-              @click="addBrand"
-              class="itbms-add-button bg-white text-black px-4 py-2 rounded hover:bg-gray-200 transition-colors duration-200 font-medium"
+            </p>
+            <p>/</p>
+            <p
+              class="bg-gradient-to-r from-neutral-100 to-blue-200 text-black px-4 rounded-3xl"
             >
-              Add Brand
-            </button>
+              Brand List
+            </p>
           </div>
+
+          <button
+            @click="addBrand"
+            class="itbms-add-button bg-white text-black px-4 py-2 rounded hover:bg-gray-200 transition-colors duration-200 font-medium"
+          >
+            Add Brand
+          </button>
         </div>
 
         <ListModel :saleItems="brands" v-model:viewType="viewType">
@@ -146,16 +146,16 @@ const navigateToSaleItems = () => {
           </template>
 
           <template #listItems="{ Item: brand, viewType }">
-            <template v-if="viewType === 'list'">
+            <template v-if="viewType === 'list'" class="itbms-row">
               <td class="px-6 py-4 itbms-brand-id">{{ brand.id }}</td>
               <td class="px-6 py-4 itbms-brand-name">{{ brand.name }}</td>
-              <td class="px-6 py-4 itbms-brand-website">
+              <td class="px-6 py-4 itbms-brand-websiteUrl">
                 {{ brand.websiteUrl || "-" }}
               </td>
-              <td class="px-6 py-4 itbms-brand-country">
+              <td class="px-6 py-4 itbms-brand-countryOfOrigin">
                 {{ brand.countryOfOrigin || "-" }}
               </td>
-              <td class="px-6 py-4 itbms-brand-active">
+              <td class="px-6 py-4 itbms-brand-isActive">
                 <span
                   :class="
                     brand.isActive
