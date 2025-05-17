@@ -1,5 +1,11 @@
 import { defineStore } from "pinia";
-import { getProducts, getProductById, addProduct, updateProductById, deleteProductById } from "@/utils/tool";
+import {
+  getProducts,
+  getProductById,
+  addProduct,
+  updateProductById,
+  deleteProductById,
+} from "@/utils/tool";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 import I14PROMAX from "@/assets/apple/iPhone-14-Pro-Max-Space-Black.webp";
 import I14 from "@/assets/apple/iPhone_14_Midnight.png";
@@ -26,48 +32,58 @@ export const useProductStore = defineStore("product", {
       2: Mi9,
       3: S24,
       4: Vivo,
-    }
+    },
   }),
   getters: {
     allProducts: (state) => state.products,
     getProductById: (state) => {
       return (id) => state.products.find((product) => product.id === id);
-    },    
+    },
     latestProduct: (state) => {
       return [...state.products]
         .sort((a, b) => new Date(b.updatedOn) - new Date(a.updatedOn))
         .slice(0, 5);
     },
-    getProductBestSeller: (state) => (minRating = 4.5) => {
-      return [...state.products]
-        .filter(p => p && typeof p.rate === "number" && p.rate >= minRating)
-        .sort((a, b) => b.rate - a.rate);
-    }
+    getProductBestSeller:
+      (state) =>
+      (minRating = 4.5) => {
+        return [...state.products]
+          .filter((p) => p && typeof p.rate === "number" && p.rate >= minRating)
+          .sort((a, b) => b.rate - a.rate);
+      },
   },
   actions: {
     async fetchProductDetail(id) {
-      const product = await fetchWithErrorHandling(`${BASE_URL}/v1/sale-items/${id}`);
-      this.selectedProduct = product;
-      return product;
+      try {
+        const product = await getProductById(`${BASE_URL}/v1/sale-items`, id);
+        this.selectedProduct = product;
+        return product;
+      } catch (err) {
+        console.error("Failed to fetch product details", err);
+        throw err;
+      }
     },
     async loadProducts() {
       try {
         const data = await getProducts(`${BASE_URL}/v1/sale-items`);
-    
-        const normalized = data.map(product => ({
+
+        const normalized = data.map((product) => ({
           ...product,
           rate: parseFloat(product.rate),
         }));
-    
+
         this.products = normalized;
       } catch (err) {
         console.error("Failed to load all products", err);
       }
     },
-    
+
     async createProduct(product) {
       try {
-        const newProduct = await addProduct(`${BASE_URL}/v1/sale-items`, product);
+        const newProduct = await addProduct(
+          `${BASE_URL}/v1/sale-items`,
+          product
+        );
         this.products.push(newProduct);
       } catch (err) {
         console.error("Failed to add product", err);
@@ -75,8 +91,12 @@ export const useProductStore = defineStore("product", {
     },
     async updateProduct(product) {
       try {
-        const updated = await updateProductById(`${BASE_URL}/v1/sale-items`, product.id, product);
-        const index = this.products.findIndex(p => p.id === product.id);
+        const updated = await updateProductById(
+          `${BASE_URL}/v1/sale-items`,
+          product.id,
+          product
+        );
+        const index = this.products.findIndex((p) => p.id === product.id);
         if (index !== -1) this.products[index] = updated;
       } catch (err) {
         console.error("Failed to update product", err);
@@ -84,8 +104,8 @@ export const useProductStore = defineStore("product", {
     },
     async deleteProduct(id) {
       try {
-        await deleteProductById(`${BASE_URL}/v1/sale-items`, id);        
-        this.products = this.products.filter(p => p.id !== id);
+        await deleteProductById(`${BASE_URL}/v1/sale-items`, id);
+        this.products = this.products.filter((p) => p.id !== id);
       } catch (err) {
         console.error("Failed to delete product", err);
         throw err;
