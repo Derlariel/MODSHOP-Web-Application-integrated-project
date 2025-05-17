@@ -1,5 +1,5 @@
 
-name: Deploy kk1  
+name: Deploy kk1 update 
 
 on:
   push:
