@@ -3,16 +3,20 @@ import {} from "vue";
 import ProductPicture from "./ProductPicture.vue";
 import ProductForm from "./ProductForm.vue";
 import { useProductStore } from "@/stores/useProductStore";
-import { useRouter, useRoute } from "vue-router";
-import { computed } from "vue";
+import { useRouter } from "vue-router";
 import HistoryPath from "../shared/HistoryPath.vue";
 
 const productStore = useProductStore();
+const router = useRouter();
 
-const add = (data) => {
-  productStore.createProduct(data);
-  sessionStorage.setItem("add-success", "true");
-  router.back();
+const add = async (data) => {
+  try {
+    await productStore.createProduct(data);
+    sessionStorage.setItem("add-success", "true");
+    router.push({ name: "product-list" });
+  } catch (error) {
+    console.error("Error creating product:", error);
+  }
 };
 </script>
 

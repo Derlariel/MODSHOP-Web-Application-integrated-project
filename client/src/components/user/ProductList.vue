@@ -74,13 +74,12 @@ async function initProducts() {
     await productStore.loadProducts();
     if (products.value.length === 0) {
       router.push({
-      path: "/error",
-      query: { code: "ERROR", message: err.message },
-    });
+        path: "/error",
+        query: { code: "ERROR", message: err.message },
+      });
     }
   } catch (err) {
     console.error("Load products failed:", err);
-    
   } finally {
     isLoading.value = false;
   }
@@ -88,6 +87,15 @@ async function initProducts() {
 
 onMounted(async () => {
   await initProducts();
+
+  if (sessionStorage.getItem("add-success") === "true") {
+    alertMessage.value = "The sale item has been successfully added.";
+    showSuccessModal.value = true;  
+    sessionStorage.removeItem("add-success");
+    setTimeout(() => {
+      showSuccessModal.value = false;
+    }, 2000);
+  }
 
   if (sessionStorage.getItem("delete-success") === "true") {
     alertMessage.value = "The sale item has been deleted.";

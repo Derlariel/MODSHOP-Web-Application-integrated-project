@@ -61,14 +61,6 @@ onMounted(async () => {
   checkForErrorModal();
 });
 
-if (sessionStorage.getItem("add-success") === "true") {
-  alertMessage.value = "The sale item has been successfully added.";
-  showSuccess.value = true;
-  sessionStorage.removeItem("add-success");
-  setTimeout(() => {
-    showSuccess.value = false;
-  }, 2000);
-}
 
 if (sessionStorage.getItem("delete-success") === "true") {
   alertMessage.value = "The sale item has been deleted.";
