@@ -22,7 +22,7 @@ jobs:
           git pull https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git pre-dev
           
           
-          export DB_PASSWORD = "${{secrets.DB_PASSWORD}}"
+          export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
 
           docker compose down -v
           docker compose build --no-cache
