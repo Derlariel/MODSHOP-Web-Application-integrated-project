@@ -23,7 +23,7 @@ services:
       context: ./database
     container_name: database
     environment:
-     - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_password
+     - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
     networks:
      - backend-network
     expose:
@@ -61,7 +61,7 @@ services:
       - backend-network
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - DB_PASSWORD=${DB_PASSWORD}
       - TZ=Asia/Bangkok
     deploy:
       resources:
@@ -83,6 +83,4 @@ volumes:
   mysql_data:
     driver: local
 
-secrets:
-  db_password:
-    file: ./secrets/db_password
+

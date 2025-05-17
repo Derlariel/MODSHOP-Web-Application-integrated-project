@@ -21,11 +21,7 @@ jobs:
           git pull https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git pre-dev
           
           
-          mkdir -p secrets
-          echo "${{ secrets.DB_PASSWORD }}" > secrets/db_password
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" > .env
-
-        
+          export DB_PASSWORD = "${{secrets.DB_PASSWORD}}"
 
           docker compose down -v
           docker compose build --no-cache
