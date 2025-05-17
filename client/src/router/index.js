@@ -36,6 +36,7 @@ const routes = [
       },
       {
         path: 'sale-items',
+        name: 'product-gallery',
         component: ProductManager,
         children: [
           {

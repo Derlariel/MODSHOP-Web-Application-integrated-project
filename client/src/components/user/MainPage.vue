@@ -34,10 +34,7 @@ const productStore = useProductStore()
             class="w-full object-contain"
           />
         </SwiperSlide>
-      </Swiper>
-      <div class="text-center">
-        สวัสดีจร้า sss ทดลองๆๆ เทสaaaa สวัสดีเทสasdasd
-      </div>
+      </Swiper> 
     </div>
   </template>
   

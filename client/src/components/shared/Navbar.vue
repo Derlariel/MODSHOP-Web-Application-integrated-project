@@ -30,13 +30,13 @@ const toggleMobileMenu = () => {
       <div class="hidden lg:flex justify-center flex-1 text-white font-light">
         <ul class="flex justify-center space-x-6 lg:space-x-10 xl:space-x-12 font-light">
           <li :class="route.path === '/main' ? 'text-white font-bold' : 'hover:text-white'">
-            <router-link to="/main">Home</router-link>
+            <router-link :to="{name : 'Main'}">Home</router-link>
           </li>
           <li :class="route.path.startsWith('/sale-items') ? 'text-white font-light' : 'hover:text-white'">
-            <router-link to="/sale-items">Product</router-link>
+            <router-link :to="{name : 'product-gallery'}">Product</router-link>
           </li>
           <li class="hover:text-white">
-            <router-link to="/brand">Brand</router-link>
+            <router-link :to="{name : 'brands-list'}">Brand</router-link>
           </li>
           <li class="hover:text-white">
             <router-link to="/about">About</router-link>
@@ -61,9 +61,9 @@ const toggleMobileMenu = () => {
 
     <!-- Mobile Nav -->
     <div v-if="isMobileMenuOpen" class="lg:hidden px-6 py-4 space-y-4 border-t text-center font-semibold text-white bg-black bg-opacity-90">
-      <router-link to="/main" class="block hover:text-blue-400">Home</router-link>
-      <router-link to="/sale-items" class="block hover:text-blue-400">Product</router-link>
-      <router-link to="/brand" class="block hover:text-blue-400">Brand</router-link>
+      <router-link :to="{name : 'Main'}" class="block hover:text-blue-400">Home</router-link>
+      <router-link :to="{name : 'product-gallery'}" class="block hover:text-blue-400">Product</router-link>
+      <router-link :to="{name : 'Main'}" class="block hover:text-blue-400">Brand</router-link>
       <router-link to="/about" class="block hover:text-blue-400">About</router-link>
     </div>
   </nav>
