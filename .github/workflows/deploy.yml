@@ -17,6 +17,11 @@ jobs:
         run: |
           set -x  
           cd /home/sysadmin/2-2567_INT221_KK-1
+
+          # แก้เรื่อง safe.directory และ local changes
+          git config --global --add safe.directory /home/sysadmin/2-2567_INT221_KK-1
+          git reset --hard HEAD
+
           rm -f .env
           git pull https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git pre-dev
 
@@ -24,7 +29,6 @@ jobs:
           mkdir -p ./secrets
           echo "${{ secrets.DB_PASSWORD }}" > ./secrets/db_password
           chmod 400 ./secrets/db_password
-
 
           docker compose down -v
           docker compose build --no-cache
