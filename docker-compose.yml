@@ -59,10 +59,10 @@ services:
       - backend-network
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - DB_PASSWORD_FILE=/run/secrets/db_password
       - TZ=Asia/Bangkok
     secrets:
-      - db_password
+      - source: db_password
+        target: DB_PASSWORD
     deploy:
       resources:
         limits:
