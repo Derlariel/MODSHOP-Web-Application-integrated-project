@@ -23,7 +23,6 @@ jobs:
           
           mkdir -p secrets
           echo "${{ secrets.DB_PASSWORD }}" > secrets/db_password
-          chmod 400 secrets/db_password
 
 
         
