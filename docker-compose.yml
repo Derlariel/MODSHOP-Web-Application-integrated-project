@@ -61,7 +61,7 @@ services:
       - backend-network
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_PASSWORD_FILE=ip24kk1@super-secrets
+      - SPRING_DATASOURCE_PASSWORD_FILE=/run/secrets/db_password
       - TZ=Asia/Bangkok
     deploy:
       resources:
