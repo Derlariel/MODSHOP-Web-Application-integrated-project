@@ -65,13 +65,6 @@ export const useProductStore = defineStore("product", {
       }
     },
     
-    async fetchProductDetail(id) {
-      try {
-        return await getProductById(`${BASE_URL}/v1/sale-items`, id);
-      } catch (err) {
-        console.error(`Failed to load product ID:${id}`, err);
-      }
-    },
     async createProduct(product) {
       try {
         const newProduct = await addProduct(`${BASE_URL}/v1/sale-items`, product);

@@ -20,7 +20,6 @@ export default defineConfig({
     '/kk1/': {
       target: 'http://localhost:8080',
       changeOrigin: true,
-      // ไม่ต้องกังวลเรื่อง CORS
     }
   }
 }
