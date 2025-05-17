@@ -13,7 +13,6 @@ import sit.int204.mobileshop.dtos.BrandInfoDto;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.exceptions.BrandAlreadyExitsException;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
-import sit.int204.mobileshop.exceptions.BrandAlreadyExitsException;
 import sit.int204.mobileshop.repositories.BrandRepository;
 
 import java.util.List;
@@ -37,7 +36,7 @@ public class BrandService {
     }
 
     public Optional<BrandInfoDto> createBrandByName(BrandInfoDto brandInfoDto) {
-        if (brandRepository.existsByName(brandInfoDto.getName())) {
+        if (brandRepository.existsByNameIgnoreCase(brandInfoDto.getName())) {
             throw new BrandAlreadyExitsException("Brand with name" + brandInfoDto.getName() + "already exits.");
         }
 
@@ -53,16 +52,32 @@ public class BrandService {
 
         Brand brand = getBrandById(id);
 
-        if (!brand.getName().equals(brandInfoDto.getName()) && brandRepository.existsByName(brandInfoDto.getName())) {
+        if (!brand.getName().equals(brandInfoDto.getName())
+                && brandRepository.existsByNameIgnoreCase(brandInfoDto.getName())) {
             throw new BrandAlreadyExitsException("Brand name '" + brandInfoDto.getName() + "' is already used.");
         }
 
         brandInfoDto.setId(id);
-        brandInfoDto.setSaleItemsCount(brand.getSaleItems().size());
+        brandInfoDto.setNoOfSaleItems(brand.getSaleItems().size());
 
         return Optional.of(modelMapper.map(brandRepository.saveAndFlush(
                 modelMapper.map(brandInfoDto, Brand.class)), BrandInfoDto.class));
 
+    }
+
+    public void removeBrand(Integer id) {
+
+        if (getBrandById(id) == null)
+            throw new ItemNotFoundException(null);
+
+        Brand brand = getBrandById(id);
+        if (brand.getSaleItems().size() > 0) {
+            throw new BrandAlreadyExitsException(null);
+        }
+
+        //  brand.setIsActive(false);
+
+        brandRepository.deleteById(id);
     }
     
 

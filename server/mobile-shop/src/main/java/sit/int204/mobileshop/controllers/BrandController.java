@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import sit.int204.mobileshop.dtos.BrandDetailDto;
-import sit.int204.mobileshop.dtos.BrandDto;
+
 import sit.int204.mobileshop.dtos.BrandInfoDto;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.services.BrandService;
@@ -38,24 +38,28 @@ public class BrandController {
 
 
     @GetMapping("")
-    public ResponseEntity<List<BrandInfoDto>> getAllBrands() {
+    public ResponseEntity<List<BrandDetailDto>> getAllBrands() {
         List<Brand> brands = brandService.getAllBrands();
         if (brands.isEmpty()) {
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.ok(listMapper.toListDto(brands, BrandInfoDto.class, modelMapper));
+        return ResponseEntity.ok(listMapper.toListDto(brands, BrandDetailDto.class, modelMapper));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<BrandInfoDto> getBrand(@PathVariable Integer id) {
         Brand brand = brandService.getBrandById(id);
         BrandInfoDto brandInfoDto = modelMapper.map(brand, BrandInfoDto.class);
-        brandInfoDto.setSaleItemsCount(brand.getSaleItems().size());
+        brandInfoDto.setNoOfSaleItems(brand.getSaleItems().size());
         return ResponseEntity.ok(brandInfoDto);
     }
 
     @PostMapping("")
     public ResponseEntity<BrandInfoDto> postBrand(@RequestBody BrandInfoDto brand) {
+
+        if (brand.getIsActive() == null)
+            brand.setIsActive(true);
+
         BrandInfoDto brandInfoDto = brandService.createBrandByName(brand).get();
         return ResponseEntity.status(HttpStatus.CREATED).body(brandInfoDto);
     }
@@ -64,5 +68,11 @@ public class BrandController {
     public ResponseEntity<BrandInfoDto> putBrand(@PathVariable Integer id,@Valid @RequestBody BrandInfoDto brandInfoDto) {
         brandService.updateBrand(id, brandInfoDto);
         return ResponseEntity.ok().body(brandInfoDto);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBrand(@PathVariable Integer id) {
+        brandService.removeBrand(id);
+        return ResponseEntity.noContent().build();
     }
 }
