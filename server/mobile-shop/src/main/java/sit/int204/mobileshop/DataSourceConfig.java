@@ -16,7 +16,7 @@ public class DataSourceConfig {
         String password = new String(Files.readAllBytes(Paths.get("/run/secrets/db_password"))).trim();
 
         return DataSourceBuilder.create()
-                .url("jdbc:mysql://localhost:3306/mobile_shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC")
+                .url("jdbc:mysql://database:3306/mobile_shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC")
                 .username("root")
                 .password(password)
                 .build();
