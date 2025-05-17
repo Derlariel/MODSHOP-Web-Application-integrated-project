@@ -84,3 +84,7 @@ networks:
 volumes:
   mysql_data:
     driver: local
+
+secrets:
+  db_password:
+    file: ./secrets/db_password
