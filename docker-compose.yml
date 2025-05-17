@@ -70,7 +70,7 @@ services:
           memory: 384M
         reservations:
           memory: 256M
-    restart: unless-stopped
+    restart: on-failure
     volumes:
       - ./secrets/db_password:/run/secrets/db_password:ro
 

@@ -16,4 +16,9 @@ RUN chown -R appuser:appgroup /app
 USER appuser
 
 EXPOSE 8080
-CMD ["java", "-jar", "-Dspring.profiles.active=prod", "app.jar"]
+
+COPY wait-for-db.sh /app/wait-for-db.sh
+RUN chmod +x /app/wait-for-db.sh
+
+
+CMD ["/app/wait-for-db.sh"]
