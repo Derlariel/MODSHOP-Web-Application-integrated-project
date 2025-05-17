@@ -61,7 +61,6 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - TZ=Asia/Bangkok
       - DB_PASSWORD_FILE=/run/secrets/db_password
-      - DB_PASSWORD=$(cat /run/secrets/db_password)
     secrets:
       - source: db_password
         target: DB_PASSWORD
