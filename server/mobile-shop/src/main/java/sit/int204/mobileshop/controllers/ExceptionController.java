@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import sit.int204.mobileshop.exceptions.BrandAlreadyExitsException;
+import sit.int204.mobileshop.exceptions.BrandHasAssociatedItemsException;
 import sit.int204.mobileshop.exceptions.DatabaseCommunicationException;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.exceptions.MyErrorResponse;
@@ -22,6 +23,18 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ExceptionController {
+
+        @ExceptionHandler(BrandHasAssociatedItemsException.class)
+        public ResponseEntity<MyErrorResponse> handleBrandHasAssociatedItemsException(
+                BrandHasAssociatedItemsException e,
+                HttpServletRequest request) {
+            MyErrorResponse myErrorResponse = new MyErrorResponse(
+                    HttpStatus.BAD_REQUEST.value(), 
+                    HttpStatus.BAD_REQUEST.getReasonPhrase(), 
+                    e.getMessage(),
+                    request.getRequestURI());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(myErrorResponse);
+        }
 
         @ExceptionHandler(BrandAlreadyExitsException.class)
         public ResponseEntity<MyErrorResponse> handleBrandAlreadyExitsException(

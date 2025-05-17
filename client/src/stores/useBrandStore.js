@@ -41,10 +41,8 @@ export const useBrandStore = defineStore(
         isLoading.value = true;
         error.value = null;
         
-        // Create the new brand via API
         const response = await addProduct(`${BASE_URL}/v1/brands`, brandData);
-        
-        // Refresh brands list
+      
         await loadBrands();
         
         return response;
@@ -57,7 +55,7 @@ export const useBrandStore = defineStore(
       }
     };
     
-    // Add edit and delete functions for future PBIs
+
     const updateBrand = async (id, brandData) => {
       try {
         isLoading.value = true;
@@ -75,19 +73,33 @@ export const useBrandStore = defineStore(
     };
     
     const deleteBrand = async (id) => {
-      try {
-        isLoading.value = true;
-        error.value = null;
-        await deleteProductById(`${BASE_URL}/v1/brands`, id);
-        await loadBrands();
-      } catch (err) {
-        console.error('Error deleting brand:', err);
-        error.value = 'Failed to delete brand';
-        throw err;
-      } finally {
-        isLoading.value = false;
+  isLoading.value = true;
+  error.value = null;
+  
+  try {
+    await deleteProductById(`${BASE_URL}/v1/brands`, id);
+    
+    await loadBrands();
+    
+    return true;
+    
+  } catch (err) {
+    console.error('Error deleting brand:', err);
+    
+    if (err.response && err.response.data) {
+      const errorMessage = err.response.data.message;
+      if (errorMessage && errorMessage.includes("associated sale items")) {
+        error.value = "Brand cannot be deleted because it is associated with sale items.";
+        return { error: "Brand has associated with sale items." };
       }
-    };
+    }
+    error.value = 'Delete brand failed';
+    return { error: "An error occur while delete brand" };
+    
+  } finally {
+    isLoading.value = false;
+  }
+};
 
     return {
       brands,
