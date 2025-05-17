@@ -44,8 +44,7 @@ services:
     restart: unless-stopped
     volumes:
       - mysql_data:/var/lib/mysql
-    secrets:
-      - db_password
+ 
 
   api:
     build:
