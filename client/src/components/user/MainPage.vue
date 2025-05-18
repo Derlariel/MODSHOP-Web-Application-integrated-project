@@ -37,7 +37,7 @@ const productStore = useProductStore()
       </Swiper> 
     </div>
     <div class="mb-4">
-      <h2 class="text-center">Hello World</h2>
+      <h2 class="text-center">Hello World  Love you</h2>
     </div>
   </template>
   
