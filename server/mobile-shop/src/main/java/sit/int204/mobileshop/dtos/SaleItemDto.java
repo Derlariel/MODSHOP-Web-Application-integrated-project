@@ -22,6 +22,4 @@ public class SaleItemDto {
     @Min(value = 0)
     private Integer ramGb;
     private String color;
-    private Instant createdOn;
-    private Instant updatedOn;
 }

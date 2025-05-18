@@ -18,15 +18,15 @@ const alertMessage = ref("");
 
 const products = computed(() => productStore.allProducts);
 
-const sortedProducts = computed(() => {
-  if (!products.value || products.value.length === 0) return [];
+// const sortedProducts = computed(() => {
+//   if (!products.value || products.value.length === 0) return [];
 
-  return [...products.value].sort((productA, productB) => {
-    const dateProductA = new Date(productA.createdOn);
-    const dateProductB = new Date(productB.createdOn);
-    return dateProductA - dateProductB;
-  });
-});
+//   return [...products.value].sort((productA, productB) => {
+//     const dateProductA = new Date(productA.createdOn);
+//     const dateProductB = new Date(productB.createdOn);
+//     return dateProductA - dateProductB;
+//   });
+// });
 
 const handleItemClick = (productId) => {
   router.push({
@@ -143,7 +143,7 @@ onMounted(async () => {
         </div>
 
         <ListModel
-          :saleItems="sortedProducts"
+          :saleItems="products"
           :viewType="viewType"
           @update:viewType="viewType = $event"
         >
