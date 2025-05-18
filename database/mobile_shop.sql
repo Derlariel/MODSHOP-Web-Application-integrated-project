@@ -2,8 +2,8 @@ CREATE DATABASE mobile_shop CHARACTER SET utf8mb4;
 USE mobile_shop;
 
 show variables like 'time_zone';
-SET GLOBAL time_zone = '+00:00';
-SET time_zone = '+00:00';
+SET GLOBAL time_zone = '+07:00';
+SET time_zone = '+07:00';
 
 CREATE TABLE brand (
     id INT AUTO_INCREMENT PRIMARY KEY,
