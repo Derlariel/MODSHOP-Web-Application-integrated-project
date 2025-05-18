@@ -65,6 +65,7 @@ public class BrandService {
             throw new BrandAlreadyExistException(null);
         }
 
+        //soft delete brand
         //  brand.setIsActive(false);
 
         brandRepository.deleteById(id);
