@@ -159,7 +159,7 @@ onMounted(async () => {
           </template>
 
           <template #listItems="{ Item: product, viewType }">
-            <template v-if="viewType === 'list'" class="itbms-row">
+            <template v-if="viewType === 'list'">
               <td
                 @click="handleItemClick(product.id)"
                 class="px-4 py-3 itbms-id"
