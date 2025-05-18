@@ -10,7 +10,7 @@ const productStore = useProductStore()
 </script>
 
 <template>
-    <div class="h-[30em]">
+    <div class="h-[30em] mb-8">
       <Swiper
         :modules="[Autoplay, Pagination]"
         :slides-per-view="1"
@@ -35,7 +35,6 @@ const productStore = useProductStore()
           />
         </SwiperSlide>
       </Swiper> 
-      <div>เทสๆๆ sdasdsadๆ</div>
     </div>
   </template>
   
