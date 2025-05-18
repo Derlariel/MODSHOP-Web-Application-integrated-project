@@ -4,8 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
-public class BrandAlreadyExitsException extends RuntimeException {
-    public BrandAlreadyExitsException(String message) {
+public class BrandAlreadyExistException extends RuntimeException {
+    public BrandAlreadyExistException(String message) {
         super(message);
     }
 

@@ -16,7 +16,6 @@ import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class SaleItemService {

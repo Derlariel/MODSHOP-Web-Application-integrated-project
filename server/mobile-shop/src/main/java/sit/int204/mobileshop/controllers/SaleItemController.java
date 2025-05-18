@@ -32,7 +32,7 @@ public class  SaleItemController {
     public ResponseEntity<List<SaleItemDto>> getAllProducts() {
         List<SaleItem> products = saleItemService.getAllSaleItems();
         if (products.isEmpty()) {
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok().build();
         }
         return ResponseEntity.ok(listMapper.toListDto(products, SaleItemDto.class, modelMapper));
     }

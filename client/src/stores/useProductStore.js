@@ -67,10 +67,12 @@ export const useProductStore = defineStore("product", {
       try {
         const data = await getProducts(`${BASE_URL}/v1/sale-items`);
 
-        const normalized = data.map((product) => ({
-          ...product,
-          rate: parseFloat(product.rate),
-        }));
+        const normalized = data
+          ? data.map((product) => ({
+              ...product,
+              rate: parseFloat(product.rate),
+            }))
+          : [];
 
         this.products = normalized;
       } catch (err) {
