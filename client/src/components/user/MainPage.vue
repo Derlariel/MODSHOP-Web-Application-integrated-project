@@ -36,6 +36,9 @@ const productStore = useProductStore()
         </SwiperSlide>
       </Swiper> 
     </div>
+    <div class="mb-4">
+      <h2 class="text-center">Hello World</h2>
+    </div>
   </template>
   
   
