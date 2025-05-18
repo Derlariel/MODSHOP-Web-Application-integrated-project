@@ -32,7 +32,7 @@ public class SaleItemService {
     private EntityManager entityManager;
 
     public List<SaleItem> getAllSaleItems() {
-        return saleItemRepository.findAllByOrderByCreatedOnDesc();
+        return saleItemRepository.findAllByOrderByNameAsc();
     }
 
     public SaleItem getSaleItemById(Integer id) {
