@@ -1,4 +1,4 @@
-name: Deploy kk1 update clear cache
+name: Deploy kk1 
 
 on:
   push:
