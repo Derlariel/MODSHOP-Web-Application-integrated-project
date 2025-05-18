@@ -2,9 +2,6 @@ package sit.int204.mobileshop.dtos;
 
 
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-
 import lombok.Data;
 
 @Data
