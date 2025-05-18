@@ -63,7 +63,7 @@ const toggleMobileMenu = () => {
     <div v-if="isMobileMenuOpen" class="lg:hidden px-6 py-4 space-y-4 border-t text-center font-semibold text-white bg-black bg-opacity-90">
       <router-link :to="{name : 'Main'}" class="block hover:text-blue-400">Home</router-link>
       <router-link :to="{name : 'product-gallery'}" class="block hover:text-blue-400">Product</router-link>
-      <router-link :to="{name : 'Main'}" class="block hover:text-blue-400">Brand</router-link>
+      <router-link :to="{name : 'brands-list'}" class="block hover:text-blue-400">Brand</router-link>
       <router-link to="/about" class="block hover:text-blue-400">About</router-link>
     </div>
   </nav>

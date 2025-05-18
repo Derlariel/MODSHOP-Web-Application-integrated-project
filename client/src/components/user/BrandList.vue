@@ -100,8 +100,10 @@ const navigateToSaleItems = () => {
 <template>
   <div class="min-h-screen bg-black text-white pt-24 pb-16 px-4">
     <div class="max-w-7xl mx-auto">
-      <div v-if="isLoading">
-        <SkeletonLoader />
+      <div v-if="isLoading" class="text-center py-12">
+        <div class="flex flex-wrap justify-center gap-4">
+          <SkeletonLoader />
+        </div>
       </div>
 
       <div v-else>

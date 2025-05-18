@@ -2,7 +2,6 @@ package sit.int204.mobileshop.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import sit.int204.mobileshop.exceptions.BrandAlreadyExitsException;
+import sit.int204.mobileshop.exceptions.BrandAlreadyExistException;
 import sit.int204.mobileshop.exceptions.DatabaseCommunicationException;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.exceptions.MyErrorResponse;
@@ -23,9 +22,9 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class ExceptionController {
 
-        @ExceptionHandler(BrandAlreadyExitsException.class)
-        public ResponseEntity<MyErrorResponse> handleBrandAlreadyExitsException(
-                        BrandAlreadyExitsException e,
+        @ExceptionHandler(BrandAlreadyExistException.class)
+        public ResponseEntity<MyErrorResponse> handleBrandAlreadyExistException(
+                        BrandAlreadyExistException e,
                         HttpServletRequest request) {
                 MyErrorResponse myErrorResponse = new MyErrorResponse(
                                 HttpStatus.BAD_REQUEST.value(), HttpStatus.NOT_FOUND.getReasonPhrase(), e.getMessage(),
