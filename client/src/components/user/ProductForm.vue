@@ -99,7 +99,8 @@ watchEffect(() => {
   ];
 
   const requiredFieldsEmpty = requiredFields.some((field) => {
-    return !temp[field] || temp[field].toString().trim() === "";
+    const value = temp[field];
+    return value == null || value.toString().trim() === "";
   });
 
   if (temp.ramGb === "") temp.ramGb = null;
@@ -108,28 +109,28 @@ watchEffect(() => {
   if (temp.quantity === "") temp.quantity = null;
   if (temp.price === "") temp.price = null;
 
-  const isUnchanged =
-    allFields.every((field) => {
-      const tempValue = temp[field] === "" ? null : temp[field];
-      const initValue =
-        props.init[field] === undefined ? null : props.init[field];
-      if (
-        ["price", "ramGb", "storageGb", "screenSizeInch", "quantity"].includes(
-          field
-        )
-      ) {
-        return Number(tempValue) === Number(initValue);
-      }
-      return tempValue === initValue;
-    }) && temp.brand.name === props.init.brandName;
+  const isNewItem = Object.keys(props.init).length === 0;
+  let isUnchanged = false;
 
-  btnNotAvailable.value = requiredFieldsEmpty || isUnchanged || !temp.brand.id;
+  if (!isNewItem) {
+    isUnchanged =
+      allFields.every((field) => {
+        const tempValue = temp[field] === "" ? null : temp[field];
+        const initValue =
+          props.init[field] === undefined ? null : props.init[field];
+        if (
+          ["price", "ramGb", "storageGb", "screenSizeInch", "quantity"].includes(
+            field
+          )
+        ) {
+          return Number(tempValue) === Number(initValue);
+        }
+        return tempValue === initValue;
+      }) && temp.brand.name === (props.init.brandName || null);
+  }
 
-  // Debug btnNotAvailable
-  console.log("btnNotAvailable:", btnNotAvailable.value);
-  console.log("requiredFieldsEmpty:", requiredFieldsEmpty);
-  console.log("isUnchanged:", isUnchanged);
-  console.log("temp.brand.id:", temp.brand.id);
+  btnNotAvailable.value = requiredFieldsEmpty || (!isNewItem && isUnchanged) || !temp.brand.id;
+
 });
 
 const submit = () => {
@@ -138,6 +139,7 @@ const submit = () => {
     return;
   }
   if (!temp.brand.id) {
+    console.warn("Submit blocked: No brand selected");
     alert("Please select a brand.");
     return;
   }
@@ -174,7 +176,6 @@ onMounted(() => {
           <label for="brand" class="block text-sm font-medium text-gray-300"
             >Brand</label
           >
-
           <div class="relative">
             <select
               v-model="temp.brand"
@@ -235,7 +236,6 @@ onMounted(() => {
             class="block text-sm font-medium text-gray-300"
             >Description</label
           >
-
           <textarea
             @blur="trimField('description')"
             v-model="temp.description"
@@ -251,7 +251,6 @@ onMounted(() => {
           <h3 class="text-lg font-medium text-white mb-4">
             Technical Specifications
           </h3>
-
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <BaseInput
               cypress="itbms-ramGb"
