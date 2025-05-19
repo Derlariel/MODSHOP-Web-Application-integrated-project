@@ -4,6 +4,7 @@ import { useBrandStore } from "@/stores/useBrandStore";
 import { useRouter } from "vue-router";
 import SuccessModal from "../shared/modal/SuccessModal.vue";
 import ConfirmModal from "../shared/modal/ConfirmModal.vue";
+import ErrorModal from "../shared/modal/ErrorModal.vue";
 import ListModel from "../shared/ListModel.vue";
 import SkeletonLoader from "../shared/SkeletonLoader.vue";
 
@@ -13,8 +14,11 @@ const brands = computed(() => brandStore.getBrands());
 const isLoading = ref(true);
 const showDeleteModal = ref(false);
 const showSuccessModal = ref(false);
+const showErrorModal = ref(false);
 const selectedBrandId = ref(null);
+const selectedBrandName = ref("");
 const alertMessage = ref("");
+const errorMessage = ref("");
 const viewType = ref("list");
 
 onMounted(async () => {
@@ -62,8 +66,9 @@ const editBrand = (brandId) => {
   router.push({ name: "brands-edit", params: { brandId } });
 };
 
-const deleteBrand = (brandId) => {
+const deleteBrand = (brandId, brandName) => {
   selectedBrandId.value = brandId;
+  selectedBrandName.value = brandName;
   showDeleteModal.value = true;
 };
 
@@ -79,17 +84,30 @@ const confirmDelete = async () => {
     }, 3000);
   } catch (error) {
     console.error("Failed to delete brand:", error);
-    alertMessage.value = "The brand could not be deleted.";
-    showSuccessModal.value = true;
+    
+    // Check for the specific error about associated items
+    if (error.response && error.response.status === 409) {
+      errorMessage.value = `Delete ${selectedBrandName.value} is not allowed. There are sale items with ${selectedBrandName.value} brand.`;
+      showErrorModal.value = true;
+    } else {
+      alertMessage.value = "The brand could not be deleted.";
+      showSuccessModal.value = true;
+    }
   } finally {
     showDeleteModal.value = false;
-    selectedBrandId.value = null;
   }
 };
 
 const cancelDelete = () => {
   showDeleteModal.value = false;
   selectedBrandId.value = null;
+  selectedBrandName.value = "";
+};
+
+const closeErrorModal = () => {
+  showErrorModal.value = false;
+  selectedBrandId.value = null;
+  selectedBrandName.value = "";
 };
 
 const navigateToSaleItems = () => {
@@ -111,7 +129,8 @@ const navigateToSaleItems = () => {
           :visible="showDeleteModal"
           @confirm="confirmDelete"
           @cancel="cancelDelete"
-          message="Are you sure you want to delete this brand?"
+          :message="`Do you want to delete ${selectedBrandName} brand?`"
+          class="itbms-message"
         />
 
         <SuccessModal
@@ -119,6 +138,38 @@ const navigateToSaleItems = () => {
           :message="alertMessage"
           class="itbms-message"
         />
+
+        <!-- Custom error modal for brand with associated items -->
+        <div 
+          v-if="showErrorModal" 
+          class="fixed inset-0 z-50 flex items-center justify-center px-4 itbms-message"
+          @click="closeErrorModal"
+        >
+          <div class="absolute inset-0 bg-black/30 backdrop-blur-md"></div>
+          
+          <div 
+            class="relative bg-white rounded-2xl overflow-hidden max-w-md w-full transform transition-all shadow-xl"
+            @click.stop
+          >
+            <div class="p-6 sm:p-8">
+              <div class="text-center mb-6">
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Delete Confirmation</h3>
+                <p class="text-gray-600">
+                  {{ errorMessage }}
+                </p>
+              </div>
+              
+              <div class="flex flex-col space-y-3">
+                <button 
+                  @click="closeErrorModal"
+                  class="itbms-cancel-button w-full py-3 px-4 rounded-full bg-gray-200 text-gray-800 font-medium hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div class="flex justify-between items-center mb-8">
           <div class="flex cursor-pointer font-light space-x-2.5">
@@ -182,7 +233,7 @@ const navigateToSaleItems = () => {
                     Edit
                   </button>
                   <button
-                    @click="deleteBrand(brand.id)"
+                    @click="deleteBrand(brand.id, brand.name)"
                     class="itbms-delete-button bg-neutral-800 text-white px-3 py-1.5 rounded hover:bg-black transition-colors duration-200 text-sm font-medium"
                   >
                     Delete
