@@ -8,15 +8,15 @@ import {
   watch,
   watchEffect,
   ref,
-} from 'vue';
-import { useBrandStore } from '@/stores/useBrandStore';
-import { useRouter } from 'vue-router';
-import BaseInput from '../shared/BaseInput.vue';
+} from "vue";
+import { useBrandStore } from "@/stores/useBrandStore";
+import { useRouter } from "vue-router";
+import BaseInput from "../shared/BaseInput.vue";
 
 const router = useRouter();
 const brandStore = useBrandStore();
 const brands = computed(() => brandStore.getBrands());
-const emit = defineEmits(['submit', 'cancel']);
+const emit = defineEmits(["submit", "cancel"]);
 const props = defineProps({
   init: {
     type: Object,
@@ -25,16 +25,16 @@ const props = defineProps({
 });
 
 const temp = reactive({
-  id: null, 
-  model: '',
+  id: null,
+  model: "",
   brand: { id: null, name: null },
-  description: '',
-  price: '',
-  ramGb: '',
-  storageGb: '',
-  screenSizeInch: '',
-  color: '',
-  quantity: '',
+  description: "",
+  price: "",
+  ramGb: "",
+  storageGb: "",
+  screenSizeInch: "",
+  color: "",
+  quantity: "",
 });
 
 const btnNotAvailable = ref(true);
@@ -48,35 +48,37 @@ watch(
       await brandStore.loadBrands();
       const availableBrands = brandStore.getBrands();
 
-      console.log('props.init:', newValue);
-      console.log('availableBrands:', availableBrands);
-
+      console.log("props.init:", newValue);
+      console.log("availableBrands:", availableBrands);
 
       Object.assign(temp, {
         id: newValue.id || null,
-        model: newValue.model || '',
-        description: newValue.description || '',
-        price: newValue.price?.toString() || '',
-        ramGb: newValue.ramGb?.toString() || '',
-        storageGb: newValue.storageGb?.toString() || '',
-        screenSizeInch: newValue.screenSizeInch?.toString() || '',
-        color: newValue.color || '',
-        quantity: newValue.quantity?.toString() || '',
+        model: newValue.model || "",
+        description: newValue.description || "",
+        price: newValue.price?.toString() || "",
+        ramGb: newValue.ramGb?.toString() || "",
+        storageGb: newValue.storageGb?.toString() || "",
+        screenSizeInch: newValue.screenSizeInch?.toString() || "",
+        color: newValue.color || "",
+        quantity: newValue.quantity?.toString() || "",
       });
 
       const selectedBrand = availableBrands.find(
         (brand) => brand.name === newValue.brandName
       );
 
-      temp.brand = selectedBrand || { id: null, name: newValue.brandName || null };
+      temp.brand = selectedBrand || {
+        id: null,
+        name: newValue.brandName || null,
+      };
 
-      console.log('selectedBrand:', selectedBrand);
-      console.log('temp.brand:', temp.brand);
+      console.log("selectedBrand:", selectedBrand);
+      console.log("temp.brand:", temp.brand);
 
       isLoading.value = false;
     } catch (error) {
-      console.error('Error loading brands:', error);
-      errorMessage.value = 'Failed to load brands';
+      console.error("Error loading brands:", error);
+      errorMessage.value = "Failed to load brands";
       isLoading.value = false;
     }
   },
@@ -85,17 +87,7 @@ watch(
 
 watchEffect(() => {
   const requiredFields = ['model', 'price', 'quantity', 'description'];
-  const allFields = [
-    'model',
-    'description',
-    'price',
-    'ramGb',
-    'storageGb',
-    'screenSizeInch',
-    'color',
-    'quantity',
-  ];
-
+  
   const requiredFieldsEmpty = requiredFields.some((field) => {
     return !temp[field] || temp[field].toString().trim() === '';
   });
@@ -106,33 +98,52 @@ watchEffect(() => {
   if (temp.quantity === '') temp.quantity = null;
   if (temp.price === '') temp.price = null;
 
-  const isUnchanged = allFields.every((field) => {
-    const tempValue = temp[field] === '' ? null : temp[field];
-    const initValue = props.init[field] === undefined ? null : props.init[field];
-    if (['price', 'ramGb', 'storageGb', 'screenSizeInch', 'quantity'].includes(field)) {
-      return Number(tempValue) === Number(initValue);
-    }
-    return tempValue === initValue;
-  }) && temp.brand.name === props.init.brandName;
+  const isEdit = Object.keys(props.init).length > 0;
+  let isUnchanged = false;
+  
+  if (isEdit) {
+    const allFields = [
+      'model',
+      'description',
+      'price',
+      'ramGb',
+      'storageGb',
+      'screenSizeInch',
+      'color',
+      'quantity',
+    ];
+    
+    isUnchanged = allFields.every((field) => {
+      const tempValue = temp[field] === '' ? null : temp[field];
+      const initValue = props.init[field] === undefined ? null : props.init[field];
+      if (['price', 'ramGb', 'storageGb', 'screenSizeInch', 'quantity'].includes(field)) {
+        return Number(tempValue) === Number(initValue);
+      }
+      return tempValue === initValue;
+    }) && temp.brand.name === props.init.brandName;
+  }
 
-  btnNotAvailable.value = requiredFieldsEmpty || isUnchanged || !temp.brand.id;
-
-  // Debug btnNotAvailable
-  console.log('btnNotAvailable:', btnNotAvailable.value);
-  console.log('requiredFieldsEmpty:', requiredFieldsEmpty);
-  console.log('isUnchanged:', isUnchanged);
-  console.log('temp.brand.id:', temp.brand.id);
+  btnNotAvailable.value = requiredFieldsEmpty || (isEdit && isUnchanged) || !temp.brand.id;
+  
 });
 
 const submit = () => {
-  if (btnNotAvailable.value) {
-    console.warn('Submit blocked: Button is disabled');
-    return;
-  }
+
   if (!temp.brand.id) {
+    console.warn('Submit blocked: No brand selected');
     alert('Please select a brand.');
     return;
   }
+
+  const requiredFields = ['model', 'price', 'quantity', 'description'];
+  const missingFields = requiredFields.filter(field => 
+    !temp[field] || temp[field].toString().trim() === '');
+  
+  if (missingFields.length > 0) {
+    console.warn(`Submit blocked: Missing required fields: ${missingFields.join(', ')}`);
+    return;
+  }
+  
   emit('submit', {
     ...temp,
     price: temp.price ? Number(temp.price) : null,
@@ -144,8 +155,8 @@ const submit = () => {
 };
 
 const trimField = (field) => {
-  if (typeof temp[field] === 'string') {
-    temp[field] = temp[field].trim() || '';
+  if (typeof temp[field] === "string") {
+    temp[field] = temp[field].trim() || "";
   }
 };
 
@@ -162,7 +173,9 @@ onMounted(() => {
     <div v-else-if="!isLoading">
       <form @submit.prevent class="space-y-8">
         <div class="space-y-3">
-          <label for="brand" class="block text-sm font-medium text-gray-300">Brand</label>
+          <label for="brand" class="block text-sm font-medium text-gray-300"
+            >Brand</label
+          >
           <div class="relative">
             <select
               v-model="temp.brand"
@@ -170,8 +183,15 @@ onMounted(() => {
               class="itbms-brand w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white appearance-none"
               required
             >
-              <option :value="{ id: null, name: null }" disabled>Select a brand</option>
-              <option v-for="brand in brands" :key="brand.id" :value="brand">
+              <option :value="{ id: null, name: null }" disabled>
+                Select a brand
+              </option>
+              <option
+                v-for="brand in brands"
+                :key="brand.id"
+                :value="brand"
+                :data-brand-id="brand.id"
+              >
                 {{ brand.name }}
               </option>
             </select>
@@ -216,7 +236,11 @@ onMounted(() => {
         />
 
         <div class="space-y-3">
-          <label for="description" class="block text-sm font-medium text-gray-300">Description</label>
+          <label
+            for="description"
+            class="block text-sm font-medium text-gray-300"
+            >Description</label
+          >
           <textarea
             @blur="trimField('description')"
             v-model="temp.description"
@@ -229,7 +253,9 @@ onMounted(() => {
         </div>
 
         <div class="pt-2">
-          <h3 class="text-lg font-medium text-white mb-4">Technical Specifications</h3>
+          <h3 class="text-lg font-medium text-white mb-4">
+            Technical Specifications
+          </h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <BaseInput
               cypress="itbms-ramGb"
