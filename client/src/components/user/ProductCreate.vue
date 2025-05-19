@@ -13,7 +13,7 @@ const add = async (data) => {
   try {
     await productStore.createProduct(data);
     sessionStorage.setItem("add-success", "true");
-    router.push({ name: "product-gallery" });
+    router.push({ name: "product-list" });
     
   } catch (error) {
     console.error("Error creating product:", error);
