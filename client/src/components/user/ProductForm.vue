@@ -92,12 +92,14 @@ watchEffect(() => {
     return !temp[field] || temp[field].toString().trim() === "";
   });
 
+  // Clean up empty values
   if (temp.ramGb === "") temp.ramGb = null;
   if (temp.storageGb === "") temp.storageGb = null;
   if (temp.screenSizeInch === "") temp.screenSizeInch = null;
   if (temp.quantity === "") temp.quantity = null;
   if (temp.price === "") temp.price = null;
 
+  // For creating new items we only need to check required fields
   const isNewItem = Object.keys(props.init).length === 0;
   let isUnchanged = false;
 
@@ -133,6 +135,7 @@ watchEffect(() => {
       }) && temp.brand.name === props.init.brandName;
   }
 
+  // For new items only check required fields and brand, for edits also check if changed
   btnNotAvailable.value =
     requiredFieldsEmpty || (!isNewItem && isUnchanged) || !temp.brand.id;
 
@@ -142,39 +145,12 @@ watchEffect(() => {
   console.log("temp.brand.id:", temp.brand.id);
 });
 
-const handleBrandChange = (event) => {
-  const selectedIndex = event.target.selectedIndex;
-  if (selectedIndex > 0) {
-    const selectedOption = event.target.options[selectedIndex];
-    const brandName = selectedOption.text.trim();
-    
-    if (!temp.brand.id && brandName) {
-      const matchingBrand = brands.value.find(b => b.name === brandName);
-      if (matchingBrand) {
-        console.log('Setting brand from text selection:', matchingBrand);
-        temp.brand = matchingBrand;
-      }
-    }
-  }
-};
-
 const submit = () => {
-  console.log("Submit function called with brand:", temp.brand);
-  
-  if (!temp.brand.id && temp.brand.name) {
-    const matchingBrand = brands.value.find(b => b.name === temp.brand.name);
-    if (matchingBrand) {
-      console.log("Found matching brand by name:", matchingBrand);
-      temp.brand = matchingBrand;
-    }
-  }
-
   if (!temp.brand.id) {
     console.warn("Submit blocked: No brand selected");
     alert("Please select a brand.");
     return;
   }
-  
   const requiredFields = ["model", "price", "quantity", "description"];
   const missingFields = requiredFields.filter(
     (field) => !temp[field] || temp[field].toString().trim() === ""
@@ -185,7 +161,6 @@ const submit = () => {
     return;
   }
 
-  console.log("Submitting form with data:", temp);
   emit("submit", {
     ...temp,
     price: temp.price ? Number(temp.price) : null,
@@ -195,8 +170,6 @@ const submit = () => {
     quantity: temp.quantity ? Number(temp.quantity) : null,
   });
 };
-
-
 
 const trimField = (field) => {
   if (typeof temp[field] === "string") {
@@ -226,7 +199,6 @@ onMounted(() => {
               id="brand"
               class="itbms-brand w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white appearance-none"
               required
-              @change="handleBrandChange"
             >
               <option :value="{ id: null, name: null }" disabled>
                 Select a brand
