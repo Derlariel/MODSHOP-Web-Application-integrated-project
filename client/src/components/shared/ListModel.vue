@@ -28,7 +28,7 @@ const appStore = useAppStore();
 </script>
 
 <template>
-  <div class="container mx-auto px-4">
+  <div class="container mx-auto px-2 sm:px-4">
     <!-- Toggle View Buttons -->
     <div v-if="appStore.adminMode" class="flex justify-end space-x-2 mb-4">
       <button @click="toggleView('gallery')"
@@ -48,10 +48,10 @@ const appStore = useAppStore();
       </div>
     </div>
 
-    <div v-else>
+    <div v-else class="responsive-table-wrapper">
       <!-- Table Header -->
-      <div class="overflow-x-auto">
-        <table class="min-w-full bg-black border border-neutral-800 rounded-md">
+      <div class="overflow-x-auto shadow-md rounded-md">
+        <table class="min-w-full bg-black border border-neutral-800">
           <thead>
             <tr class="bg-neutral-900 text-white text-left">
               <slot name="tableHeader" />
@@ -74,3 +74,39 @@ const appStore = useAppStore();
     </div>
   </div>
 </template>
+
+<style scoped>
+.responsive-table-wrapper {
+  width: 100%;
+}
+
+:deep(td), :deep(th) {
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: 200px;
+  padding: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  :deep(td), :deep(th) {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    max-width: 150px;
+  }
+}
+
+:deep(table) {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+:deep(th) {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Better hover effect */
+:deep(.itbms-row:hover) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+</style>

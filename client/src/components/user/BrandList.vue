@@ -114,7 +114,11 @@ const navigateToSaleItems = () => {
           message="Are you sure you want to delete this brand?"
         />
 
-        <SuccessModal :visible="showSuccessModal" :message="alertMessage" />
+        <SuccessModal
+          :visible="showSuccessModal"
+          :message="alertMessage"
+          class="itbms-message"
+        />
 
         <div class="flex justify-between items-center mb-8">
           <div class="flex cursor-pointer font-light space-x-2.5">

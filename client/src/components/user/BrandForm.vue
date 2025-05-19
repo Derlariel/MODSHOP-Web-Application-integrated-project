@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, computed, watch } from "vue";
+import { reactive, computed, watch, ref } from "vue"; // Added ref import
 import BaseInput from "../shared/BaseInput.vue";
 
 const props = defineProps({
@@ -38,6 +38,9 @@ watch(
   () => props.initialData,
   (newValue) => {
     Object.assign(formData, newValue);
+    if (props.mode === "edit") {
+      originalData.value = JSON.parse(JSON.stringify(newValue));
+    }
   },
   { immediate: true, deep: true }
 );
@@ -55,8 +58,30 @@ const validateName = () => {
   return true;
 };
 
+const hasFormChanges = computed(() => {
+  if (props.mode !== "edit") return true;
+
+  if (!originalData.value || Object.keys(originalData.value).length === 0) {
+    return false;
+  }
+  const nameChanged =
+    formData.name.trim() !== (originalData.value.name || "").trim();
+  const websiteChanged =
+    formData.websiteUrl.trim() !== (originalData.value.websiteUrl || "").trim();
+  const countryChanged =
+    formData.countryOfOrigin.trim() !==
+    (originalData.value.countryOfOrigin || "").trim();
+  const activeChanged = formData.isActive !== originalData.value.isActive;
+
+  return nameChanged || websiteChanged || countryChanged || activeChanged;
+});
+
 const isFormValid = computed(() => {
-  return formData.name.trim().length > 0;
+  if (props.mode === "create") {
+    return formData.name.trim().length > 0;
+  }
+
+  return formData.name.trim().length > 0 && hasFormChanges.value;
 });
 
 const handleSubmit = () => {
@@ -103,36 +128,31 @@ const handleCancel = () => {
     />
 
     <div class="flex items-center space-x-3">
-      <input
-        type="checkbox"
-        v-model="formData.isActive"
-        class="itbms-isActive"
-        style="
-          position: absolute;
-          opacity: 0;
-          pointer-events: none;
-          width: 1px;
-          height: 1px;
-        "
-        tabindex="-1"
-      />
-
-      <!-- Visual toggle button for users -->
-      <button
-        type="button"
-        @click="formData.isActive = !formData.isActive"
-        class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-neutral-800"
-        :class="formData.isActive ? 'bg-blue-600' : 'bg-neutral-700'"
-        role="switch"
-        :aria-checked="formData.isActive"
-      >
-        <span class="sr-only">Active Brand</span>
-        <span
-          aria-hidden="true"
-          class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-          :class="formData.isActive ? 'translate-x-5' : 'translate-x-0'"
-        ></span>
-      </button>
+      <div class="relative inline-flex h-6 w-11 flex-shrink-0">
+        <input
+          type="checkbox"
+          v-model="formData.isActive"
+          class="itbms-isActive absolute opacity-0 w-full h-full left-0 top-0 z-10 cursor-pointer"
+          tabindex="-1"
+        />
+        <!-- Visual toggle button -->
+        <button
+          type="button"
+          @click="formData.isActive = !formData.isActive"
+          class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-neutral-800"
+          :class="formData.isActive ? 'bg-blue-600' : 'bg-neutral-700'"
+          role="switch"
+          :aria-checked="formData.isActive"
+          style="z-index: 1"
+        >
+          <span class="sr-only">Active Brand</span>
+          <span
+            aria-hidden="true"
+            class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+            :class="formData.isActive ? 'translate-x-5' : 'translate-x-0'"
+          ></span>
+        </button>
+      </div>
       <label class="text-sm font-medium text-gray-300">
         {{ formData.isActive ? "Active" : "Inactive" }} Brand
       </label>

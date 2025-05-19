@@ -89,17 +89,18 @@ const navigateToBrandList = () => {
       >
         {{ errorMessage || "Brand not found" }}
       </div>
-
       <BrandForm
         v-else
         :initial-data="brand"
+        mode="edit"
         :is-submitting="isSubmitting"
         :error-message="errorMessage"
         submit-button-text="Update"
         :is-edit-mode="true"
         @submit="handleSubmit"
         @cancel="handleCancel"
-      />
+      />  
+      
     </div>
   </div>
 </template>
