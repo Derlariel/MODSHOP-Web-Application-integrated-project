@@ -56,8 +56,22 @@ export const useBrandStore = defineStore(
         isLoading.value = false;
       }
     };
+
+    const getBrandById = async (id) => {
+      try {
+        isLoading.value = true;
+        error.value = null;
+        const brand = await getProductById(`${BASE_URL}/v1/brands`, id);
+        return brand;
+      } catch (err) {
+        console.error('Error loading brand details:', err);
+        error.value = 'Failed to load brand details';
+        throw err;
+      } finally {
+        isLoading.value = false;
+      }
+    };
     
-    // Add edit and delete functions for future PBIs
     const updateBrand = async (id, brandData) => {
       try {
         isLoading.value = true;
@@ -84,8 +98,6 @@ export const useBrandStore = defineStore(
         console.error('Error deleting brand:', err);
         error.value = 'Failed to delete brand';
         throw err;
-      } finally {
-        isLoading.value = false;
       }
     };
 
@@ -97,7 +109,8 @@ export const useBrandStore = defineStore(
       loadBrands,
       createBrand,
       updateBrand,
-      deleteBrand
+      deleteBrand,
+      getBrandById
     };
   },
   {

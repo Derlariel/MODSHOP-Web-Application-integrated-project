@@ -4,7 +4,6 @@ import { useBrandStore } from "@/stores/useBrandStore";
 import { useRouter } from "vue-router";
 import SuccessModal from "../shared/modal/SuccessModal.vue";
 import ConfirmModal from "../shared/modal/ConfirmModal.vue";
-import ErrorModal from "../shared/modal/ErrorModal.vue";
 import ListModel from "../shared/ListModel.vue";
 import SkeletonLoader from "../shared/SkeletonLoader.vue";
 
@@ -13,12 +12,14 @@ const brandStore = useBrandStore();
 const brands = computed(() => brandStore.getBrands());
 const isLoading = ref(true);
 const showDeleteModal = ref(false);
-const showSuccessModal = ref(false);
 const showErrorModal = ref(false);
+const showSuccessModal = ref(false);
+const showNotFoundModal = ref(false);
 const selectedBrandId = ref(null);
 const selectedBrandName = ref("");
 const alertMessage = ref("");
 const errorMessage = ref("");
+const notFoundMessage = ref("");
 const viewType = ref("list");
 
 onMounted(async () => {
@@ -66,10 +67,24 @@ const editBrand = (brandId) => {
   router.push({ name: "brands-edit", params: { brandId } });
 };
 
-const deleteBrand = (brandId, brandName) => {
+const deleteBrand = async (brandId, brandName) => {
   selectedBrandId.value = brandId;
   selectedBrandName.value = brandName;
-  showDeleteModal.value = true;
+
+  try {
+    const brandInfo = await brandStore.getBrandById(brandId);
+
+    if (brandInfo.noOfSaleItems > 0) {
+      errorMessage.value = `Delete ${brandName} is not allowed. There are sale items with ${brandName} brand.`;
+      showErrorModal.value = true;
+      return;
+    }
+
+    showDeleteModal.value = true;
+  } catch (error) {
+    console.error("Failed to check brand details:", error);
+    showDeleteModal.value = true;
+  }
 };
 
 const confirmDelete = async () => {
@@ -84,17 +99,19 @@ const confirmDelete = async () => {
     }, 3000);
   } catch (error) {
     console.error("Failed to delete brand:", error);
-    
-    // Check for the specific error about associated items
+
     if (error.response && error.response.status === 409) {
       errorMessage.value = `Delete ${selectedBrandName.value} is not allowed. There are sale items with ${selectedBrandName.value} brand.`;
       showErrorModal.value = true;
     } else {
-      alertMessage.value = "The brand could not be deleted.";
-      showSuccessModal.value = true;
+      notFoundMessage.value =
+        "An error has occurred, the brand does not exist.";
+      showNotFoundModal.value = true;
     }
   } finally {
     showDeleteModal.value = false;
+    selectedBrandId.value = null;
+    selectedBrandName.value = "";
   }
 };
 
@@ -104,14 +121,12 @@ const cancelDelete = () => {
   selectedBrandName.value = "";
 };
 
-const closeErrorModal = () => {
-  showErrorModal.value = false;
-  selectedBrandId.value = null;
-  selectedBrandName.value = "";
-};
-
 const navigateToSaleItems = () => {
   router.push({ name: "product-list" });
+};
+
+const closeErrorModal = () => {
+  showErrorModal.value = false;
 };
 </script>
 
@@ -139,32 +154,62 @@ const navigateToSaleItems = () => {
           class="itbms-message"
         />
 
-        <!-- Custom error modal for brand with associated items -->
-        <div 
-          v-if="showErrorModal" 
-          class="fixed inset-0 z-50 flex items-center justify-center px-4 itbms-message"
+        <div
+          v-if="showErrorModal"
+          class="fixed inset-0 z-50 flex items-center justify-center px-4"
           @click="closeErrorModal"
         >
           <div class="absolute inset-0 bg-black/30 backdrop-blur-md"></div>
-          
-          <div 
+
+          <div
             class="relative bg-white rounded-2xl overflow-hidden max-w-md w-full transform transition-all shadow-xl"
             @click.stop
           >
             <div class="p-6 sm:p-8">
               <div class="text-center mb-6">
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">Delete Confirmation</h3>
-                <p class="text-gray-600">
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                  Delete Confirmation
+                </h3>
+                <p class="text-gray-600 itbms-message">
                   {{ errorMessage }}
                 </p>
               </div>
-              
+
               <div class="flex flex-col space-y-3">
-                <button 
+                <button
                   @click="closeErrorModal"
                   class="itbms-cancel-button w-full py-3 px-4 rounded-full bg-gray-200 text-gray-800 font-medium hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
                   Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="showNotFoundModal"
+          class="fixed inset-0 z-50 flex items-center justify-center px-4"
+        >
+          <div class="absolute inset-0 bg-black/30 backdrop-blur-md"></div>
+
+          <div
+            class="relative bg-white rounded-2xl overflow-hidden max-w-md w-full transform transition-all shadow-xl"
+          >
+            <div class="p-6 sm:p-8">
+              <div class="text-center mb-6">
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Error</h3>
+                <p class="text-gray-600 itbms-message">
+                  {{ notFoundMessage }}
+                </p>
+              </div>
+              <!-- อาจเพิ่มปุ่มปิด modal ตรงนี้ถ้าจำเป็น -->
+              <div class="flex justify-center">
+                <button
+                  @click="showNotFoundModal = false"
+                  class="py-2 px-4 bg-gray-200 rounded-full text-gray-800"
+                >
+                  Close
                 </button>
               </div>
             </div>
