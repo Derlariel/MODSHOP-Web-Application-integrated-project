@@ -160,6 +160,8 @@ const submit = () => {
     return;
   }
 
+  btnNotAvailable.value = false;
+
   emit("submit", {
     ...temp,
     price: temp.price ? Number(temp.price) : null,
