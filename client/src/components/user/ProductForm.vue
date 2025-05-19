@@ -99,7 +99,7 @@ watchEffect(() => {
   if (temp.quantity === "") temp.quantity = null;
   if (temp.price === "") temp.price = null;
 
-  // For creating new items we only need to check required fields
+
   const isNewItem = Object.keys(props.init).length === 0;
   let isUnchanged = false;
 
@@ -135,7 +135,6 @@ watchEffect(() => {
       }) && temp.brand.name === props.init.brandName;
   }
 
-  // For new items only check required fields and brand, for edits also check if changed
   btnNotAvailable.value =
     requiredFieldsEmpty || (!isNewItem && isUnchanged) || !temp.brand.id;
 
