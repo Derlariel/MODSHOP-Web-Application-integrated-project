@@ -32,6 +32,8 @@ const formData = reactive({
   isActive: true,
 });
 
+const originalData = ref({});
+
 watch(
   () => props.initialData,
   (newValue) => {
@@ -54,7 +56,7 @@ const validateName = () => {
 };
 
 const isFormValid = computed(() => {
-  return formData.name.trim() !== "";
+  return formData.name.trim().length > 0;
 });
 
 const handleSubmit = () => {
@@ -80,8 +82,7 @@ const handleCancel = () => {
       label="Brand Name *"
       id="brand-name"
       placeholder="Enter brand name"
-      cypress="itbms-name"
-      class="itbms-name"
+      inputClass="itbms-name"
       :error="errors.name"
       @blur="validateName"
     />
@@ -91,23 +92,36 @@ const handleCancel = () => {
       label="Website URL"
       id="website-url"
       placeholder="https://www.example.com"
-      cypress="itbms-websiteUrl"
-      class="itbms-websiteUrl"
+      inputClass="itbms-websiteUrl"
     />
     <BaseInput
       v-model="formData.countryOfOrigin"
       label="Country of Origin"
       id="country"
       placeholder="Enter country of origin"
-      cypress="itbms-countryOfOrigin"
-      class="itbms-countryOfOrigin"
+      inputClass="itbms-countryOfOrigin"
     />
 
     <div class="flex items-center space-x-3">
+      <input
+        type="checkbox"
+        v-model="formData.isActive"
+        class="itbms-isActive"
+        style="
+          position: absolute;
+          opacity: 0;
+          pointer-events: none;
+          width: 1px;
+          height: 1px;
+        "
+        tabindex="-1"
+      />
+
+      <!-- Visual toggle button for users -->
       <button
         type="button"
         @click="formData.isActive = !formData.isActive"
-        class="itbms-isActive relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-neutral-800"
+        class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-neutral-800"
         :class="formData.isActive ? 'bg-blue-600' : 'bg-neutral-700'"
         role="switch"
         :aria-checked="formData.isActive"

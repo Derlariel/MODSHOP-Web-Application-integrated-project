@@ -149,15 +149,15 @@ const navigateToSaleItems = () => {
 
           <template #listItems="{ Item: brand, viewType }">
             <template v-if="viewType === 'list'">
-              <td class="px-6 py-4 itbms-brand-id">{{ brand.id }}</td>
-              <td class="px-6 py-4 itbms-brand-name">{{ brand.name }}</td>
-              <td class="px-6 py-4 itbms-brand-websiteUrl">
+              <td class="px-6 py-4 itbms-id">{{ brand.id }}</td>
+              <td class="px-6 py-4 itbms-name">{{ brand.name }}</td>
+              <td class="px-6 py-4 itbms-websiteUrl">
                 {{ brand.websiteUrl || "-" }}
               </td>
-              <td class="px-6 py-4 itbms-brand-countryOfOrigin">
+              <td class="px-6 py-4 itbms-countryOfOrigin">
                 {{ brand.countryOfOrigin || "-" }}
               </td>
-              <td class="px-6 py-4 itbms-brand-isActive">
+              <td class="px-6 py-4 itbms-isActive">
                 <span
                   :class="
                     brand.isActive

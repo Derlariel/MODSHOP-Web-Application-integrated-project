@@ -6,7 +6,7 @@ export default defineConfig({
     // baseUrl: 'http://ip24kk1.sit.kmutt.ac.th/',
     // baseAPI: 'http://ip24kk1.sit.kmutt.ac.th:8000/itb-mshop',
     experimentalRunAllSpecs: true,
-    baseUrl: 'http://localhost:5173',
+    baseUrl: 'http://localhost:5173/kk1',
     baseAPI: 'http://localhost:8080/itb-mshop',
     setupNodeEvents(on, config) {
       // implement node event listeners here
