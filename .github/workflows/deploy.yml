@@ -1,4 +1,4 @@
-name: Deploy kk1 test cypress 2
+name: Deploy kk1 test cypress
 
 on:
   push:
