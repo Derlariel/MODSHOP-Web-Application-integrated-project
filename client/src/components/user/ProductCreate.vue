@@ -15,7 +15,7 @@ const add = async (data) => {
     sessionStorage.setItem("add-success", "true");
     setTimeout(() => {
       router.push({ name: "product-list" });
-    }, 2000);
+    }, 7000);
     
   } catch (error) {
     console.error("Error creating product:", error);
