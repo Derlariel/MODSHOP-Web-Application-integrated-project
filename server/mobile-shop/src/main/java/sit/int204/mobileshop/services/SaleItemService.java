@@ -9,11 +9,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int204.mobileshop.dtos.SaleItemDetailDto;
+import sit.int204.mobileshop.dtos.SaleItemDto;
 import sit.int204.mobileshop.dtos.SaleItemRequestDto;
 import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
+import sit.int204.mobileshop.utils.ListMapper;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import sit.int204.mobileshop.dtos.PageDto;
 
 import java.util.List;
 
@@ -28,6 +34,9 @@ public class SaleItemService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private ListMapper listMapper;
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -35,7 +44,11 @@ public class SaleItemService {
         return saleItemRepository.findAllByOrderByCreatedOnAsc();
     }
 
-    
+    public PageDto<SaleItemDto> getAllSaleItemsPage(Pageable pageable) {
+        Page<SaleItem> saleItemPage = saleItemRepository.findAll(pageable);
+        System.out.println("test" + saleItemPage.getTotalPages() + " ");
+        return listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
+    }
 
     public SaleItem getSaleItemById(Integer id) {
         return saleItemRepository.findById(id)
