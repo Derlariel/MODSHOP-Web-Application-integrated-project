@@ -35,6 +35,8 @@ public class SaleItemService {
         return saleItemRepository.findAllByOrderByCreatedOnAsc();
     }
 
+    
+
     public SaleItem getSaleItemById(Integer id) {
         return saleItemRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
@@ -122,4 +124,6 @@ public class SaleItemService {
     public void deleteAllForTest() {
         saleItemRepository.deleteAll();
     }
+
+
 }
