@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useBrandStore } from '@/stores/useBrandStore';
 import { useRouter } from 'vue-router';
 import BrandForm from './BrandForm.vue';
+import AppFooter from "../shared/AppFooter.vue";
 
 const router = useRouter();
 const brandStore = useBrandStore();
@@ -64,5 +65,6 @@ const navigateToBrandList = () => {
         />
       </div>
     </div>
+    <AppFooter />
   </div>
 </template>

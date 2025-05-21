@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
 import ProductGallery from "./ProductGallery.vue";
+import AppFooter from "../shared/AppFooter.vue";
 import { useRoute } from "vue-router";
 const route = useRoute()
 
@@ -17,6 +18,7 @@ onMounted(async () => {
 <div>
     <ProductGallery v-if="!['product-detail','product-add','product-list'].includes(route.name)"/>
     <router-view></router-view>
+     <AppFooter />
 </div>
 </template>
  

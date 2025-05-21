@@ -214,6 +214,8 @@ onMounted(async () => {
         </ListModel>
       </div>
     </div>
+     <AppFooter />
+    
   </div>
 </template>
 

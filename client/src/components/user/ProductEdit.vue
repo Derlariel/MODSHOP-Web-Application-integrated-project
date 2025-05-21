@@ -4,6 +4,7 @@ import { onMounted, ref, computed } from "vue";
 import ProductPicture from "./ProductPicture.vue";
 import ProductForm from "./ProductForm.vue";
 import { useProductStore } from "@/stores/useProductStore";
+import AppFooter from "../shared/AppFooter.vue";
 
 import { useRoute, useRouter } from "vue-router";
 import HistoryPath from "../shared/HistoryPath.vue";
@@ -55,6 +56,7 @@ onMounted(async () => {
       </div>
     </div>
   </div>
+   <AppFooter />
 </template>
 
 <style>
