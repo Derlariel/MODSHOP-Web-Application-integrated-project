@@ -103,6 +103,5 @@ const navigateToBrandList = () => {
       />  
       
     </div>
-    <AppFooter />
   </div>
 </template>

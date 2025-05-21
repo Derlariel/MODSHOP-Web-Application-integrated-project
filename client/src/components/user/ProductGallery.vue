@@ -267,8 +267,6 @@ const detail = (productId) => {
       </div>
     </div>
 
-    <AppFooter />
-    
   </div>
   <div v-else>No sale item</div>
 </template>

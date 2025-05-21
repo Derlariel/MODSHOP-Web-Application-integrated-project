@@ -36,8 +36,6 @@ const add = async (data) => {
         </div>
       </div>
     </div>
-     <AppFooter />
-    
   </div>
 </template>
 

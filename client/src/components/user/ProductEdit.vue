@@ -56,7 +56,6 @@ onMounted(async () => {
       </div>
     </div>
   </div>
-   <AppFooter />
 </template>
 
 <style>
