@@ -82,7 +82,7 @@ onUnmounted(() => {
   <div class="bg-white text-black min-h-screen">
 
     <!-- Apple Watch section -->
-    <section class="bg-white text-center pt-30 pb-24 overflow-hidden">
+    <section class="bg-white text-center pt-25 pb-24 overflow-hidden">
       <div class="max-w-[980px] mx-auto px-4">
         <div class="flex flex-col items-center">
           <div class="flex items-center justify-center">
