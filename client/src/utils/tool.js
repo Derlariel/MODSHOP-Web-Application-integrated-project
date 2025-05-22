@@ -1,7 +1,7 @@
 const handleFetch = async (url, options, errorMessages) => {
   try {
     const res = await fetch(url, options);
-    // if(res.status === 204) return null
+    if(res.status === 204) return null
     if (!res.ok) {
       throw { message: errorMessages, status: res.status };
     }
@@ -12,8 +12,25 @@ const handleFetch = async (url, options, errorMessages) => {
 };
 
 const getProducts = async (url) => {
-  return handleFetch(url, { method: "GET" }, "Error getting products");
+  const res = await fetch (url);
+  if (!res.ok) throw new Error (res.status);
+  if (res.status === 204) return null;
+
+  return await res.json ();
 };
+
+
+const getProductsPage = async (url, params = {}) => {
+  const query = new URLSearchParams (params).toString ();
+  const fullUrl = query ? `${url}?${query}` : url;
+
+  const res = await fetch (fullUrl);
+  if (!res.ok) throw new Error (res.status);
+  if (res.status === 204) return null;
+
+  return await res.json ();
+};
+
 
 const getProductById = async (url, id) => {
   return handleFetch(
@@ -56,5 +73,5 @@ const deleteProductById = async (url, id) => {
   )
 }
 export {
-  addProduct,getProductById,getProducts,updateProductById,deleteProductById
+  addProduct,getProductById,getProducts, getProductsPage,updateProductById,deleteProductById
 };

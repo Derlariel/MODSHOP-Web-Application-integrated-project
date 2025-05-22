@@ -5,6 +5,7 @@ import ProductForm from "./ProductForm.vue";
 import { useProductStore } from "@/stores/useProductStore";
 import { useRouter } from "vue-router";
 import HistoryPath from "../shared/HistoryPath.vue";
+import AppFooter from "../shared/AppFooter.vue";
 
 const productStore = useProductStore();
 const router = useRouter();

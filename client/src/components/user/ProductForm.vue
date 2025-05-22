@@ -109,6 +109,7 @@ watchEffect(() => {
   if (temp.quantity === "") temp.quantity = null;
   if (temp.price === "") temp.price = null;
 
+
   const isNewItem = Object.keys(props.init).length === 0;
   let isUnchanged = false;
 

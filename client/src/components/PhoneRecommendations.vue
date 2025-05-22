@@ -1,32 +1,32 @@
 <script setup>
-import { Swiper, SwiperSlide } from "swiper/vue";
-import { EffectFade, Navigation, Pagination } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import "swiper/css/effect-fade";
-import { onMounted, ref } from "vue";
-import { useProductStore } from "@/stores/useProductStore";
-import DEFALUT_IMAGE from "@/assets/default.jpg";
-const products = useProductStore();
-const isLoaded = ref(false);
+// import { Swiper, SwiperSlide } from "swiper/vue";
+// import { EffectFade, Navigation, Pagination } from "swiper/modules";
+// import "swiper/css";
+// import "swiper/css/navigation";
+// import "swiper/css/pagination";
+// import "swiper/css/effect-fade";
+// import { onMounted, ref } from "vue";
+// import { useProductStore } from "@/stores/useProductStore";
+// import DEFALUT_IMAGE from "@/assets/default.jpg";
+// const products = useProductStore();
+// const isLoaded = ref(false);
 
-onMounted(async () => {
-  await products.loadProducts(); 
-  isLoaded.value = true;
-});
+// onMounted(async () => {
+//   await products.loadProducts(); 
+//   isLoaded.value = true;
+// });
 
-const breakPoint = {
-  '640': { slidesPerView: 1 },
-  '768': { slidesPerView: 2 },
-  '1024': { slidesPerView: 3 }
-};
+// const breakPoint = {
+//   '640': { slidesPerView: 1 },
+//   '768': { slidesPerView: 2 },
+//   '1024': { slidesPerView: 3 }
+// };
 
-const productImages = products.productImages;
+// const productImages = products.productImages;
 </script>
 
 <template>
-  <div class="bg-white">
+  <!-- <div class="bg-white">
     <h1 class="text-5xl font-extrabold text-center py-16 mb-4">
       Newest Phones Collection
     </h1>
@@ -59,5 +59,5 @@ const productImages = products.productImages;
         </div>
       </SwiperSlide>
     </Swiper>
-  </div>
+  </div> -->
 </template>

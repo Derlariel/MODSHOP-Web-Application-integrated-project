@@ -1,6 +1,8 @@
 package sit.int204.mobileshop.utils;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import sit.int204.mobileshop.dtos.PageDto;
 
 import java.util.List;
 
@@ -19,5 +21,11 @@ public class ListMapper {
 
     public <S, T> List<T> toListDto(List<S> source, Class<T> targetClass, ModelMapper modelMapper) {
         return mapList(source, targetClass, modelMapper);
+    }
+
+    public <S, T> PageDto<T> toPageDTO(Page<S> source, Class<T> targetClass, ModelMapper modelMapper) {
+        PageDto<T> pageDto = modelMapper.map(source, PageDto.class);
+        pageDto.setContent(mapList(source.getContent(), targetClass, modelMapper));
+        return pageDto;
     }
 }

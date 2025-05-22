@@ -17,6 +17,7 @@ import HuaweiP40 from "@/assets/banner/huawei-p40-banner.webp";
 import Mi9 from "@/assets/banner/Mi9-banner.jpg";
 import S24 from "@/assets/banner/S24-banner.jpg";
 import Vivo from "@/assets/banner/vivo-banner.webp";
+import { getProductsPage } from "../utils/tool";
 export const useProductStore = defineStore("product", {
   state: () => ({
     products: [],
@@ -71,6 +72,22 @@ export const useProductStore = defineStore("product", {
           ? data.map((product) => ({
               ...product,
               rate: parseFloat(product.rate),
+            }))
+          : [];
+
+        this.products = normalized;
+      } catch (err) {
+        console.error("Failed to load all products", err);
+      }
+    },
+
+      async loadProductsPage(params) {
+      try {
+        const data = await getProductsPage(`${BASE_URL}/v2/sale-items`, params);
+
+        const normalized = Array.isArray (data.content)
+          ? data.content.map((product) => ({
+              ...product
             }))
           : [];
 

@@ -6,6 +6,7 @@ import { useProductStore } from "@/stores/useProductStore";
 import DEFAULT_IMAGE from "@/assets/default.jpg";
 import { useRouter } from "vue-router";
 import SuccessModal from "../shared/modal/SuccessModal.vue";
+import Pagination from "../shared/Pagination.vue";
 
 const router = useRouter();
 const isLoading = ref(true);
@@ -38,7 +39,13 @@ const alertMessage = ref("");
 
 async function initProducts() {
   try {
-    await productStore.loadProducts();
+    await productStore.loadProductsPage({
+      page: 0,
+      size: 10,
+      sortField: "",
+      sortDirection: "asc",
+      filterBrands: ["Apple", "Sony"],
+    });
     if (product.value.length === 0) {
       router.push({ name: "error-page", query: { code: "NODATA" } });
       return;
@@ -266,62 +273,7 @@ const detail = (productId) => {
         </ListModel>
       </div>
     </div>
-
-    <footer class="bg-neutral-950 py-12 border-t border-neutral-800">
-      <div class="max-w-[1200px] mx-auto px-6">
-        <div class="grid grid-cols-4 gap-8">
-          <div>
-            <h3 class="text-sm font-semibold mb-4">Shop and Learn</h3>
-            <ul class="space-y-2 text-sm text-gray-500">
-              <li><a href="#" class="hover:text-gray-300">Store</a></li>
-              <li><a href="#" class="hover:text-gray-300">Mac</a></li>
-              <li><a href="#" class="hover:text-gray-300">iPad</a></li>
-              <li><a href="#" class="hover:text-gray-300">iPhone</a></li>
-            </ul>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold mb-4">Services</h3>
-            <ul class="space-y-2 text-sm text-gray-500">
-              <li><a href="#" class="hover:text-gray-300">Apple Music</a></li>
-              <li><a href="#" class="hover:text-gray-300">Apple TV+</a></li>
-              <li>
-                <a href="#" class="hover:text-gray-300">Apple Fitness+</a>
-              </li>
-              <li><a href="#" class="hover:text-gray-300">Apple News+</a></li>
-            </ul>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold mb-4">Apple Store</h3>
-            <ul class="space-y-2 text-sm text-gray-500">
-              <li><a href="#" class="hover:text-gray-300">Find a Store</a></li>
-              <li><a href="#" class="hover:text-gray-300">Genius Bar</a></li>
-              <li>
-                <a href="#" class="hover:text-gray-300">Today at Apple</a>
-              </li>
-              <li><a href="#" class="hover:text-gray-300">Apple Camp</a></li>
-            </ul>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold mb-4">About Apple</h3>
-            <ul class="space-y-2 text-sm text-gray-500">
-              <li><a href="#" class="hover:text-gray-300">Newsroom</a></li>
-              <li>
-                <a href="#" class="hover:text-gray-300">Apple Leadership</a>
-              </li>
-              <li>
-                <a href="#" class="hover:text-gray-300">Career Opportunities</a>
-              </li>
-              <li><a href="#" class="hover:text-gray-300">Investors</a></li>
-            </ul>
-          </div>
-        </div>
-        <div
-          class="mt-12 pt-8 border-t border-neutral-800 text-sm text-gray-500"
-        >
-          <p>Copyright © 2023 Apple Inc. All rights reserved.</p>
-        </div>
-      </div>
-    </footer>
+    <Pagination />
   </div>
   <div v-else>No sale item</div>
 </template>

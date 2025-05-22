@@ -18,16 +18,6 @@ const alertMessage = ref("");
 
 const products = computed(() => productStore.allProducts);
 
-// const sortedProducts = computed(() => {
-//   if (!products.value || products.value.length === 0) return [];
-
-//   return [...products.value].sort((productA, productB) => {
-//     const dateProductA = new Date(productA.createdOn);
-//     const dateProductB = new Date(productB.createdOn);
-//     return dateProductA - dateProductB;
-//   });
-// });
-
 const handleItemClick = (productId) => {
   router.push({
     name: "product-detail",
@@ -53,6 +43,7 @@ const confirmDelete = async () => {
 
     alertMessage.value = "The sale item has been deleted.";
     showSuccessModal.value = true;
+    sessionStorage.setItem("delete-success", "true");
 
     setTimeout(() => {
       showSuccessModal.value = false;
@@ -73,10 +64,8 @@ async function initProducts() {
   try {
     await productStore.loadProducts();
     if (products.value.length === 0) {
-      router.push({
-        path: "/error",
-        query: { code: "ERROR", message: err.message },
-      });
+      router.push({ name: "error-page", query: { code: "NODATA" } });
+      return;
     }
   } catch (err) {
     console.error("Load products failed:", err);
@@ -123,9 +112,11 @@ onMounted(async () => {
           :visible="showDeleteModal"
           @confirm="confirmDelete"
           @cancel="cancelDelete"
+          message="Do you want to delete this sale item?"
+          class="itbms-message"
         />
 
-        <SuccessModal :visible="showSuccessModal" :message="alertMessage" />
+        <SuccessModal :visible="showSuccessModal" :message="alertMessage" class="itbms-message" />
 
         <div class="flex justify-end mb-6 space-x-4">
           <router-link

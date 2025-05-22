@@ -7,6 +7,7 @@ import HistoryPath from "../shared/HistoryPath.vue";
 import ConfirmModal from "../shared/modal/ConfirmModal.vue";
 import SuccessModal from "../shared/modal/SuccessModal.vue";
 import { checkUptodate } from "../../utils/validate";
+import AppFooter from "../shared/AppFooter.vue";
 
 const router = useRouter();
 const route = useRoute();
