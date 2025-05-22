@@ -24,7 +24,7 @@ public class SaleItemV2Controller {
         @RequestParam(defaultValue = "0") Integer page,
         @RequestParam(defaultValue = "5") Integer size,
         @RequestParam(defaultValue = "[]") List<String> filterBrands,
-        @RequestParam(defaultValue = "brand.name") String sortField,
+        @RequestParam(defaultValue = "createdOn") String sortField,
         @RequestParam(defaultValue = "asc") String sortDirection) {
         PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(page, size, filterBrands, sortField, sortDirection);
         return ResponseEntity.ok(pagedResult);

@@ -49,16 +49,26 @@ public class SaleItemService {
             String sortField,
             String sortDirection) {
 
-        Sort.Direction direction = Sort.Direction.valueOf(sortDirection.toUpperCase());
+        if(sortField == null || sortField.trim().isEmpty()) {
+            sortField = "createdOn";
+        }
+
+
+        Sort.Direction direction;
+
+        try {
+            direction = Sort.Direction.fromString(sortDirection);
+        } catch (Exception e) {
+            direction = Sort.Direction.ASC;
+        }
         
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
         Page<SaleItem> saleItemPage = null;
         
 
-        if (filterBrands == null || filterBrands.isEmpty()) {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+        if (filterBrands == null || filterBrands.isEmpty() || filterBrands.contains("[]")) {
             saleItemPage = saleItemRepository.findAll(pageable);
         } else {
-            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
             saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands);
         }
                 
