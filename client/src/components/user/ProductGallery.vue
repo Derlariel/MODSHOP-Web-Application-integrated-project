@@ -1,22 +1,38 @@
 <script setup>
-import ListModel from "../shared/ListModel.vue";
-import ErrorModal from "../shared/modal/ErrorModal.vue";
-import { computed, onMounted, ref } from "vue";
-import { useProductStore } from "@/stores/useProductStore";
-import DEFAULT_IMAGE from "@/assets/default.jpg";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import { useProductStore } from "@/stores/useProductStore";
+
+import ListModel from "../shared/ListModel.vue";
+import FilterSort from "../shared/FilterSort.vue";
 import SuccessModal from "../shared/modal/SuccessModal.vue";
 import Pagination from "../shared/Pagination.vue";
+import ErrorModal from "../shared/modal/ErrorModal.vue";
+import DEFAULT_IMAGE from "@/assets/default.jpg";
 
+// 🧭 Router
 const router = useRouter();
+
+// 🛒 Store & State
+const productStore = useProductStore();
+const productImages = productStore.productImages;
+const product = computed(() => productStore.allProducts);
+
 const isLoading = ref(true);
-const adminMode = ref(false);
 const isModalOpen = ref(false);
+const showSuccess = ref(false);
+const alertMessage = ref("");
+const adminMode = ref(false);
 
-const add = () => {
-  router.push({ name: "product-add" });
-};
+const filters = ref({
+  page: 0,
+  filterBrands: [""],
+  size: 5,
+  sortField: "createdOn",
+  sortDirection: "asc",
+});
 
+// 👀 Props
 const props = defineProps({
   viewType: {
     type: String,
@@ -24,31 +40,24 @@ const props = defineProps({
   },
 });
 
-function handleModalClose() {
-  isModalOpen.value = false;
-  sessionStorage.removeItem("error-message");
-  router.push({ name: "sale-items" });
-}
+// 🧭 Navigation
+const add = () => {
+  router.push({ name: "product-add" });
+};
 
-const showSuccess = ref(false);
-const productStore = useProductStore();
-const productImages = productStore.productImages;
-const product = computed(() => productStore.allProducts);
+const detail = (productId) => {
+  router.push({
+    name: "product-detail",
+    params: { productId },
+  });
+};
 
-const alertMessage = ref("");
-
+// 📦 Initial data fetch
 async function initProducts() {
   try {
-    await productStore.loadProductsPage({
-      page: 0,
-      size: 10,
-      sortField: "",
-      sortDirection: "asc",
-      filterBrands: ["Apple", "Sony"],
-    });
+    await productStore.loadProductsPage(filters.value);
     if (product.value.length === 0) {
       router.push({ name: "error-page", query: { code: "NODATA" } });
-      return;
     }
   } catch (err) {
     console.error("Load products failed:", err);
@@ -57,58 +66,59 @@ async function initProducts() {
   }
 }
 
-function checkForErrorModal() {
+// ❗ Error Modal
+function handleModalClose() {
+  isModalOpen.value = false;
+  sessionStorage.removeItem("error-message");
+  router.push({ name: "sale-items" });
+}
+
+// 🎯 Lifecycle
+onMounted(async () => {
+  await initProducts();
+
   if (sessionStorage.getItem("error-message") === "true") {
     isModalOpen.value = true;
   }
-}
 
-onMounted(async () => {
-  await initProducts();
-  checkForErrorModal();
+  if (sessionStorage.getItem("delete-success") === "true") {
+    alertMessage.value = "The sale item has been deleted.";
+    showSuccess.value = true;
+    sessionStorage.removeItem("delete-success");
+
+    setTimeout(() => {
+      showSuccess.value = false;
+    }, 2000);
+  }
 });
 
-
-if (sessionStorage.getItem("delete-success") === "true") {
-  alertMessage.value = "The sale item has been deleted.";
-  showSuccess.value = true;
-  sessionStorage.removeItem("delete-success");
-  setTimeout(() => {
-    showSuccess.value = false;
-  }, 2000);
-}
-
-const detail = (productId) => {
-  router.push({
-    name: "product-detail",
-    params: { productId },
-  });
-};
+// 🔄 Watch for filter changes
+watch(filters, async () => {
+  initProducts();
+}, { deep: true, immediate: true })
 </script>
 
 <template>
-  <div
-    v-if="!isLoading && product.length > 0"
-    class="min-h-screen bg-black text-white"
-  >
-    <div class="pt-24 pb-16 px-6 bg-gradient-to-b from-neutral-900 to-black">
+  <div v-if="!isLoading && product.length > 0" class="min-h-screen bg-black text-white">
+    <div class="pt-24 pb-8 px-6 bg-gradient-to-b from-neutral-900 to-black">
       <div class="max-w-[1200px] mx-auto text-center">
         <h1 class="text-5xl font-semibold tracking-tight mb-2">
           Store The best way to buy the products you love.
         </h1>
         <p class="text-xl text-gray-400 mt-4 max-w-2xl mx-auto">
-          Explore premium devices with cutting-edge technology and elegant
-          design.
+          Explore premium devices with cutting-edge technology and elegant design.
         </p>
-        <SuccessModal :message="alertMessage" :visible="showSuccess" />
-        <div class="space-x-4 m-auto">
-        <button
-          @click="add"
-          class="itbms-sale-item-add mt-8 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200"
-        >
-          Add Sale Item
-        </button>
 
+        <SuccessModal :message="alertMessage" :visible="showSuccess" />
+
+        <div class="space-x-4 m-auto text-left mt-6">
+          <FilterSort @update:filters="Object.assign(filters, $event)" />
+          <button
+            @click="add"
+            class="itbms-sale-item-add mt-4 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200"
+          >
+            Add Sale Item
+          </button>
         </div>
       </div>
     </div>
@@ -120,12 +130,9 @@ const detail = (productId) => {
         @close="handleModalClose"
       />
 
-      <div v-if="!isLoading && !isModalOpen" class="flex-1 overflow-y-auto">
-        <ListModel
-          :saleItems="productStore.allProducts"
-          :viewType="viewType"
-          :adminMode="adminMode"
-        >
+      <div v-if="!isLoading && !isModalOpen" class="flex-1 overflow-y-auto mb-12">
+        <ListModel :saleItems="productStore.allProducts" :viewType="viewType" :adminMode="adminMode">
+          <!-- Header -->
           <template #listHeader>
             <div
               v-if="viewType === 'list'"
@@ -141,53 +148,41 @@ const detail = (productId) => {
             </div>
           </template>
 
+          <!-- Items -->
           <template #listItems="{ Item: product, viewType }">
-            <!-- Gallery -->
-
+            <!-- Gallery View -->
             <div
               v-if="viewType === 'gallery'"
               @click="detail(product.id)"
               class="itbms-row group cursor-pointer transform transition-all duration-500 hover:scale-[1.02] gap-8"
             >
-              <div
-                class="relative h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-white to-neutral-100 mb-4 perspective group-hover:shadow-2xl group-hover:shadow-white/30 transition-shadow duration-700"
-              >
-                <div
-                  class="absolute inset-0 flex items-center justify-center transition-transform duration-700"
-                >
+              <div class="relative h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-white to-neutral-100 mb-4 perspective group-hover:shadow-2xl group-hover:shadow-white/30 transition-shadow duration-700">
+                <div class="absolute inset-0 flex items-center justify-center transition-transform duration-700">
                   <img
                     :src="productImages[Number(product.id)] || DEFAULT_IMAGE"
                     class="max-h-full max-w-full object-contain transform transition-transform duration-700 -mt-10 group-hover:scale-110"
                     alt=""
                   />
-                  <div
-                    class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/30 to-transparent"
-                  ></div>
+                  <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/30 to-transparent"></div>
                 </div>
 
                 <div class="absolute bottom-6 left-6 flex space-x-3">
-                  <div
-                    class="bg-gradient-to-r from-neutral-600 to-neutral-800 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium"
-                  >
-                    <span class="itbms-ramGb flex"
-                      >{{ product.ramGb === null ? "-" : product.ramGb }}
+                  <div class="bg-gradient-to-r from-neutral-600 to-neutral-800 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium">
+                    <span class="itbms-ramGb flex">
+                      {{ product.ramGb === null ? "-" : product.ramGb }}
                       <p class="itbms-storageGb-unit">
                         {{ product.ramGb === null ? "-" : "GB" }}
                       </p>
                       <p class="ml-1">RAM</p>
                     </span>
                   </div>
-                  <div
-                    class="bg-gradient-to-r from-neutral-600 to-neutral-900 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium"
-                  >
-                    <span class="itbms-storageGb flex"
-                      >{{
-                        product.storageGb === null ? "-" : product.storageGb
-                      }}
+                  <div class="bg-gradient-to-r from-neutral-600 to-neutral-900 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium">
+                    <span class="itbms-storageGb flex">
+                      {{ product.storageGb === null ? "-" : product.storageGb }}
                       <p class="itbms-storageGb-unit">
                         {{ product.storageGb === null ? "-" : "GB" }}
-                      </p></span
-                    >
+                      </p>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -205,31 +200,23 @@ const detail = (productId) => {
                   {{ product.model }}
                 </p>
 
-                <div
-                  class="pt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                >
-                  <button
-                    class="w-full bg-white text-black rounded-full py-1 font-medium hover:bg-gray-200 transition-colors"
-                  >
+                <div class="pt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <button class="w-full bg-white text-black rounded-full py-1 font-medium hover:bg-gray-200 transition-colors">
                     Buy
                   </button>
                 </div>
               </div>
             </div>
-            <!-- List view -->
+
+            <!-- List View -->
             <div
               v-else
               @click="detail(product.id)"
               class="border-b relative border-neutral-800 hover:bg-neutral-900 transition-colors"
             >
               <div class="grid grid-cols-7 items-center gap-4 py-6 px-4">
-                <!-- 3D effect for list view images too -->
-                <div
-                  class="bg-gradient-to-br from-neutral-800 to-neutral-900 w-24 h-24 rounded-xl flex items-center justify-center overflow-hidden perspective"
-                >
-                  <div
-                    class="transform-style-3d hover:rotate-y-10 transition-transform duration-500 w-full h-full flex items-center justify-center"
-                  >
+                <div class="bg-gradient-to-br from-neutral-800 to-neutral-900 w-24 h-24 rounded-xl flex items-center justify-center overflow-hidden perspective">
+                  <div class="transform-style-3d hover:rotate-y-10 transition-transform duration-500 w-full h-full flex items-center justify-center">
                     <img
                       :src="productImages[Number(product.id)] || DEFAULT_IMAGE"
                       class="itbms-image max-h-full max-w-full object-contain hover:scale-105 transition-transform duration-500"
@@ -237,35 +224,15 @@ const detail = (productId) => {
                     />
                   </div>
                 </div>
-                <div class="itbms-brand font-medium">
-                  {{ product.brandName }}
-                </div>
+                <div class="itbms-brand font-medium">{{ product.brandName }}</div>
                 <div class="itbms-model text-gray-400">{{ product.model }}</div>
-                <div class="itbms-ramGb text-gray-500">
-                  {{ product.ramGb }}GB
-                </div>
-                <div class="itbms-storageGb text-gray-500">
-                  {{ product.storageGb }}
-                </div>
-                <div class="itbms-price font-medium">
-                  ฿{{ product.price.toLocaleString() }}
-                </div>
+                <div class="itbms-ramGb text-gray-500">{{ product.ramGb }}GB</div>
+                <div class="itbms-storageGb text-gray-500">{{ product.storageGb }}</div>
+                <div class="itbms-price font-medium">฿{{ product.price.toLocaleString() }}</div>
                 <div class="flex space-x-4">
-                  <button class="text-sm text-blue-500 hover:underline">
-                    View
-                  </button>
-                  <button
-                    v-if="adminMode"
-                    class="text-sm text-blue-500 hover:underline"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    v-if="adminMode"
-                    class="text-sm text-blue-500 hover:underline"
-                  >
-                    Delete
-                  </button>
+                  <button class="text-sm text-blue-500 hover:underline">View</button>
+                  <button v-if="adminMode" class="text-sm text-blue-500 hover:underline">Edit</button>
+                  <button v-if="adminMode" class="text-sm text-blue-500 hover:underline">Delete</button>
                 </div>
               </div>
             </div>
@@ -275,6 +242,7 @@ const detail = (productId) => {
     </div>
     <Pagination />
   </div>
+
   <div v-else>No sale item</div>
 </template>
 
