@@ -19,7 +19,7 @@ import sit.int204.mobileshop.utils.ListMapper;
 import org.springframework.data.domain.*;
 import sit.int204.mobileshop.dtos.PageDto;
 import java.util.Optional;
-
+import java.util.stream.Collectors;
 import java.util.List;
 
 @Service
@@ -49,10 +49,9 @@ public class SaleItemService {
             String sortField,
             String sortDirection) {
 
-        if(sortField == null || sortField.trim().isEmpty()) {
+        if (sortField == null || sortField.trim().isEmpty()) {
             sortField = "createdOn";
         }
-
 
         Sort.Direction direction;
 
@@ -61,17 +60,29 @@ public class SaleItemService {
         } catch (Exception e) {
             direction = Sort.Direction.ASC;
         }
-        
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
-        Page<SaleItem> saleItemPage = null;
-        
 
-        if (filterBrands == null || filterBrands.isEmpty() || filterBrands.contains("[]")) {
+        if (page < 0)
+            page = 0;
+        if (size <= 0)
+            size = 10;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+        Page<SaleItem> saleItemPage;
+
+        if (filterBrands == null || filterBrands.isEmpty()) {
             saleItemPage = saleItemRepository.findAll(pageable);
         } else {
-            saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands);
+            List<String> cleanedBrands = filterBrands.stream()
+                    .filter(brand -> brand != null && !brand.isEmpty() && !brand.equals("[]"))
+                    .collect(Collectors.toList());
+
+            if (cleanedBrands.isEmpty()) {
+                saleItemPage = saleItemRepository.findAll(pageable);
+            } else {
+                saleItemPage = saleItemRepository.findAllFilter(pageable, cleanedBrands);
+            }
         }
-                
+
         return listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
     }
 
@@ -97,9 +108,7 @@ public class SaleItemService {
             dtoItem.setQuantity(1);
         }
 
-
         Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
-
 
         SaleItem item = new SaleItem();
         item.setBrand(brand);
@@ -113,16 +122,13 @@ public class SaleItemService {
         item.setColor(
                 dtoItem.getColor() != null && !dtoItem.getColor().trim().isEmpty() ? dtoItem.getColor().trim() : null);
 
-
         SaleItem savedItem = saleItemRepository.saveAndFlush(item);
         entityManager.refresh(savedItem);
-
 
         SaleItemDetailDto result = modelMapper.map(savedItem, SaleItemDetailDto.class);
         result.setBrandName(brand.getName());
         return result;
     }
-
 
     public SaleItemDetailDto updateSaleItemById(Integer id, SaleItemRequestDto dtoItem) {
         SaleItem existingItem = getSaleItemById(id);
@@ -136,7 +142,6 @@ public class SaleItemService {
         if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
             dtoItem.setQuantity(1);
         }
-
 
         existingItem.setBrand(brand);
         existingItem.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
@@ -162,6 +167,5 @@ public class SaleItemService {
     public void deleteAllForTest() {
         saleItemRepository.deleteAll();
     }
-
 
 }

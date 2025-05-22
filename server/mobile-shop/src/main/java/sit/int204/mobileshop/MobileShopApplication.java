@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import sit.int204.mobileshop.dtos.SaleItemDetailDto;
+import sit.int204.mobileshop.dtos.SaleItemDto;
 import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.utils.ListMapper;
 
@@ -16,19 +17,22 @@ public class MobileShopApplication {
     }
 
     @Bean
-    public ModelMapper modelMapper(){
+    public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
 
         modelMapper.typeMap(SaleItem.class, SaleItemDetailDto.class).addMappings(mapper -> {
             mapper.map(src -> src.getBrand().getName(), SaleItemDetailDto::setBrandName);
         });
 
+        modelMapper.typeMap(SaleItem.class, SaleItemDto.class).addMappings(mapper -> {
+            mapper.map(src -> src.getBrand().getName(), SaleItemDto::setBrandName);
+        });
+
         return modelMapper;
     }
 
-
     @Bean
-    public ListMapper listMapper(){
+    public ListMapper listMapper() {
         return ListMapper.getInstance();
     }
 }

@@ -15,6 +15,7 @@ public class ListMapper {
     public static ListMapper getInstance() {
         return listMapper;
     }
+
     public <S, T> List<T> mapList(List<S> source, Class<T> targetClass, ModelMapper modelMapper) {
         return source.stream().map(entity -> modelMapper.map(entity, targetClass)).toList();
     }
@@ -24,8 +25,29 @@ public class ListMapper {
     }
 
     public <S, T> PageDto<T> toPageDTO(Page<S> source, Class<T> targetClass, ModelMapper modelMapper) {
-        PageDto<T> pageDto = modelMapper.map(source, PageDto.class);
+        PageDto<T> pageDto = new PageDto<>();
+
         pageDto.setContent(mapList(source.getContent(), targetClass, modelMapper));
+
+        pageDto.setLast(source.isLast());
+        pageDto.setFirst(source.isFirst());
+        pageDto.setTotalPages(source.getTotalPages());
+        pageDto.setSize(source.getSize());
+        pageDto.setPage(source.getNumber());
+        pageDto.setTotalElements((int) source.getTotalElements());
+
+        if (source.getSort().isSorted()) {
+            StringBuilder sortString = new StringBuilder();
+            source.getSort().forEach(order -> {
+                if (sortString.length() > 0)
+                    sortString.append(", ");
+                sortString.append(order.getProperty()).append(": ").append(order.getDirection());
+            });
+            pageDto.setSort(sortString.toString());
+        } else {
+            pageDto.setSort("unsorted");
+        }
+
         return pageDto;
     }
 }

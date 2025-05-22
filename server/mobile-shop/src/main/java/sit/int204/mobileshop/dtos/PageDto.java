@@ -19,4 +19,5 @@ public class PageDto<T> {
     private Integer size;
     private String sort;
     private Integer page;
+    private Integer totalElements;
 }
