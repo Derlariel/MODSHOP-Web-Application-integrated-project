@@ -9,11 +9,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int204.mobileshop.dtos.SaleItemDetailDto;
+import sit.int204.mobileshop.dtos.SaleItemDto;
 import sit.int204.mobileshop.dtos.SaleItemRequestDto;
 import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
+import sit.int204.mobileshop.utils.ListMapper;
+import org.springframework.data.domain.*;
+import sit.int204.mobileshop.dtos.PageDto;
+import java.util.Optional;
 
 import java.util.List;
 
@@ -28,11 +33,36 @@ public class SaleItemService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private ListMapper listMapper;
+
     @PersistenceContext
     private EntityManager entityManager;
 
     public List<SaleItem> getAllSaleItems() {
         return saleItemRepository.findAllByOrderByCreatedOnAsc();
+    }
+
+    public PageDto<SaleItemDto> getAllSaleItemsPage(Integer page,
+            Integer size,
+            List<String> filterBrands,
+            String sortField,
+            String sortDirection) {
+
+        Sort.Direction direction = Sort.Direction.valueOf(sortDirection.toUpperCase());
+        
+        Page<SaleItem> saleItemPage = null;
+        
+
+        if (filterBrands == null || filterBrands.isEmpty()) {
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+            saleItemPage = saleItemRepository.findAll(pageable);
+        } else {
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+            saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands);
+        }
+                
+        return listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
     }
 
     public SaleItem getSaleItemById(Integer id) {
@@ -122,4 +152,6 @@ public class SaleItemService {
     public void deleteAllForTest() {
         saleItemRepository.deleteAll();
     }
+
+
 }
