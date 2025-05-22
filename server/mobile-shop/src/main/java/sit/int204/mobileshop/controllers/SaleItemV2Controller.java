@@ -8,13 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sit.int204.mobileshop.dtos.SaleItemDto;
 import sit.int204.mobileshop.services.SaleItemService;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
 import sit.int204.mobileshop.dtos.PageDto;
-import sit.int204.mobileshop.utils.*;
-import org.springframework.data.domain.Page;
-import org.modelmapper.ModelMapper;
-
 import java.util.List;
 
 @CrossOrigin(origins = "${app.origins}")
@@ -29,9 +23,11 @@ public class SaleItemV2Controller {
     @GetMapping("")
     public ResponseEntity<PageDto<SaleItemDto>> getAllSaleItemsPage(
         @RequestParam(defaultValue = "0") Integer page,
-        @RequestParam(defaultValue = "10") Integer size) {
-        Pageable pageable = PageRequest.of(page, size);
-        PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(pageable);
+        @RequestParam(defaultValue = "5") Integer size,
+        @RequestParam(defaultValue = "[]") List<String> filterBrands,
+        @RequestParam(defaultValue = "brand.name") String sortField,
+        @RequestParam(defaultValue = "asc") String sortDirection) {
+        PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(page, size, filterBrands, sortField, sortDirection);
         return ResponseEntity.ok(pagedResult);
     }
 }
