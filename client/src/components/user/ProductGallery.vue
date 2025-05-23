@@ -10,13 +10,13 @@ import Pagination from "../shared/Pagination.vue";
 import ErrorModal from "../shared/modal/ErrorModal.vue";
 import DEFAULT_IMAGE from "@/assets/default.jpg";
 
-// 🧭 Router
 const router = useRouter();
 
-// 🛒 Store & State
 const productStore = useProductStore();
 const productImages = productStore.productImages;
 const product = computed(() => productStore.allProducts);
+const totalPages = ref(0)
+
 
 const isLoading = ref(true);
 const isModalOpen = ref(false);
@@ -27,7 +27,7 @@ const adminMode = ref(false);
 const filters = ref({
   page: 0,
   filterBrands: [""],
-  size: 5,
+  size: 10,
   sortField: "createdOn",
   sortDirection: "asc",
 });
@@ -54,8 +54,11 @@ const detail = (productId) => {
 
 // 📦 Initial data fetch
 async function initProducts() {
+    await productStore.loadAllPages(filters.value);
   try {
     await productStore.loadProductsPage(filters.value);
+    totalPages.value = productStore.allPages
+    console.log(totalPages.value);
     if (product.value.length === 0) {
       router.push({ name: "error-page", query: { code: "NODATA" } });
     }
@@ -66,7 +69,10 @@ async function initProducts() {
   }
 }
 
-// ❗ Error Modal
+const updatePages = (pages) => {
+  filters.value.page = pages  
+}
+
 function handleModalClose() {
   isModalOpen.value = false;
   sessionStorage.removeItem("error-message");
@@ -240,7 +246,7 @@ watch(filters, async () => {
         </ListModel>
       </div>
     </div>
-    <Pagination />
+    <Pagination :totalPages="productStore.allPages" @sendPages="updatePages "/>
   </div>
 
   <div v-else>No sale item</div>

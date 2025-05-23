@@ -20,6 +20,7 @@ import Vivo from "@/assets/banner/vivo-banner.webp";
 import { getProductsPage } from "../utils/tool";
 export const useProductStore = defineStore("product", {
   state: () => ({
+    totalPages: 0,
     products: [],
     productImages: {
       1: I14PROMAX,
@@ -37,6 +38,7 @@ export const useProductStore = defineStore("product", {
   }),
   getters: {
     allProducts: (state) => state.products,
+    allPages: (state) => state.totalPages,
     getProductById: (state) => {
       return (id) => state.products.find((product) => product.id === id);
     },
@@ -85,15 +87,25 @@ export const useProductStore = defineStore("product", {
       try {
         const data = await getProductsPage(`${BASE_URL}/v2/sale-items`, params);
 
-        const normalized = Array.isArray (data.content)
+        const normalized = Array.isArray(data.content)
           ? data.content.map((product) => ({
               ...product
             }))
           : [];
-
-        this.products = normalized;
+        
+        this.products = normalized
       } catch (err) {
         console.error("Failed to load all products", err);
+      }
+    },
+      
+      async loadAllPages(params) {
+      try {
+        const data = await getProductsPage(`${BASE_URL}/v2/sale-items`, params);
+
+        this.totalPages = data.totalPages        
+      } catch (err) {
+        console.error("Failed to load all page products", err);
       }
     },
 

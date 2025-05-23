@@ -8,9 +8,10 @@ const BASE_URL = import.meta.env.VITE_BASE_URL
 const selectedBrands = ref([])
 const allBrands = ref([])
 const showBrandDropdown = ref(false)
-const size = ref(5)
+const size = ref(10)
 const sortField = ref('createdOn')
 const sortDirection = ref('asc')
+
 
 
 const fetchBrands = async () => {
