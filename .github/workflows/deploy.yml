@@ -3,7 +3,7 @@ name: Deploy kk1 test cypress
 on:
   push:
     branches:
-      - pre-dev
+      - release-v1
 
 jobs:
   deploy:
