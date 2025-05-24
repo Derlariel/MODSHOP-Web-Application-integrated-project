@@ -82,9 +82,8 @@ const sortByBrandDesc = () => {
 };
 
 
-
 watch(
-  [selectedBrands, size, sortField, sortDirection],
+  [selectedBrands, size, sortField, sortDirection, () => productStore.activePage],
   () => {
     sessionStorage.setItem(
       "filterAndSort",
@@ -93,6 +92,7 @@ watch(
         size: size.value,
         sortField: sortField.value,
         sortDirection: sortDirection.value,
+        activePage: productStore.activePage,
       })
     );
     emit("update:filters", {
@@ -100,7 +100,9 @@ watch(
       size: size.value,
       sortField: sortField.value,
       sortDirection: sortDirection.value,
+      activePage: productStore.activePage,
     });
+    console.log("emit");
   },
   { deep: true, immediate: true }
 );

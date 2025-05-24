@@ -71,6 +71,7 @@ const updatePages = (pages) => {
 }
 
 const updateFilters = (newFilters) => {
+  filters.value.page = newFilters.activePage - 1
   Object.assign(filters.value, newFilters)
 
 }
