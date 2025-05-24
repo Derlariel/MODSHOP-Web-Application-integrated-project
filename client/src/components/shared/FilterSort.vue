@@ -51,10 +51,14 @@ const addBrand = (brand) => {
 
   }
   showBrandDropdown.value = false;
+  productStore.setActivePage(1)
+  sessionStorage.setItem("activePage", 1)
 };
 
 const removeBrand = (brand) => {
   selectedBrands.value = selectedBrands.value.filter((b) => b !== brand);
+  productStore.setActivePage(1)
+  sessionStorage.setItem("activePage", 1)
 };
 
 const clearBrands = () => {
