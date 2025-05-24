@@ -45,10 +45,9 @@ const toggleBrandDropdown = () => {
 const addBrand = (brand) => {
   if (!selectedBrands.value.includes(brand)) {
     selectedBrands.value.push(brand);
+    
   }
   showBrandDropdown.value = false;
-    productStore.setActivePage(1)
-  sessionStorage.setItem("activePage", 1)
 };
 
 const removeBrand = (brand) => {
@@ -62,16 +61,22 @@ const clearBrands = () => {
 const resetSort = () => {
   sortField.value = "createdOn";
   sortDirection.value = "asc";
+  productStore.setActivePage(1)
+  sessionStorage.setItem("activePage", 1)
 };
 
 const sortByBrandAsc = () => {
   sortField.value = "brand.name";
   sortDirection.value = "asc";
+   productStore.setActivePage(1)
+   sessionStorage.setItem("activePage", 1)
 };
 
 const sortByBrandDesc = () => {
   sortField.value = "brand.name";
   sortDirection.value = "desc";
+  productStore.setActivePage(1)
+  sessionStorage.setItem("activePage", 1)
 };
 
 
@@ -88,7 +93,6 @@ watch(
         sortDirection: sortDirection.value,
       })
     );
-    
     emit("update:filters", {
       filterBrands: selectedBrands.value,
       size: size.value,

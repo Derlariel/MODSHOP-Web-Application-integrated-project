@@ -99,7 +99,6 @@ onMounted(async () => {
   }
 });
 
-// 🔄 Watch for filter changes
 watch(filters, async () => {
   initProducts();
 }, { deep: true, immediate: true })
