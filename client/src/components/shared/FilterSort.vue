@@ -56,6 +56,8 @@ const removeBrand = (brand) => {
 
 const clearBrands = () => {
   selectedBrands.value = [...[]]; //
+  productStore.setActivePage(1)
+  sessionStorage.setItem("activePage", 1)
 };
 
 const resetSort = () => {
