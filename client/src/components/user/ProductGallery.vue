@@ -39,9 +39,6 @@ const props = defineProps({
   },
 });
 
-const add = () => {
-  router.push({ name: "product-add" });
-};
 
 const detail = (productId) => {
   router.push({
@@ -73,7 +70,6 @@ const updatePages = (pages) => {
 const updateFilters = (newFilters) => {
   filters.value.page = newFilters.activePage - 1
   Object.assign(filters.value, newFilters)
-
 }
 
 function handleModalClose() {
@@ -120,7 +116,7 @@ watch(filters, async () => {
 
         <div class="flex flex-wrap items-center justify-center gap-4 mt-4">
           <div class="flex-1 min-w-[250px]">
-            <FilterSort @update:filters="Object.assign(filters, $event)" />
+            <FilterSort @update:filters="updateFilters" />
           </div>
         </div>
       </div>
