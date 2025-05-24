@@ -1,94 +1,126 @@
 <script setup>
-import { Filter, Menu, SortAsc, SortDesc, X } from 'lucide-vue-next'
-import { ref, watch, onMounted, computed } from 'vue'
+import { Filter, Menu, SortAsc, SortDesc, X } from "lucide-vue-next";
+import { ref, watch, onMounted, computed } from "vue";
 
-const emit = defineEmits(['update:filters'])
+const emit = defineEmits(["update:filters"]);
+const showBrandDropdown = ref(false);
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+const selectedBrands = ref([]);
+const allBrands = ref([]);
+const size = ref(10);
+const sortField = ref("createdOn");
+const sortDirection = ref("asc");
 
-const BASE_URL = import.meta.env.VITE_BASE_URL
-const selectedBrands = ref([])
-const allBrands = ref([])
-const showBrandDropdown = ref(false)
-const size = ref(10)
-const sortField = ref('createdOn')
-const sortDirection = ref('asc')
-
-
+import { useProductStore } from "@/stores/useProductStore";
+const productStore = useProductStore();
 
 const fetchBrands = async () => {
   try {
-    const res = await fetch(`${BASE_URL}/v1/brands`)
-    if (!res.ok) throw new Error('Failed to fetch brands')
-    const data = await res.json()
-    allBrands.value = data.map(b => b.name)
+    const res = await fetch(`${BASE_URL}/v1/brands`);
+    if (!res.ok) throw new Error("Failed to fetch brands");
+    const data = await res.json();
+    allBrands.value = data.map((b) => b.name);
   } catch (err) {
-    console.error('Error fetching brands:', err)
+    console.error("Error fetching brands:", err);
+  }
+};
+
+  const stored = sessionStorage.getItem("filterAndSort");
+if (stored) {
+  try {
+    const parsed = JSON.parse(stored);
+    selectedBrands.value = parsed.filterBrands || [];
+    size.value = parsed.size || 10;
+    sortField.value = parsed.sortField || "createdOn";
+    sortDirection.value = parsed.sortDirection || "asc";
+  } catch (e) {
+    console.error("Invalid session data", e);
   }
 }
 
 const toggleBrandDropdown = () => {
-  showBrandDropdown.value = !showBrandDropdown.value
-}
+  showBrandDropdown.value = !showBrandDropdown.value;
+};
 
 const addBrand = (brand) => {
   if (!selectedBrands.value.includes(brand)) {
-    selectedBrands.value.push(brand)
+    selectedBrands.value.push(brand);
   }
-  showBrandDropdown.value = false
-}
+  showBrandDropdown.value = false;
+    productStore.setActivePage(1)
+  sessionStorage.setItem("activePage", 1)
+};
 
 const removeBrand = (brand) => {
-  selectedBrands.value = selectedBrands.value.filter(b => b !== brand)
-}
+  selectedBrands.value = selectedBrands.value.filter((b) => b !== brand);
+};
 
 const clearBrands = () => {
-  selectedBrands.value = [...[]] // 
-}
+  selectedBrands.value = [...[]]; //
+};
 
 const resetSort = () => {
-  sortField.value = 'createdOn'
-  sortDirection.value = 'asc'
-}
+  sortField.value = "createdOn";
+  sortDirection.value = "asc";
+};
 
 const sortByBrandAsc = () => {
-  sortField.value = 'brand.name'  
-  sortDirection.value = 'asc'
-}
+  sortField.value = "brand.name";
+  sortDirection.value = "asc";
+};
 
 const sortByBrandDesc = () => {
-  sortField.value = 'brand.name'
-  sortDirection.value = 'desc'
-}
+  sortField.value = "brand.name";
+  sortDirection.value = "desc";
+};
+
+
 
 watch(
-  () => ({
-    filterBrands: selectedBrands.value,
-    size: size.value,
-    sortField: sortField.value,
-    sortDirection: sortDirection.value,
-  }),
-  (newFilters) => {
-    emit('update:filters', newFilters)
+  [selectedBrands, size, sortField, sortDirection],
+  () => {
+    sessionStorage.setItem(
+      "filterAndSort",
+      JSON.stringify({
+        filterBrands: selectedBrands.value,
+        size: size.value,
+        sortField: sortField.value,
+        sortDirection: sortDirection.value,
+      })
+    );
+    
+    emit("update:filters", {
+      filterBrands: selectedBrands.value,
+      size: size.value,
+      sortField: sortField.value,
+      sortDirection: sortDirection.value,
+    });
   },
-  { deep: true }
-)
+  { deep: true, immediate: true }
+);
 
 onMounted(() => {
-  fetchBrands()
-})
+  fetchBrands();
+});
 </script>
 
 <template>
   <div class="text-gray-700 flex justify-between items-center">
     <!-- Left: Input box + Filter button + Clear -->
     <div class="flex w-full max-w-2xl relative">
-      <div class="itbms-brand-filter flex-1 border border-gray-300 rounded-l-md p-2 bg-white flex flex-wrap items-center min-h-[42px]">
+      <div
+        class="itbms-brand-filter flex-1 border border-gray-300 rounded-l-md p-2 bg-white flex flex-wrap items-center min-h-[42px]"
+      >
         <div
           v-for="brand in selectedBrands"
           :key="brand"
           class="itbms-filter-item bg-gray-200 text-sm rounded-full px-3 py-1 mr-2 mb-1 flex items-center"
         >
           {{ brand }}
-          <button @click="removeBrand(brand)" class=" itbms-filter-item-clear ml-2 text-gray-500 hover:text-red-500">
+          <button
+            @click="removeBrand(brand)"
+            class="itbms-filter-item-clear ml-2 text-gray-500 hover:text-red-500"
+          >
             <X class="w-3 h-3" />
           </button>
         </div>

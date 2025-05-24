@@ -26,13 +26,12 @@ const adminMode = ref(false);
 
 const filters = ref({
   page: 0,
-  filterBrands: [""],
+  filterBrands: [],
   size: 10,
   sortField: "createdOn",
   sortDirection: "asc",
 });
 
-// 👀 Props
 const props = defineProps({
   viewType: {
     type: String,
@@ -40,7 +39,6 @@ const props = defineProps({
   },
 });
 
-// 🧭 Navigation
 const add = () => {
   router.push({ name: "product-add" });
 };
@@ -52,7 +50,6 @@ const detail = (productId) => {
   });
 };
 
-// 📦 Initial data fetch
 async function initProducts() {
     await productStore.loadAllPages(filters.value);
   try {
@@ -73,13 +70,17 @@ const updatePages = (pages) => {
   filters.value.page = pages  
 }
 
+const updateFilters = (newFilters) => {
+  Object.assign(filters.value, newFilters)
+
+}
+
 function handleModalClose() {
   isModalOpen.value = false;
   sessionStorage.removeItem("error-message");
   router.push({ name: "sale-items" });
 }
 
-// 🎯 Lifecycle
 onMounted(async () => {
   await initProducts();
 
@@ -118,7 +119,7 @@ watch(filters, async () => {
         <SuccessModal :message="alertMessage" :visible="showSuccess" />
 
         <div class="space-x-4 m-auto text-left mt-6">
-          <FilterSort @update:filters="Object.assign(filters, $event)" />
+          <FilterSort @update:filters="updateFilters" />
           <button
             @click="add"
             class="itbms-sale-item-add mt-4 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200"

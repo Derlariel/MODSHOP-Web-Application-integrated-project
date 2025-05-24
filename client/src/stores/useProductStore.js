@@ -20,6 +20,7 @@ import Vivo from "@/assets/banner/vivo-banner.webp";
 import { getProductsPage } from "../utils/tool";
 export const useProductStore = defineStore("product", {
   state: () => ({
+    activePage: 1,
     totalPages: 0,
     products: [],
     productImages: {
@@ -38,6 +39,7 @@ export const useProductStore = defineStore("product", {
   }),
   getters: {
     allProducts: (state) => state.products,
+    getActivePage: (state) => state.activePage,
     allPages: (state) => state.totalPages,
     getProductById: (state) => {
       return (id) => state.products.find((product) => product.id === id);
@@ -56,6 +58,10 @@ export const useProductStore = defineStore("product", {
       },
   },
   actions: {
+
+    setActivePage(page) {
+      this.activePage = page;
+    },
     async fetchProductDetail(id) {
       try {
         const product = await getProductById(`${BASE_URL}/v1/sale-items`, id);

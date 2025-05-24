@@ -7,7 +7,7 @@ import HistoryPath from "../shared/HistoryPath.vue";
 import ConfirmModal from "../shared/modal/ConfirmModal.vue";
 import SuccessModal from "../shared/modal/SuccessModal.vue";
 import { checkUptodate } from "../../utils/validate";
-import AppFooter from "../shared/AppFooter.vue";
+
 
 const router = useRouter();
 const route = useRoute();
@@ -16,6 +16,8 @@ const productStore = useProductStore();
 const isLoading = ref(true);
 const product = ref(null);
 const isData = ref(true);
+
+console.log('detail', productStore.getActivePage);
 
 const submit = () => {
   router.push({
@@ -56,6 +58,8 @@ const confirm = async () => {
   }
 };
 const showSuccess = ref(false);
+
+
 
 onMounted(async () => {
   await productStore.loadProducts();

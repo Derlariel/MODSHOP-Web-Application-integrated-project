@@ -1,6 +1,10 @@
 <script setup>
 import {defineProps} from 'vue'
-import {useRouter} from 'vue-router'
+import { useRouter } from 'vue-router'
+
+
+import { useProductStore } from "@/stores/useProductStore";
+const productStore = useProductStore();
 
 const props = defineProps({
     previous: Number,
@@ -10,11 +14,16 @@ const props = defineProps({
     }
 })
 const router = useRouter()
+
+const back = () => {
+  router.push({ name: 'product-gallery' })
+
+}
 </script>
 
 <template>
   <div class="flex cursor-pointer font-light mb-5 space-x-2.5">
-     <p class="itbms-home-button" @click="router.push({name : 'product-list'})">Home</p>
+     <p class="itbms-home-button" @click="back">Home</p>
     <p>/</p>
     <p
       @click="router.go(-props.next)"

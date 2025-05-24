@@ -1,6 +1,6 @@
 <script setup>
 import ListModel from "./ListModel.vue";
-import { ref, defineProps, defineEmits, computed, watch, onMounted, onUnmounted } from "vue";
+import { ref, defineProps, defineEmits, computed, watch, onMounted } from "vue";
 
 const props = defineProps({
   totalPages: {
@@ -12,16 +12,15 @@ const props = defineProps({
 import { useProductStore } from "@/stores/useProductStore";
 const productStore = useProductStore();
 const storePages = computed(() => productStore.allPages);
+const activePage = computed(() => productStore.getActivePage);
 
 const emit = defineEmits(["sendPages"]);
 
-
 const visiblePages = computed(() => {
   const total = productStore.allPages;
-  const current = activePage.value;
+  const current = productStore.getActivePage;
 
   const maxVisible = 10;
-
   let start = Math.max(1, current - Math.floor(maxVisible / 2));
   let end = start + maxVisible - 1;
 
@@ -33,58 +32,58 @@ const visiblePages = computed(() => {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 
-const activePage = ref(1);
 const paging = ref("paging");
 
 const setActivePage = (page) => {
   const maxPage = storePages.value;
 
   if (page > maxPage) {
-    activePage.value = 1;
+    productStore.setActivePage(1);
   } else {
-    activePage.value = page;
+    productStore.setActivePage(page);
   }
 
-  console.log("max-emit", maxPage);
-  console.log("before-emit", activePage.value - 1);
+  sessionStorage.setItem("activePage", String(productStore.getActivePage));
+  emit("sendPages", productStore.getActivePage - 1);
+};
 
-  emit("sendPages", activePage.value - 1);
+const first = () => {
+  setActivePage(1); 
+};
+
+const last = () => {
+  setActivePage(storePages.value); 
+};
+
+const next = () => {
+  if (productStore.getActivePage < storePages.value) {
+    setActivePage(productStore.getActivePage + 1);
+  }
+};
+
+const prev = () => {
+  if (productStore.getActivePage > 1) {
+    setActivePage(productStore.getActivePage - 1); 
+  }
 };
 
 watch(
   () => productStore.allPages,
   (newVal) => {
     console.log("max-emit", newVal);
-    console.log("before-emit", activePage.value - 1);
-    if (activePage.value > newVal) {
-      setActivePage(1);
+    console.log("before-emit", productStore.allPages);
+    if (productStore.allPages < productStore.getActivePage) {
+      setActivePage(1)
     }
   }
 );
 
-const first = () => {
-  setActivePage(visiblePages.value.length + 3);
-};
-
-const last = () => {
-  setActivePage(visiblePages.value.length + 2);
-};
-
-const next = () => {
-  console.log(visiblePages.value.length, "length");
-
-  if (activePage.value < visiblePages.value.length + 2) {
-    activePage.value++;
-    setActivePage(activePage.value);
+onMounted(() => {
+  const savedPage = sessionStorage.getItem("activePage");
+  if (savedPage) {
+    setActivePage(parseInt(savedPage));
   }
-};
-
-const prev = () => {
-  if (activePage.value > visiblePages.value[0]) {
-    activePage.value--;
-    setActivePage(activePage.value);
-  }
-};
+});
 </script>
 
 <template>
@@ -141,7 +140,7 @@ const prev = () => {
           </template>
         </ListModel>
       </div>
-      
+
       <!-- Page Indicator (Mobile) -->
       <div class="mobile-pagination page-indicator">
         <span class="px-3 py-1 bg-gray-800 rounded-md text-white">
