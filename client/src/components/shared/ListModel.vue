@@ -29,7 +29,6 @@ const appStore = useAppStore();
 
 <template>
   <div class="container mx-auto px-2 sm:px-4">
-    <!-- Toggle View Buttons -->
     <div v-if="appStore.adminMode" class="flex justify-end space-x-2 mb-4">
       <button @click="toggleView('gallery')"
         :class="['p-2 rounded-md', currentView === 'gallery' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black']">
