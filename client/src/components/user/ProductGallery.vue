@@ -3,11 +3,11 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useProductStore } from "@/stores/useProductStore";
 
-import ListModel from "../shared/ListModel.vue";
-import FilterSort from "../shared/FilterSort.vue";
-import SuccessModal from "../shared/modal/SuccessModal.vue";
-import Pagination from "../shared/Pagination.vue";
-import ErrorModal from "../shared/modal/ErrorModal.vue";
+import ListModel from "@/components/shared/ListModel.vue";
+import FilterSort from "@/components/shared/FilterSort.vue";
+import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
+import Pagination from "@/components/shared/Pagination.vue";
+import ErrorModal from "@/components/shared/modal/ErrorModal.vue";
 import DEFAULT_IMAGE from "@/assets/default.jpg";
 
 const router = useRouter();

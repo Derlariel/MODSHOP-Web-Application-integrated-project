@@ -13,6 +13,25 @@ import { useBrandStore } from "@/stores/useBrandStore";
 import { useRouter } from "vue-router";
 import BaseInput from "@/components/shared/BaseInput.vue";
 
+import {
+  runValidation,
+  // validateMinLength,
+  // validateMaxLength,
+  // validateExactLength,
+  // validateContainsNumber,
+  // validateNoWhitespace,
+  validateModel,
+  validateBrandSelected,
+  validateDescription,
+  validatePrice,
+  validateQuantity,
+  validateRamSize,
+  validateStorageSize,
+  validateScreenSize,
+  validateColor
+  
+} from "@/utils/validate.js";
+
 const router = useRouter();
 const brandStore = useBrandStore();
 const brands = computed(() => brandStore.getBrands());
@@ -109,7 +128,6 @@ watchEffect(() => {
   if (temp.quantity === "") temp.quantity = null;
   if (temp.price === "") temp.price = null;
 
-
   const isNewItem = Object.keys(props.init).length === 0;
   let isUnchanged = false;
 
@@ -120,9 +138,13 @@ watchEffect(() => {
         const initValue =
           props.init[field] === undefined ? null : props.init[field];
         if (
-          ["price", "ramGb", "storageGb", "screenSizeInch", "quantity"].includes(
-            field
-          )
+          [
+            "price",
+            "ramGb",
+            "storageGb",
+            "screenSizeInch",
+            "quantity",
+          ].includes(field)
         ) {
           return Number(tempValue) === Number(initValue);
         }
@@ -130,8 +152,8 @@ watchEffect(() => {
       }) && temp.brand.name === (props.init.brandName || null);
   }
 
-  btnNotAvailable.value = requiredFieldsEmpty || (!isNewItem && isUnchanged) || !temp.brand.id;
-
+  btnNotAvailable.value =
+    requiredFieldsEmpty || (!isNewItem && isUnchanged) || !temp.brand.id;
 });
 
 const submit = () => {
@@ -145,6 +167,10 @@ const submit = () => {
     return;
   }
 
+  const notPass = Object.values(errors).every(value => value !== null)
+  if(notPass) return
+
+
   emit("submit", {
     ...temp,
     price: temp.price ? Number(temp.price) : null,
@@ -155,11 +181,62 @@ const submit = () => {
   });
 };
 
+const errors = reactive({
+  model: null,
+  brand: null,
+  description: null,
+  price: null,
+  quantity: null,
+  ramGb: null,
+  storageGb: null,
+  screenSizeInch: null,
+  color: null,
+});
+
+const validateField = (field) => {
+  let result = { valid: true, message: null };
+  if (field === "model") {
+    result = runValidation(temp.model, [validateModel]);
+  } else if (field === "description") {
+    result = runValidation(temp.description, [validateDescription]);
+  } else if (field === "price") {
+    result = runValidation(temp.price, [validatePrice]);
+  } else if (field === "brand") {
+    result = validateBrandSelected(temp.brand?.name);
+    console.log("error", errors.brand);
+  } else if (field === "quantity") {
+    result = runValidation(temp.quantity, [validateQuantity]);
+  } else if (field === "screenSizeInch") {
+    console.log("field", field);
+
+    result = runValidation(temp.screenSizeInch, [validateScreenSize]);
+    console.log("error", errors.screenSizeInch);
+
+  } else if (field === "color") {
+    result = runValidation(temp.color, [validateColor]);
+  } else if (field === "storageGb") {
+    result = runValidation(temp.storageGb, [validateStorageSize]);
+  } 
+  else if (field === "ramGb") {
+    result = runValidation(temp.ramGb, [validateRamSize]);
+  }
+   
+  errors[field] = result.message;
+  return result.valid;
+};
+
 const trimField = (field) => {
+  console.log(field);
   if (typeof temp[field] === "string") {
     temp[field] = temp[field].trim() || "";
   }
+
+  console.log(field);
+
+  validateField(field);
 };
+
+
 
 onMounted(() => {
   brandStore.loadBrands();
@@ -180,8 +257,12 @@ onMounted(() => {
           <div class="relative">
             <select
               v-model="temp.brand"
+              @blur="trimField('brand')"
               id="brand"
-              class="itbms-brand w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white appearance-none"
+             :class="[
+              'itbms-brand w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white appearance-none',
+              errors.brand ? 'border-red-700' : 'border-neutral-700',
+            ]"
               required
             >
               <option :value="{ id: null, name: null }" disabled>
@@ -207,10 +288,15 @@ onMounted(() => {
                 />
               </svg>
             </div>
+            
           </div>
+          <p v-if="errors.brand" class="text-sm text-red-500 mt-1">
+            {{ errors.brand }}
+          </p>
         </div>
 
         <BaseInput
+          :error="errors.model"
           @trim="trimField('model')"
           :maxInput="60"
           v-model="temp.model"
@@ -221,6 +307,8 @@ onMounted(() => {
         />
 
         <BaseInput
+          :error="errors.price"
+          @trim="trimField('price')"
           v-model="temp.price"
           cypress="itbms-price"
           placeholder="0.00"
@@ -242,10 +330,16 @@ onMounted(() => {
             v-model="temp.description"
             id="description"
             rows="4"
-            class="itbms-description w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white"
+            :class="[
+              'itbms-description w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white',
+              errors.description ? 'border-red-700' : 'border-neutral-700',
+            ]"
             placeholder="Enter product description"
             required
           ></textarea>
+          <p v-if="errors.description" class="text-sm text-red-500 mt-1">
+            {{ errors.description }}
+          </p>
         </div>
 
         <div class="pt-2">
@@ -255,13 +349,18 @@ onMounted(() => {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <BaseInput
               cypress="itbms-ramGb"
+              @trim="trimField('ramGb')"
               v-model="temp.ramGb"
               label="RAM (GB)"
               type="number"
               placeholder="6"
+              :error="errors.ramGb"
               id="ram"
+              
             />
             <BaseInput
+              :error="errors.screenSizeInch"
+              @trim="trimField('screenSizeInch')"
               cypress="itbms-screenSizeInch"
               v-model="temp.screenSizeInch"
               label="Screen Size (Inches)"
@@ -272,10 +371,12 @@ onMounted(() => {
             />
             <BaseInput
               cypress="itbms-storageGb"
+              @trim="trimField('storageGb')"
               v-model="temp.storageGb"
               label="Storage (GB)"
               placeholder="128"
               type="number"
+              :error="errors.storageGb"
               id="storage"
             />
             <BaseInput
@@ -284,6 +385,7 @@ onMounted(() => {
               v-model="temp.color"
               label="Color"
               placeholder="Black"
+              :error="errors.color"
               id="color"
             />
           </div>
@@ -292,6 +394,7 @@ onMounted(() => {
         <div class="space-y-3 pt-6 border-t border-neutral-800">
           <h3 class="text-lg font-medium text-white mb-4">Inventory</h3>
           <BaseInput
+            :error="errors.quantity"
             cypress="itbms-quantity"
             @trim="trimField('quantity')"
             v-model="temp.quantity"

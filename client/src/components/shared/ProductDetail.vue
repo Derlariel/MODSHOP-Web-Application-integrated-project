@@ -6,8 +6,7 @@ import ProductPicture from "@/components/shared/ProductPicture.vue";
 import HistoryPath from "@/components/shared/HistoryPath.vue";
 import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
-import { checkUptodate } from "@/utils/validate";
-
+import { checkUpToDate } from "@/utils/validate";
 
 const router = useRouter();
 const route = useRoute();
@@ -59,14 +58,12 @@ const confirm = async () => {
 };
 const showSuccess = ref(false);
 
-
-
 onMounted(async () => {
   await productStore.loadProducts();
   const result = await productStore.fetchProductDetail(productId);
   product.value = result;
 
-  if (checkUptodate(result)) {
+  if (checkUpToDate(result)) {
     showSuccess.value = false;
     router.push("/sale-items");
   }

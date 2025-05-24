@@ -1,7 +1,7 @@
 <script setup>
 import { reactive, computed, watch, ref } from "vue"; // Added ref import
 import BaseInput from "@/components/shared/BaseInput.vue";
-
+import { validateBrandName , runValidation , validateBrandOrigin , validateBrandURL } from "@/utils/validate.js"; 
 const props = defineProps({
   initialData: {
     type: Object,
@@ -44,10 +44,6 @@ watch(
   },
   { immediate: true, deep: true }
 );
-
-const errors = reactive({
-  name: "",
-});
 
 const validateName = () => {
   if (!formData.name.trim()) {
@@ -98,6 +94,36 @@ const handleSubmit = () => {
 const handleCancel = () => {
   emit("cancel");
 };
+
+const trimField = (field) => {
+  console.log(field);
+  if (typeof formData[field] === "string") {
+    formData[field] = formData[field].trim() || "";
+  }
+
+  console.log(field);
+
+  validateField(field);
+};
+
+const errors = reactive({
+  name: null,
+  websiteUrl: null,
+  countryOfOrigin: null
+});
+
+const validateField = (field) => {
+  let result = { valid: true, message: null };
+  if (field === "name") {
+    result = runValidation(formData.name, [validateBrandName]);
+  } else if (field === "websiteUrl") {
+    result = runValidation(formData.websiteUrl, [validateBrandURL]);
+  } else if (field === "countryOfOrigin") {
+    result = runValidation(formData.countryOfOrigin, [validateBrandOrigin]);
+  } 
+  errors[field] = result.message;
+  return result.valid;
+};
 </script>
 
 <template>
@@ -109,7 +135,7 @@ const handleCancel = () => {
       placeholder="Enter brand name"
       inputClass="itbms-name"
       :error="errors.name"
-      @blur="validateName"
+      @trim="trimField('name')"
     />
 
     <BaseInput
@@ -118,6 +144,8 @@ const handleCancel = () => {
       id="website-url"
       placeholder="https://www.example.com"
       inputClass="itbms-websiteUrl"
+      @trim="trimField('websiteUrl')"
+      :error="errors.websiteUrl"
     />
     <BaseInput
       v-model="formData.countryOfOrigin"
@@ -125,6 +153,8 @@ const handleCancel = () => {
       id="country"
       placeholder="Enter country of origin"
       inputClass="itbms-countryOfOrigin"
+      @trim="trimField('countryOfOrigin')"
+      :error="errors.countryOfOrigin"
     />
 
     <div class="flex items-center space-x-3">

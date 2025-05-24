@@ -20,13 +20,13 @@ defineProps({
   inputClass: String
 });
 
-const preventNegative = (e) => {
-  const value = parseFloat(e.target.value);
-  if (value < 0) {
-    e.target.value = 0;
-    model.value = 0; 
-  }
-};
+// const preventNegative = (e) => {
+//   const value = parseFloat(e.target.value);
+//   if (value < 0) {
+//     e.target.value = 0;
+//     model.value = 0; 
+//   }
+// };
 
 const handle = () => {
   emit('trim')
@@ -56,7 +56,6 @@ const handle = () => {
         :type="type"
         :id="id"
         :placeholder="placeholder"
-        @input="preventNegative"
         :class="[
           cypress,
           inputClass,
