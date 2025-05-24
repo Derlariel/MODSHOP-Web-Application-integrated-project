@@ -129,11 +129,11 @@ onMounted(() => {
        <div class="relative flex flex-wrap items-center max-w-full sm:max-w-2xl w-full">
 <!-- Selected Brands -->
 <div
-  class="flex flex-wrap items-center content-center flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[42px] px-2">
+  class="itbms-brand-filter flex flex-wrap items-center content-center flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[42px] px-2">
   <div v-for="brand in selectedBrands" :key="brand"
-    class="bg-gray-200 text-sm rounded-full px-3 py-1 mr-2  flex items-center shadow-sm">
+    class="itbms-filter-item- bg-gray-200 text-sm rounded-full px-3 py-1 mr-2  flex items-center shadow-sm">
     {{ brand }}
-    <button @click="removeBrand(brand)" class="ml-2 text-gray-500 hover:text-red-500 transition">
+    <button @click="removeBrand(brand)" class="itbms-filter-item-clear ml-2 text-gray-500 hover:text-red-500 transition">
       <X class="w-3 h-3" />
     </button>
   </div>
@@ -141,12 +141,12 @@ onMounted(() => {
 
   <div class="relative flex-shrink-0 flex">
     <button @click="toggleBrandDropdown"
-      class="px-4 py-2 bg-gray-300 border border-gray-300 hover:bg-gray-400 transition rounded-none">
+      class="itbms-brand-filter-button px-4 py-2 bg-gray-300 border border-gray-300 hover:bg-gray-400 transition rounded-none">
       <Filter />
     </button>
 
     <button @click="clearBrands"
-      class="px-4 py-2 bg-gray-300 border border-gray-300 rounded-r-md hover:bg-red-400 transition">
+      class="itbms-brand-filter-clear px-4 py-2 bg-gray-300 border border-gray-300 rounded-r-md hover:bg-red-400 transition">
       Clear
     </button>
 
@@ -167,24 +167,24 @@ onMounted(() => {
            <div class="flex justify-start flex-shrink-0 flex-wrap items-center gap-1 sm:flex-colum ">
             <label for="page-size" class="text-sm font-medium">Show</label>
             <select name="page-size" id="page-size" v-model="size"
-                class="bg-gray-300 border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer focus:outline-none">
+                class="itbms-page-size bg-gray-300 border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer focus:outline-none">
                 <option value="5">5</option>
                 <option value="10">10</option>
                 <option value="20">20</option>
             </select>
 
             <button @click="resetSort" title="No Sort"
-                class="bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
+                class="itbms-brand-none bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
                 <Menu class="w-5 h-5" />
             </button>
 
             <button @click="sortByBrandAsc" title="Sort A-Z"
-                class="bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
+                class="itbms-brand-asc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
                 <SortAsc class="w-5 h-5" />
             </button>
 
             <button @click="sortByBrandDesc" title="Sort Z-A"
-                class="bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
+                class="itbms-brand-desc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
                 <SortDesc class="w-5 h-5" />
             </button>
         </div>
