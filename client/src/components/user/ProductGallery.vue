@@ -118,14 +118,10 @@ watch(filters, async () => {
 
         <SuccessModal :message="alertMessage" :visible="showSuccess" />
 
-        <div class="space-x-4 m-auto text-left mt-6">
-          <FilterSort @update:filters="updateFilters" />
-          <button
-            @click="add"
-            class="itbms-sale-item-add mt-4 inline-block bg-white text-black font-medium py-3 px-6 rounded-full transition-colors duration-300 hover:bg-gray-200"
-          >
-            Add Sale Item
-          </button>
+        <div class="flex flex-wrap items-center justify-center gap-4 mt-4">
+          <div class="flex-1 min-w-[250px]">
+            <FilterSort @update:filters="Object.assign(filters, $event)" />
+          </div>
         </div>
       </div>
     </div>

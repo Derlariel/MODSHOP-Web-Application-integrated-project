@@ -11,7 +11,7 @@ import {
 } from "vue";
 import { useBrandStore } from "@/stores/useBrandStore";
 import { useRouter } from "vue-router";
-import BaseInput from "../shared/BaseInput.vue";
+import BaseInput from "@/components/shared/BaseInput.vue";
 
 const router = useRouter();
 const brandStore = useBrandStore();

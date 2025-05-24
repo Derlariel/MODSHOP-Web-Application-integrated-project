@@ -6,7 +6,7 @@ import { fileURLToPath, URL } from "node:url";
 export default defineConfig({
   base: '/kk1/',
   resolve: {
-    alias: {
+ alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)), 
     },
   },

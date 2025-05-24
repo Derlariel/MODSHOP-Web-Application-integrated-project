@@ -4,7 +4,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 import { ref, onMounted, onUnmounted } from 'vue';
 
-import AppFooter from '../shared/AppFooter.vue';
+import AppFooter from '@/components/shared/AppFooter.vue';
 
 const selectedBrand = ref(null);
 

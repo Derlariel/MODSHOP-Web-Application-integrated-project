@@ -2,10 +2,10 @@
 import { ref, onMounted, computed } from "vue";
 import { useBrandStore } from "@/stores/useBrandStore";
 import { useRouter } from "vue-router";
-import SuccessModal from "../shared/modal/SuccessModal.vue";
-import ConfirmModal from "../shared/modal/ConfirmModal.vue";
-import ListModel from "../shared/ListModel.vue";
-import SkeletonLoader from "../shared/SkeletonLoader.vue";
+import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
+import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
+import ListModel from "@/components/shared/ListModel.vue";
+import SkeletonLoader from "@/components/shared/SkeletonLoader.vue";
 
 const router = useRouter();
 const brandStore = useBrandStore();

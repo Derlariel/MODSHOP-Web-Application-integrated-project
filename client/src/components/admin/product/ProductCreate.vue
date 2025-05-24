@@ -1,11 +1,11 @@
 <script setup>
 import {} from "vue";
-import ProductPicture from "./ProductPicture.vue";
+import ProductPicture from "@/components/shared/ProductPicture.vue";
 import ProductForm from "./ProductForm.vue";
 import { useProductStore } from "@/stores/useProductStore";
 import { useRouter } from "vue-router";
-import HistoryPath from "../shared/HistoryPath.vue";
-import AppFooter from "../shared/AppFooter.vue";
+import HistoryPath from "@/components/shared/HistoryPath.vue";
+
 
 const productStore = useProductStore();
 const router = useRouter();

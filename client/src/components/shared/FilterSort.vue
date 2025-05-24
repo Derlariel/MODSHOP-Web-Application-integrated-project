@@ -1,7 +1,10 @@
 <script setup>
 import { Filter, Menu, SortAsc, SortDesc, X } from "lucide-vue-next";
 import { ref, watch, onMounted, computed } from "vue";
+import { useProductStore } from "@/stores/useProductStore";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const emit = defineEmits(["update:filters"]);
 const showBrandDropdown = ref(false);
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -11,7 +14,7 @@ const size = ref(10);
 const sortField = ref("createdOn");
 const sortDirection = ref("asc");
 
-import { useProductStore } from "@/stores/useProductStore";
+
 const productStore = useProductStore();
 
 const fetchBrands = async () => {
@@ -25,7 +28,7 @@ const fetchBrands = async () => {
   }
 };
 
-  const stored = sessionStorage.getItem("filterAndSort");
+const stored = sessionStorage.getItem("filterAndSort");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
@@ -45,7 +48,7 @@ const toggleBrandDropdown = () => {
 const addBrand = (brand) => {
   if (!selectedBrands.value.includes(brand)) {
     selectedBrands.value.push(brand);
-    
+
   }
   showBrandDropdown.value = false;
 };
@@ -70,8 +73,8 @@ const resetSort = () => {
 const sortByBrandAsc = () => {
   sortField.value = "brand.name";
   sortDirection.value = "asc";
-   productStore.setActivePage(1)
-   sessionStorage.setItem("activePage", 1)
+  productStore.setActivePage(1)
+  sessionStorage.setItem("activePage", 1)
 };
 
 const sortByBrandDesc = () => {
@@ -107,122 +110,108 @@ watch(
   { deep: true, immediate: true }
 );
 
+const add = () => {
+  router.push({ name: "product-add" });
+};
+
 onMounted(() => {
   fetchBrands();
 });
 </script>
 
 <template>
-  <div class="text-gray-700 flex justify-between items-center">
-    <!-- Left: Input box + Filter button + Clear -->
-    <div class="flex w-full max-w-2xl relative">
-      <div
-        class="itbms-brand-filter flex-1 border border-gray-300 rounded-l-md p-2 bg-white flex flex-wrap items-center min-h-[42px]"
-      >
-        <div
-          v-for="brand in selectedBrands"
-          :key="brand"
-          class="itbms-filter-item bg-gray-200 text-sm rounded-full px-3 py-1 mr-2 mb-1 flex items-center"
-        >
-          {{ brand }}
-          <button
-            @click="removeBrand(brand)"
-            class="itbms-filter-item-clear ml-2 text-gray-500 hover:text-red-500"
-          >
-            <X class="w-3 h-3" />
-          </button>
-        </div>
-      </div>
-
-      <!-- Filter Button -->
-      <button
-        @click="toggleBrandDropdown"
-        class="px-4 py-2 bg-gray-300 border-y border-gray-300 hover:bg-gray-400 transition"
-      >
-        <Filter class="w-4 h-4 mr-2" />
-      </button>
-
-      <!-- Clear Button -->
-      <button
-        @click="clearBrands"
-        class="px-4 py-2 bg-gray-300 border border-gray-300 border-l-0 rounded-r-md hover:bg-red-400 transition"
-      >
-        Clear
-      </button>
-
-      <!-- Dropdown -->
-      <ul
-        v-if="showBrandDropdown"
-        class="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 z-50 max-h-48 overflow-y-auto"
-      >
-        <li
-          v-for="brand in allBrands"
-          :key="brand"
-          @click="addBrand(brand)"
-          class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-        >
-          {{ brand }}
-        </li>
-      </ul>
-    </div>
-
-    <!-- Right: Sorting and page size -->
-    <div class="flex items-center ml-4">
-      <label for="page-size" class="mr-2 text-white font-medium">Show</label>
-      <select
-        name="page-size"
-        id="page-size"
-        v-model="size"
-        class="itbms-page-size bg-gray-300 border-y border-gray-300 rounded-l-sm"
-      >
-        <option value="5">5</option>
-        <option value="10">10</option>
-        <option value="20">20</option>
-      </select>
-
-      <button
-        @click="resetSort"
-        title="No Sort"
-        class="itbms-brand-none bg-gray-300 border border-gray-300 rounded-none border-l-0 hover:bg-gray-400 transition"
-      >
-        <Menu class="w-5 h-5" />
-      </button>
-
-      <button
-        @click="sortByBrandAsc"
-        class="itbms-brand-asc bg-gray-300 border border-gray-300 rounded-none border-l-0 hover:bg-gray-400 transition"
-        title="Sort By Brand (A-Z)"
-      >
-        <SortAsc class="w-5 h-5" />
-      </button>
-
-      <button
-        @click="sortByBrandDesc"
-        class="itbms-brand-desc bg-gray-300 border border-gray-300 rounded-r-sm border-l-0 hover:bg-gray-400 transition"
-        title="Sort By Brand (Z-A)"
-      >
-        <SortDesc class="w-5 h-5" />
-      </button>
-    </div>
+    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 w-full text-gray-700 relative">
+        <!-- LEFT: Brand Filters -->
+       <div class="relative flex flex-wrap items-center max-w-full sm:max-w-2xl w-full">
+<!-- Selected Brands -->
+<div
+  class="flex flex-wrap items-center content-center flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[42px] px-2">
+  <div v-for="brand in selectedBrands" :key="brand"
+    class="bg-gray-200 text-sm rounded-full px-3 py-1 mr-2  flex items-center shadow-sm">
+    {{ brand }}
+    <button @click="removeBrand(brand)" class="ml-2 text-gray-500 hover:text-red-500 transition">
+      <X class="w-3 h-3" />
+    </button>
   </div>
+</div>
+
+  <div class="relative flex-shrink-0 flex">
+    <button @click="toggleBrandDropdown"
+      class="px-4 py-2 bg-gray-300 border border-gray-300 hover:bg-gray-400 transition rounded-none">
+      <Filter />
+    </button>
+
+    <button @click="clearBrands"
+      class="px-4 py-2 bg-gray-300 border border-gray-300 rounded-r-md hover:bg-red-400 transition">
+      Clear
+    </button>
+
+    <ul v-if="showBrandDropdown"
+      class="absolute top-full right-32 bg-white border border-gray-300 rounded-md shadow-lg mt-1 z-50 max-h-48 overflow-y-auto w-[200px] sm:w-[300px]">
+      <li v-for="brand in allBrands" :key="brand" @click="addBrand(brand)"
+        class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm">
+        {{ brand }}
+      </li>
+    </ul>
+  </div>
+</div>
+
+
+
+        <!-- RIGHT: Sorting + Size -->
+         <div class="flex items-center justify-between gap-2">
+           <div class="flex justify-start flex-shrink-0 flex-wrap items-center gap-1 sm:flex-colum ">
+            <label for="page-size" class="text-sm font-medium">Show</label>
+            <select name="page-size" id="page-size" v-model="size"
+                class="bg-gray-300 border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer focus:outline-none">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+            </select>
+
+            <button @click="resetSort" title="No Sort"
+                class="bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
+                <Menu class="w-5 h-5" />
+            </button>
+
+            <button @click="sortByBrandAsc" title="Sort A-Z"
+                class="bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
+                <SortAsc class="w-5 h-5" />
+            </button>
+
+            <button @click="sortByBrandDesc" title="Sort Z-A"
+                class="bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
+                <SortDesc class="w-5 h-5" />
+            </button>
+        </div>
+        <button @click="add"
+                class="itbms-sale-item-add text-sm w-full bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
+                Add Product
+              </button>
+         </div>
+       
+    </div>
 </template>
+
+
 
 <style scoped>
 .itbms-page-size {
-  padding: 0.5rem 0.75rem;
-  height: 40px;
-  min-width: 70px;
-  font-size: 1rem;
-  line-height: 1.2;
-  cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    height: 40px;
+    min-width: 70px;
+    font-size: 1rem;
+    line-height: 1.2;
+    cursor: pointer;
 }
+
 .itbms-brand-none,
 .itbms-brand-asc,
 .itbms-brand-desc {
-  padding: 0.5rem 0.75rem;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    padding: 0.5rem 0.75rem;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>

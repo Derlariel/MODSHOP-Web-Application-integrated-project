@@ -2,11 +2,11 @@
 import { useRoute, useRouter } from "vue-router";
 import { useProductStore } from "@/stores/useProductStore";
 import { onMounted, ref, computed } from "vue";
-import ProductPicture from "./ProductPicture.vue";
-import HistoryPath from "../shared/HistoryPath.vue";
-import ConfirmModal from "../shared/modal/ConfirmModal.vue";
-import SuccessModal from "../shared/modal/SuccessModal.vue";
-import { checkUptodate } from "../../utils/validate";
+import ProductPicture from "@/components/shared/ProductPicture.vue";
+import HistoryPath from "@/components/shared/HistoryPath.vue";
+import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
+import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
+import { checkUptodate } from "@/utils/validate";
 
 
 const router = useRouter();

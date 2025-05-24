@@ -1,11 +1,11 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
-import ListModel from "../shared/ListModel.vue";
+import ListModel from "@/components/shared/ListModel.vue";
 import { useRouter } from "vue-router";
-import ConfirmModal from "../shared/modal/ConfirmModal.vue";
-import SuccessModal from "../shared/modal/SuccessModal.vue";
-import SkeletonLoader from "../shared/SkeletonLoader.vue";
+import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
+import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
+import SkeletonLoader from "@/components/shared/SkeletonLoader.vue";
 
 const router = useRouter();
 const productStore = useProductStore();

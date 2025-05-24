@@ -3,7 +3,7 @@ import { onMounted} from 'vue';
 import { useRoute } from 'vue-router';
 import BrandList from './BrandList.vue';
 const route = useRoute()
-import AppFooter from "../shared/AppFooter.vue";
+import AppFooter from "@/components/shared/AppFooter.vue";
 
 import { useBrandStore } from '@/stores/useBrandStore';
 const brandStore = useBrandStore();

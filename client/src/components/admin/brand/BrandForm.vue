@@ -1,6 +1,6 @@
 <script setup>
 import { reactive, computed, watch, ref } from "vue"; // Added ref import
-import BaseInput from "../shared/BaseInput.vue";
+import BaseInput from "@/components/shared/BaseInput.vue";
 
 const props = defineProps({
   initialData: {
