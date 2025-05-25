@@ -41,6 +41,8 @@ if (stored) {
 }
 
 const onBrandSelected = () => {
+  sortField.value = "createdOn";
+  sortDirection.value = "asc";
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };
