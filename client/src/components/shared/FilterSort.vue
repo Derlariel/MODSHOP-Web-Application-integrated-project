@@ -82,6 +82,11 @@ const sortByBrandAsc = () => {
 };
 
 const sortByBrandDesc = () => {
+  if (selectedBrands.value.length === 1) {
+    sortField.value = "createdOn";
+    sortDirection.value = "asc";
+    return
+  }
   sortField.value = "brand.name";
   sortDirection.value = "desc";
   productStore.setActivePage(1)
@@ -128,12 +133,12 @@ onMounted(() => {
         <!-- LEFT: Brand Filters -->
        <div class="relative flex flex-wrap items-center max-w-full sm:max-w-2xl w-full">
 <!-- Selected Brands -->
-<div
-  class="flex flex-wrap items-center content-center flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[42px] px-2">
+<div>
+  <button class="flex-wrap items-center content-center flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[42px] px-2">xxxx</button>
   <div v-for="brand in selectedBrands" :key="brand"
-    class="bg-gray-200 text-sm rounded-full px-3 py-1 mr-2  flex items-center shadow-sm">
-    {{ brand }}
-    <button @click="removeBrand(brand)" class="ml-2 text-gray-500 hover:text-red-500 transition">
+    class="itbms-filter-item bg-gray-200 text-sm rounded-full px-3 py-1 mr-2  flex items-center shadow-sm">
+    <p class="">{{ brand }}</p>
+    <button @click="removeBrand(brand)" class="itbms-filter-item-clear ml-2 text-gray-500 hover:text-red-500 transition">
       <X class="w-3 h-3" />
     </button>
   </div>
@@ -141,7 +146,7 @@ onMounted(() => {
 
   <div class="relative flex-shrink-0 flex">
     <button @click="toggleBrandDropdown"
-      class="px-4 py-2 bg-gray-300 border border-gray-300 hover:bg-gray-400 transition rounded-none">
+      class="itbms-brand-filter px-4 py-2 bg-gray-300 border border-gray-300 hover:bg-gray-400 transition rounded-none">
       <Filter />
     </button>
 
@@ -179,12 +184,12 @@ onMounted(() => {
             </button>
 
             <button @click="sortByBrandAsc" title="Sort A-Z"
-                class="bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
+                class="itbms-brand-asc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
                 <SortAsc class="w-5 h-5" />
             </button>
 
             <button @click="sortByBrandDesc" title="Sort Z-A"
-                class="bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
+                class="itbms-brand-desc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
                 <SortDesc class="w-5 h-5" />
             </button>
         </div>
