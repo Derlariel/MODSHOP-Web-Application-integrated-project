@@ -4,7 +4,6 @@ import { ref, watch, onMounted } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
 import { useRouter } from "vue-router";
 import BrandSelector from "@/components/shared/BrandSelector.vue";
-import { useBrandStore } from "@/stores/useBrandStore";
 
 const router = useRouter();
 const emit = defineEmits(["update:filters"]);
@@ -14,7 +13,7 @@ const allBrands = ref([]);
 const size = ref(10);
 const sortField = ref("createdOn");
 const sortDirection = ref("asc");
-const brandStore = useBrandStore();
+
 const productStore = useProductStore();
 
 const fetchBrands = async () => {
@@ -28,7 +27,6 @@ const fetchBrands = async () => {
   }
 };
 
-// Load stored filters and sorting
 const stored = sessionStorage.getItem("filterAndSort");
 if (stored) {
   try {
@@ -37,106 +35,51 @@ if (stored) {
     size.value = parsed.size || 10;
     sortField.value = parsed.sortField || "createdOn";
     sortDirection.value = parsed.sortDirection || "asc";
-    productStore.setActivePage(parsed.activePage || 1);
   } catch (e) {
     console.error("Invalid session data", e);
   }
 }
 
-const onBrandSelected = async () => {
-  sortField.value = "brand.name";
-  sortDirection.value = "asc";
+const onBrandSelected = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", "1");
-  await productStore.loadProducts({
-    filterBrands: selectedBrands.value,
-    size: size.value,
-    sortField: sortField.value,
-    sortDirection: sortDirection.value,
-    activePage: 1,
-  });
-  console.log("onBrandSelected: Loaded products for brands", selectedBrands.value);
+  sessionStorage.setItem("activePage", 1);
 };
 
-const onBrandRemoved = async () => {
-  sortField.value = "brand.name";
-  sortDirection.value = "asc";
+const onBrandRemoved = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", "1");
-  await productStore.loadProducts({
-    filterBrands: selectedBrands.value,
-    size: size.value,
-    sortField: sortField.value,
-    sortDirection: sortDirection.value,
-    activePage: 1,
-  });
-  console.log("onBrandRemoved: Loaded products for brands", selectedBrands.value);
+  sessionStorage.setItem("activePage", 1);
 };
 
-const onBrandsClear = async () => {
+const onBrandsClear = () => {
   selectedBrands.value = [];
-  sortField.value = "brand.name";
-  sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", "1");
-  await productStore.loadProducts({
-    filterBrands: selectedBrands.value,
-    size: size.value,
-    sortField: sortField.value,
-    sortDirection: sortDirection.value,
-    activePage: 1,
-  });
-  console.log("onBrandsClear: Loaded products with no brand filter");
+  sessionStorage.setItem("activePage", 1);
 };
 
-const resetSort = async () => {
+const resetSort = () => {
   sortField.value = "createdOn";
   sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", "1");
-  await productStore.loadProducts({
-    filterBrands: selectedBrands.value,
-    size: size.value,
-    sortField: sortField.value,
-    sortDirection: sortDirection.value,
-    activePage: 1,
-  });
-  console.log("resetSort: Loaded products with createdOn sorting");
+  sessionStorage.setItem("activePage", 1);
 };
 
-const sortByBrandAsc = async () => {
+const sortByBrandAsc = () => {
   sortField.value = "brand.name";
   sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", "1");
-  await productStore.loadProducts({
-    filterBrands: selectedBrands.value,
-    size: size.value,
-    sortField: sortField.value,
-    sortDirection: sortDirection.value,
-    activePage: 1,
-  });
-  console.log("sortByBrandAsc: Loaded products with brand.name asc sorting");
+  sessionStorage.setItem("activePage", 1);
 };
 
-const sortByBrandDesc = async () => {
+const sortByBrandDesc = () => {
   sortField.value = "brand.name";
   sortDirection.value = "desc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", "1");
-  await productStore.loadProducts({
-    filterBrands: selectedBrands.value,
-    size: size.value,
-    sortField: sortField.value,
-    sortDirection: sortDirection.value,
-    activePage: 1,
-  });
-  console.log("sortByBrandDesc: Loaded products with brand.name desc sorting");
+  sessionStorage.setItem("activePage", 1);
 };
 
 watch(
   [selectedBrands, size, sortField, sortDirection, () => productStore.activePage],
-  async () => {
+  () => {
     sessionStorage.setItem(
       "filterAndSort",
       JSON.stringify({
@@ -154,62 +97,32 @@ watch(
       sortDirection: sortDirection.value,
       activePage: productStore.activePage,
     });
-    await productStore.loadProducts({
-      filterBrands: selectedBrands.value,
-      size: size.value,
-      sortField: sortField.value,
-      sortDirection: sortDirection.value,
-      activePage: productStore.activePage,
-    });
-    console.log(
-      "watch: Loaded products with",
-      JSON.stringify({
-        filterBrands: selectedBrands.value,
-        size: size.value,
-        sortField: sortField.value,
-        sortDirection: sortDirection.value,
-        activePage: productStore.activePage,
-      })
-    );
   },
-  { deep: true }
+  { deep: true, immediate: true }
 );
 
 const add = () => {
   router.push({ name: "product-add" });
 };
 
-onMounted(async () => {
-  await fetchBrands();
-  // Simulate browser close by resetting if no stored session
+// Simulate browser close by clearing sessionStorage for TC-4 Step 6
+onMounted(() => {
+  fetchBrands();
+  // Check if this is a fresh session (simulating browser close)
   if (!sessionStorage.getItem("filterAndSort")) {
     selectedBrands.value = [];
     sortField.value = "createdOn";
     sortDirection.value = "asc";
     productStore.setActivePage(1);
-    sessionStorage.setItem("activePage", "1");
+    sessionStorage.setItem("activePage", 1);
   }
-  await productStore.loadProducts({
-    filterBrands: selectedBrands.value,
-    size: size.value,
-    sortField: sortField.value,
-    sortDirection: sortDirection.value,
-    activePage: productStore.activePage,
-  });
-  console.log("onMounted: Loaded products with", {
-    filterBrands: selectedBrands.value,
-    size: size.value,
-    sortField: sortField.value,
-    sortDirection: sortDirection.value,
-    activePage: productStore.activePage,
-  });
 });
 </script>
 
 <template>
   <div class="flex flex-col sm:flex-row sm:items-start justify-center gap-4 w-full text-gray-700 relative">
     <!-- LEFT: Brand Filter -->
-    <BrandSelector
+    <BrandSelector 
       v-model="selectedBrands"
       :brands="allBrands"
       :multiple="true"
@@ -222,54 +135,33 @@ onMounted(async () => {
     <div class="flex items-center justify-center gap-4">
       <div class="flex justify-start items-center gap-2">
         <label for="page-size" class="text-sm font-medium">Show</label>
-        <select
-          name="page-size"
-          id="page-size"
-          v-model="size"
-          class="itbms-page-size bg-gray-300 border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer focus:outline-none"
-        >
+        <select name="page-size" id="page-size" v-model="size"
+                class="itbms-page-size bg-gray-300 border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer focus:outline-none">
           <option value="5">5</option>
           <option value="10">10</option>
           <option value="20">20</option>
         </select>
 
-        <button
-          @click="resetSort"
-          title="No Sort"
-          :class="[
-            'itbms-brand-none bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
-            sortField === 'createdOn' ? 'bg-gray-500 text-white font-medium' : '',
-          ]"
-        >
+        <button @click="resetSort" title="No Sort"
+                :class="['itbms-brand-none bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition', 
+                         sortField === 'createdOn' ? 'bg-gray-500 text-white font-medium' : '']">
           <Menu class="w-5 h-5" />
         </button>
 
-        <button
-          @click="sortByBrandAsc"
-          title="Sort A-Z"
-          :class="[
-            'itbms-brand-asc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
-            sortField === 'brand.name' && sortDirection === 'asc' ? 'bg-gray-500 text-white font-medium' : '',
-          ]"
-        >
+        <button @click="sortByBrandAsc" title="Sort A-Z"
+                :class="['itbms-brand-asc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
+                         sortField === 'brand.name' && sortDirection === 'asc' ? 'bg-gray-500 text-white font-medium' : '']">
           <SortAsc class="w-5 h-5" />
         </button>
 
-        <button
-          @click="sortByBrandDesc"
-          title="Sort Z-A"
-          :class="[
-            'itbms-brand-desc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
-            sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-500 text-white font-medium' : '',
-          ]"
-        >
+        <button @click="sortByBrandDesc" title="Sort Z-A"
+                :class="['itbms-brand-desc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
+                         sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-500 text-white font-medium' : '']">
           <SortDesc class="w-5 h-5" />
         </button>
       </div>
-      <button
-        @click="add"
-        class="itbms-sale-item-add text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200"
-      >
+      <button @click="add"
+              class="itbms-sale-item-add text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
         Add Product
       </button>
     </div>
