@@ -141,15 +141,15 @@ onMounted(() => {
           <Menu class="w-5 h-5" />
         </button>
 
-        <button @click="sortByBrandDesc" title="Sort A-Z"
-                :class="['itbms-brand-desc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
-                         sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-500 text-white font-medium' : '']">
+        <button @click="sortByBrandAsc" title="Sort A-Z"
+                :class="['itbms-brand-asc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
+                         sortField === 'brand.name' && sortDirection === 'asc' ? 'bg-gray-500 text-white font-medium' : '']">
           <SortAsc class="w-5 h-5" />
         </button>
 
-        <button @click="sortByBrandAsc" title="Sort Z-A"
-                :class="['itbms-brand-asc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
-                         sortField === 'brand.name' && sortDirection === 'asc' ? 'bg-gray-500 text-white font-medium' : '']">
+        <button @click="sortByBrandDesc" title="Sort Z-A"
+                :class="['itbms-brand-desc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
+                         sortField === 'brewand.name' && sortDirection === 'desc' ? 'bg-gray-500 text-white font-medium' : '']">
           <SortDesc class="w-5 h-5" />
         </button>
 
