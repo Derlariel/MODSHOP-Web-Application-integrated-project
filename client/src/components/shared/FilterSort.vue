@@ -65,15 +65,23 @@ const resetSort = () => {
 };
 
 const sortByBrandAsc = () => {
-  sortField.value = "brand.name";
-  sortDirection.value = "asc";
+  if (selectedBrands.value.length > 0) {
+    sortField.value = "brand.name";
+    sortDirection.value = "asc";
+  } else {
+    resetSort();
+  }
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };
 
 const sortByBrandDesc = () => {
-  sortField.value = "brand.name";
-  sortDirection.value = "desc";
+  if (selectedBrands.value.length > 0) {
+    sortField.value = "brand.name";
+    sortDirection.value = "desc";
+  } else {
+    resetSort();
+  }
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };
@@ -113,7 +121,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 w-full text-gray-700 relative">
+  <div class="flex flex-col sm:flex-row sm:items-start justify-center gap-4 w-full text-gray-700 relative">
     <!-- LEFT: Brand Filter -->
     <BrandSelector 
       v-model="selectedBrands"
@@ -125,8 +133,8 @@ onMounted(() => {
     />
 
     <!-- RIGHT: Sorting + Size -->
-    <div class="flex items-center justify-between gap-2">
-      <div class="flex justify-start">
+    <div class="flex items-center justify-center gap-4 ">
+      <div class="flex justify-start items-center gap-2">
         <label for="page-size" class="text-sm font-medium">Show</label>
         <select name="page-size" id="page-size" v-model="size"
                 class="itbms-page-size bg-gray-300 border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer focus:outline-none">
@@ -152,12 +160,14 @@ onMounted(() => {
                          sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-500 text-white font-medium' : '']">
           <SortDesc class="w-5 h-5" />
         </button>
+
+       
       </div>
+       <button @click="add"
+                class="itbms-sale-item-add text-sm  bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
+          Add Product
+        </button>
     </div>
-    <button @click="add"
-            class="itbms-sale-item-add text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
-      Add Product
-    </button>
   </div>
 </template>
 
