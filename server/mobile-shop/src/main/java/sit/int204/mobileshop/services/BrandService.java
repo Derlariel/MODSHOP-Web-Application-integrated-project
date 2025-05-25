@@ -2,6 +2,7 @@ package sit.int204.mobileshop.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ public class BrandService {
 
     @Autowired
     private ModelMapper modelMapper;
+
 
     public List<Brand> getAllBrands() {
         return brandRepository.findAll();

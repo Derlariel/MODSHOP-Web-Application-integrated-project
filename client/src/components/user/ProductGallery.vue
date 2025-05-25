@@ -85,11 +85,21 @@ onMounted(async () => {
     isModalOpen.value = true;
   }
 
+  if (sessionStorage.getItem("add-success") === "true") {
+    alertMessage.value = "The sale item has been successfully added.";
+    showSuccess.value = true;  
+    sessionStorage.removeItem("add-success");
+    setTimeout(() => {
+      showSuccess.value = false;
+    }, 2000);
+  }
+
   if (sessionStorage.getItem("delete-success") === "true") {
     alertMessage.value = "The sale item has been deleted.";
     showSuccess.value = true;
     sessionStorage.removeItem("delete-success");
-
+    productStore.setActivePage(1)
+    sessionStorage.setItem("activePage", 1)
     setTimeout(() => {
       showSuccess.value = false;
     }, 2000);

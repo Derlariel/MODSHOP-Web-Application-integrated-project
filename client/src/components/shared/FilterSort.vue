@@ -22,11 +22,13 @@ const fetchBrands = async () => {
     const res = await fetch(`${BASE_URL}/v1/brands`);
     if (!res.ok) throw new Error("Failed to fetch brands");
     const data = await res.json();
-    allBrands.value = data.map((b) => b.name);
+    allBrands.value = data.map((b) => b.name).sort((a,b) => a.localeCompare(b));
   } catch (err) {
     console.error("Error fetching brands:", err);
   }
 };
+
+
 
 const stored = sessionStorage.getItem("filterAndSort");
 if (stored) {
@@ -50,7 +52,9 @@ const addBrand = (brand) => {
     selectedBrands.value.push(brand);
 
   }
-  showBrandDropdown.value = false;
+  sortField.value = "brand.name";
+  sortDirection.value = "asc";
+  showBrandDropdown.value = true;
   productStore.setActivePage(1)
   sessionStorage.setItem("activePage", 1)
 };
@@ -134,9 +138,9 @@ onMounted(() => {
     <!-- LEFT: Brand Filter -->
     <div class="relative flex flex-wrap items-center max-w-full sm:max-w-2xl w-full">
       <!-- Selected Brands -->
-      <div class="itbms-brand-filter flex flex-wrap items-center content-center flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[42px] px-2">
+      <div class=" flex flex-wrap items-center content-center flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[42px] px-2">
         <div v-for="brand in selectedBrands" :key="brand"
-             class="itbms-filter-item bg-gray-200 text-sm rounded-full px-3 py-1 mr-2 flex items-center shadow-sm">
+             class=" bg-gray-200 text-sm rounded-full px-3 py-1 mr-2 flex items-center shadow-sm">
           {{ brand }}
           <button @click="removeBrand(brand)" class="itbms-filter-item-clear ml-2 text-gray-500 hover:text-red-500 transition">
             <X class="w-3 h-3" />
@@ -146,7 +150,7 @@ onMounted(() => {
 
       <div class="relative flex-shrink-0 flex">
         <button @click="toggleBrandDropdown"
-                class="itbms-brand-filter-button px-4 py-2 bg-gray-300 border border-gray-300 hover:bg-gray-400 transition rounded-none">
+                class="itbms-brand-filter px-4 py-2 bg-gray-300 border border-gray-300 hover:bg-gray-400 transition rounded-none">
           <Filter class="w-5 h-5" />
         </button>
 
@@ -156,9 +160,9 @@ onMounted(() => {
         </button>
 
         <ul v-if="showBrandDropdown"
-            class="absolute top-full right-0 bg-white border border-gray-300 rounded-md shadow-lg mt-1 z-50 max-h-48 overflow-y-auto w-[200px] sm:w-[300px]">
+            class="absolute top-full right-0 bg-white border border-gray-300 rounded-md shadow-lg mt-1 z-50 max-h-200 overflow-y-auto w-[200px] sm:w-[300px]">
           <li v-for="brand in allBrands" :key="brand" @click="addBrand(brand)"
-              class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm">
+              class="itbms-filter-item px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm">
             {{ brand }}
           </li>
         </ul>
@@ -167,7 +171,7 @@ onMounted(() => {
 
     <!-- RIGHT: Sorting + Size -->
     <div class="flex items-center justify-between gap-2">
-      <div class="flex justify-start flex-shrink-0 flex-wrap items-center gap-1 sm:flex-column">
+      <div class="flex justify-start ">
         <label for="page-size" class="text-sm font-medium">Show</label>
         <select name="page-size" id="page-size" v-model="size"
                 class="itbms-page-size bg-gray-300 border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer focus:outline-none">
@@ -194,12 +198,13 @@ onMounted(() => {
           <SortDesc class="w-5 h-5" />
         </button>
 
-        <button @click="add"
-                class="itbms-sale-item-add text-sm w-full sm:w-auto bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
-          Add Product
-        </button>
+       
       </div>
     </div>
+     <button @click="add"
+                class="itbms-sale-item-add text-sm  bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
+          Add Product
+        </button>
   </div>
 </template>
 

@@ -94,7 +94,7 @@ onMounted(() => {
         @click="first"
         :disabled="activePage === 1"
         :class="[
-          'px-2 py-1 text-sm font-medium rounded-md transition-all duration-200 ease-out',
+          'itbms-page-first px-2 py-1 text-sm font-medium rounded-md transition-all duration-200 ease-out',
           activePage === 1
             ? 'text-gray-500 cursor-not-allowed'
             : 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700'
@@ -108,7 +108,7 @@ onMounted(() => {
         @click="prev"
         :disabled="activePage === 1"
         :class="[
-          'w-8 h-8 flex items-center justify-center rounded-md transition-all duration-200 ease-out',
+          'itbms-page-prev w-8 h-8 flex items-center justify-center rounded-md transition-all duration-200 ease-out',
           activePage === 1
             ? 'text-gray-500 cursor-not-allowed'
             : 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700'
@@ -153,7 +153,7 @@ onMounted(() => {
         @click="next"
         :disabled="activePage >= storePages"
         :class="[
-          'w-8 h-8 flex items-center justify-center rounded-md transition-all duration-200 ease-out',
+          'itbms-page-next w-8 h-8 flex items-center justify-center rounded-md transition-all duration-200 ease-out',
           activePage >= storePages
             ? 'text-gray-500 cursor-not-allowed'
             : 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700'
@@ -169,7 +169,7 @@ onMounted(() => {
         @click="last"
         :disabled="activePage >= storePages"
         :class="[
-          'px-2 py-1 text-sm font-medium rounded-md transition-all duration-200 ease-out',
+          'itbms-page-last px-2 py-1 text-sm font-medium rounded-md transition-all duration-200 ease-out',
           activePage >= storePages
             ? 'text-gray-500 cursor-not-allowed'
             : 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700'
