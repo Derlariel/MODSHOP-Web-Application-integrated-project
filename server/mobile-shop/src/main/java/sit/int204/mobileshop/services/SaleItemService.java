@@ -49,7 +49,7 @@ public class SaleItemService {
             List<String> filterBrands,
             String sortField,
             String sortDirection) {
-
+                
         if (sortField == null || sortField.trim().isEmpty()) {
             sortField = "createdOn";
         }
@@ -61,6 +61,7 @@ public class SaleItemService {
             direction = Sort.Direction.ASC;
         }
 
+        // page และ size validation
         if (page == null || page < 0)
             page = 0;
         if (size == null || size <= 0)
@@ -69,6 +70,7 @@ public class SaleItemService {
         Sort sort = Sort.by(new Sort.Order(direction, sortField))
                 .and(Sort.by(Sort.Direction.ASC, "createdOn"));
         Pageable pageable = PageRequest.of(page, size, sort);
+
         Page<SaleItem> saleItemPage;
         if (filterBrands == null || filterBrands.isEmpty()) {
             saleItemPage = saleItemRepository.findAll(pageable);
@@ -85,6 +87,11 @@ public class SaleItemService {
         }
 
         return listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
+    }
+
+    public SaleItem getSaleItemById(Integer id) {
+        return saleItemRepository.findById(id)
+                .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
     }
 
     @Transactional
