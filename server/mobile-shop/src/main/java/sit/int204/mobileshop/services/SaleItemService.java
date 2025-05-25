@@ -43,7 +43,8 @@ public class SaleItemService {
         return saleItemRepository.findAllByOrderByCreatedOnAsc();
     }
 
-    public PageDto<SaleItemDto> getAllSaleItemsPage(Integer page,
+    public PageDto<SaleItemDto> getAllSaleItemsPage(
+            Integer page,
             Integer size,
             List<String> filterBrands,
             String sortField,
@@ -54,41 +55,36 @@ public class SaleItemService {
         }
 
         Sort.Direction direction;
-
         try {
             direction = Sort.Direction.fromString(sortDirection);
         } catch (Exception e) {
             direction = Sort.Direction.ASC;
         }
 
-        if (page < 0)
+        if (page == null || page < 0)
             page = 0;
-        if (size <= 0)
+        if (size == null || size <= 0)
             size = 10;
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+        Sort sort = Sort.by(new Sort.Order(direction, sortField))
+                .and(Sort.by(Sort.Direction.ASC, "createdOn"));
+        Pageable pageable = PageRequest.of(page, size, sort);
         Page<SaleItem> saleItemPage;
-
         if (filterBrands == null || filterBrands.isEmpty()) {
             saleItemPage = saleItemRepository.findAll(pageable);
         } else {
             List<String> cleanedBrands = filterBrands.stream()
-                    .filter(brand -> brand != null && !brand.isEmpty() && !brand.equals("[]"))
+                    .filter(brand -> brand != null && !brand.trim().isEmpty() && !brand.equals("[]"))
                     .collect(Collectors.toList());
 
             if (cleanedBrands.isEmpty()) {
                 saleItemPage = saleItemRepository.findAll(pageable);
             } else {
-                saleItemPage = saleItemRepository.findAllFilter(pageable,cleanedBrands);
+                saleItemPage = saleItemRepository.findAllFilter(pageable, cleanedBrands);
             }
         }
 
         return listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
-    }
-
-    public SaleItem getSaleItemById(Integer id) {
-        return saleItemRepository.findById(id)
-                .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
     }
 
     @Transactional
