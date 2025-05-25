@@ -151,11 +151,11 @@ describe (`TC-FE-PBI11-FILTER-SALE-ITEM-GALLERY-BY-BRAND-1\n
     cy.wait (100);
 
     cy.contains ('.itbms-filter-item', 'Samsung').should ('exist').click ();
-    cy.wait (10000);
+    cy.wait (100);
 
     cy.get ('.itbms-brand').then ($brands => {
       const matched = $brands.filter (
-        (index, el) => el.textContent.toLowerCase ().includes ('asus') // samsung should be shown first
+        (index, el) => el.textContent.toLowerCase ().includes ('samsung') // samsung should be shown first
       );
       expect (matched).to.have.length (10);
     });

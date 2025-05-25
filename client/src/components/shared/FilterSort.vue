@@ -4,6 +4,7 @@ import { ref, watch, onMounted, nextTick } from "vue";
 import { useBrandStore } from "@/stores/useBrandStore";
 import { useProductStore } from "@/stores/useProductStore";
 import { useRouter } from "vue-router";
+import BrandSelector from "@/components/shared/BrandSelector.vue";
 
 const router = useRouter();
 const emit = defineEmits(["update:filters"]);
@@ -72,24 +73,25 @@ const toggleBrandDropdown = () => {
 const addBrand = (brand) => {
   if (!selectedBrands.value.includes(brand)) {
     selectedBrands.value.push(brand);
+
   }
   sortField.value = "brand.name";
   sortDirection.value = "asc";
   showBrandDropdown.value = true;
-  productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  productStore.setActivePage(1)
+  sessionStorage.setItem("activePage", 1)
 };
 
 const removeBrand = (brand) => {
   selectedBrands.value = selectedBrands.value.filter((b) => b !== brand);
-  productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  productStore.setActivePage(1)
+  sessionStorage.setItem("activePage", 1)
 };
 
 const clearBrands = () => {
-  selectedBrands.value = [];
-  productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  selectedBrands.value = [...[]]; //
+  productStore.setActivePage(1)
+  sessionStorage.setItem("activePage", 1)
 };
 
 const resetSort = () => {
@@ -156,42 +158,17 @@ onMounted(() => {
 </script>
 
 
-
 <template>
-  <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 w-full text-gray-700 relative">
+  <div class="flex flex-col sm:flex-row sm:items-start justify-center gap-4 w-full text-gray-700 relative">
     <!-- LEFT: Brand Filter -->
-    <div class="relative flex flex-wrap items-center max-w-full sm:max-w-2xl w-full">
-      <!-- Selected Brands -->
-      <div class=" flex flex-wrap items-center content-center flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[42px] px-2">
-        <div v-for="brand in selectedBrands" :key="brand"
-             class=" bg-gray-200 text-sm rounded-full px-3 py-1 mr-2 flex items-center shadow-sm">
-          {{ brand }}
-          <button @click="removeBrand(brand)" class="itbms-filter-item-clear ml-2 text-gray-500 hover:text-red-500 transition">
-            <X class="w-3 h-3" />
-          </button>
-        </div>
-      </div>
-
-      <div class="relative flex-shrink-0 flex">
-        <button @click="toggleBrandDropdown"
-                class="itbms-brand-filter px-4 py-2 bg-gray-300 border border-gray-300 hover:bg-gray-400 transition rounded-none">
-          <Filter class="w-5 h-5" />
-        </button>
-
-        <button @click="clearBrands"
-                class="itbms-brand-filter-clear px-4 py-2 bg-gray-300 border border-gray-300 rounded-r-md hover:bg-red-400 transition">
-          Clear
-        </button>
-
-        <ul v-if="showBrandDropdown"
-            class="absolute top-full right-0 bg-white border border-gray-300 rounded-md shadow-lg mt-1 z-50 max-h-200 overflow-y-auto w-[200px] sm:w-[300px]">
-          <li v-for="brand in allBrands" :key="brand" @click="addBrand(brand)"
-              class="itbms-filter-item px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm">
-            {{ brand }}
-          </li>
-        </ul>
-      </div>
-    </div>
+    <BrandSelector 
+      v-model="selectedBrands"
+      :brands="allBrands"
+      :multiple="true"
+      @brand-selected="onBrandSelected"
+      @brand-removed="onBrandRemoved"
+      @clear-brands="onBrandsClear"
+    />
 
     <!-- RIGHT: Sorting + Size -->
     <div class="flex items-center justify-center gap-4 ">
@@ -210,28 +187,27 @@ onMounted(() => {
           <Menu class="w-5 h-5" />
         </button>
 
-        <button @click="sortByBrandAsc" title="Sort A-Z"
+        <button @click="sortByBrandDesc" title="Sort A-Z"
                 :class="['itbms-brand-asc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
                          sortField === 'brand.name' && sortDirection === 'asc' ? 'bg-gray-500 text-white font-medium' : '']">
           <SortAsc class="w-5 h-5" />
         </button>
 
-        <button @click="sortByBrandDesc" title="Sort Z-A"
+        <button @click="sortByBrandAsc" title="Sort Z-A"
                 :class="['itbms-brand-desc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
                          sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-500 text-white font-medium' : '']">
           <SortDesc class="w-5 h-5" />
         </button>
+
+       
       </div>
-       <button @click="add"
+    </div>
+     <button @click="add"
                 class="itbms-sale-item-add text-sm  bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
           Add Product
         </button>
-    </div>
-    
   </div>
 </template>
-
-
 
 <style scoped>
 .itbms-page-size {
