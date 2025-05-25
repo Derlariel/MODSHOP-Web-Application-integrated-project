@@ -106,19 +106,18 @@ const handleSelect = (event) => {
   </div>
 
   <!-- Single selection mode -->
-  <div v-else class="relative">
-    <select
-      class="itbms-brand w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all cursor-pointer"
-      :class="[
-        dark ? 'bg-neutral-800 text-white border-neutral-700' : 'bg-white text-gray-700 border-gray-300',
-        error ? 'border-red-700' : dark ? 'border-neutral-700' : 'border-gray-300',
-      ]"
-      @change="handleSelect"
-    >
-      <option disabled selected value="">Select a brand</option>
-      <option v-for="brand in brands" :key="brand.id" :value="brand.id">
-        {{ brand.name }}
-      </option>
-    </select>
-  </div>
+  <select
+    v-if="!multiple"
+    class="itbms-brand w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all cursor-pointer"
+    :class="[
+      dark ? 'bg-neutral-800 text-white border-neutral-700' : 'bg-white text-gray-700 border-gray-300',
+      error ? 'border-red-700' : dark ? 'border-neutral-700' : 'border-gray-300',
+    ]"
+    @change="handleSelect"
+  >
+    <option disabled selected value="">Select a brand</option>
+    <option v-for="brand in brands" :key="brand.id" :value="brand.id">
+      {{ brand.name }}
+    </option>
+  </select>
 </template>
