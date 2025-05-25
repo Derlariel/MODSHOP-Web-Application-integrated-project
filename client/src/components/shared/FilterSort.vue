@@ -41,8 +41,6 @@ if (stored) {
 }
 
 const onBrandSelected = () => {
-  sortField.value = "createdOn";
-  sortDirection.value = "asc";
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };
@@ -149,7 +147,7 @@ onMounted(() => {
 
         <button @click="sortByBrandDesc" title="Sort Z-A"
                 :class="['itbms-brand-desc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
-                         sortField === 'brewand.name' && sortDirection === 'desc' ? 'bg-gray-500 text-white font-medium' : '']">
+                         sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-500 text-white font-medium' : '']">
           <SortDesc class="w-5 h-5" />
         </button>
 
