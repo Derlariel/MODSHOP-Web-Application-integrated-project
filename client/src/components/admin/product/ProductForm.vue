@@ -12,6 +12,7 @@ import {
 import { useBrandStore } from "@/stores/useBrandStore";
 import { useRouter } from "vue-router";
 import BaseInput from "@/components/shared/BaseInput.vue";
+import BrandSelector from "@/components/shared/BrandSelector.vue";
 
 import {
   runValidation,
@@ -28,8 +29,7 @@ import {
   validateRamSize,
   validateStorageSize,
   validateScreenSize,
-  validateColor
-  
+  validateColor,
 } from "@/utils/validate.js";
 
 const router = useRouter();
@@ -167,9 +167,8 @@ const submit = () => {
     return;
   }
 
-  const notPass = Object.values(errors).every(value => value !== null)
-  if(notPass) return
-
+  const notPass = Object.values(errors).every((value) => value !== null);
+  if (notPass) return;
 
   emit("submit", {
     ...temp,
@@ -202,41 +201,38 @@ const validateField = (field) => {
   } else if (field === "price") {
     result = runValidation(temp.price, [validatePrice]);
   } else if (field === "brand") {
-    result = validateBrandSelected(temp.brand?.name);
-    console.log("error", errors.brand);
+    if (!temp.brand?.id) {
+      result = { valid: false, message: "Please select a brand" };
+    } else {
+      result = { valid: true, message: null };
+    }
   } else if (field === "quantity") {
     result = runValidation(temp.quantity, [validateQuantity]);
   } else if (field === "screenSizeInch") {
-    console.log("field", field);
-
     result = runValidation(temp.screenSizeInch, [validateScreenSize]);
-    console.log("error", errors.screenSizeInch);
-
   } else if (field === "color") {
     result = runValidation(temp.color, [validateColor]);
   } else if (field === "storageGb") {
     result = runValidation(temp.storageGb, [validateStorageSize]);
-  } 
-  else if (field === "ramGb") {
+  } else if (field === "ramGb") {
     result = runValidation(temp.ramGb, [validateRamSize]);
   }
-   
+
   errors[field] = result.message;
   return result.valid;
 };
 
+const handleBrandSelected = (brand) => {
+  temp.brand = brand;
+  validateField("brand");
+};
+
 const trimField = (field) => {
-  console.log(field);
   if (typeof temp[field] === "string") {
     temp[field] = temp[field].trim() || "";
   }
-
-  console.log(field);
-
   validateField(field);
 };
-
-
 
 onMounted(() => {
   brandStore.loadBrands();
@@ -254,42 +250,15 @@ onMounted(() => {
           <label for="brand" class="block text-sm font-medium text-gray-300"
             >Brand</label
           >
-          <div class="relative">
-            <select
-              v-model="temp.brand"
-              @blur="trimField('brand')"
-              id="brand"
-             :class="[
-              'itbms-brand w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white appearance-none',
-              errors.brand ? 'border-red-700' : 'border-neutral-700',
-            ]"
-              required
-            >
-              <option :value="{ id: null, name: null }" disabled>
-                Select a brand
-              </option>
-              <option v-for="brand in brands" :key="brand.id" :value="brand">
-                {{ brand.name }}
-              </option>
-            </select>
-            <div
-              class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-            >
-              <svg
-                class="h-5 w-5 text-gray-400"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </div>
-            
-          </div>
+          <BrandSelector
+            v-model="temp.brand"
+            :brands="brands"
+            :multiple="false"
+            :dark="true"
+            :error="errors.brand"
+            @brand-selected="handleBrandSelected"
+            class="itbms-brand"
+          />
           <p v-if="errors.brand" class="text-sm text-red-500 mt-1">
             {{ errors.brand }}
           </p>
@@ -356,7 +325,6 @@ onMounted(() => {
               placeholder="6"
               :error="errors.ramGb"
               id="ram"
-              
             />
             <BaseInput
               :error="errors.screenSizeInch"

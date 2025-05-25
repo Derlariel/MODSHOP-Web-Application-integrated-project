@@ -1,19 +1,18 @@
 <script setup>
-import { Filter, Menu, SortAsc, SortDesc, X } from "lucide-vue-next";
-import { ref, watch, onMounted, computed } from "vue";
+import { Menu, SortAsc, SortDesc } from "lucide-vue-next";
+import { ref, watch, onMounted } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
 import { useRouter } from "vue-router";
+import BrandSelector from "@/components/shared/BrandSelector.vue";
 
 const router = useRouter();
 const emit = defineEmits(["update:filters"]);
-const showBrandDropdown = ref(false);
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 const selectedBrands = ref([]);
 const allBrands = ref([]);
 const size = ref(10);
 const sortField = ref("createdOn");
 const sortDirection = ref("asc");
-
 
 const productStore = useProductStore();
 
@@ -28,8 +27,6 @@ const fetchBrands = async () => {
   }
 };
 
-
-
 const stored = sessionStorage.getItem("filterAndSort");
 if (stored) {
   try {
@@ -43,55 +40,43 @@ if (stored) {
   }
 }
 
-const toggleBrandDropdown = () => {
-  showBrandDropdown.value = !showBrandDropdown.value;
-};
-
-const addBrand = (brand) => {
-  if (!selectedBrands.value.includes(brand)) {
-    selectedBrands.value.push(brand);
-
-  }
+const onBrandSelected = () => {
   sortField.value = "brand.name";
   sortDirection.value = "asc";
-  showBrandDropdown.value = true;
-  productStore.setActivePage(1)
-  sessionStorage.setItem("activePage", 1)
+  productStore.setActivePage(1);
+  sessionStorage.setItem("activePage", 1);
 };
 
-const removeBrand = (brand) => {
-  selectedBrands.value = selectedBrands.value.filter((b) => b !== brand);
-  productStore.setActivePage(1)
-  sessionStorage.setItem("activePage", 1)
+const onBrandRemoved = () => {
+  productStore.setActivePage(1);
+  sessionStorage.setItem("activePage", 1);
 };
 
-const clearBrands = () => {
-  selectedBrands.value = [...[]]; //
-  productStore.setActivePage(1)
-  sessionStorage.setItem("activePage", 1)
+const onBrandsClear = () => {
+  productStore.setActivePage(1);
+  sessionStorage.setItem("activePage", 1);
 };
 
 const resetSort = () => {
   sortField.value = "createdOn";
   sortDirection.value = "asc";
-  productStore.setActivePage(1)
-  sessionStorage.setItem("activePage", 1)
+  productStore.setActivePage(1);
+  sessionStorage.setItem("activePage", 1);
 };
 
 const sortByBrandAsc = () => {
   sortField.value = "brand.name";
   sortDirection.value = "asc";
-  productStore.setActivePage(1)
-  sessionStorage.setItem("activePage", 1)
+  productStore.setActivePage(1);
+  sessionStorage.setItem("activePage", 1);
 };
 
 const sortByBrandDesc = () => {
   sortField.value = "brand.name";
   sortDirection.value = "desc";
-  productStore.setActivePage(1)
-  sessionStorage.setItem("activePage", 1)
+  productStore.setActivePage(1);
+  sessionStorage.setItem("activePage", 1);
 };
-
 
 watch(
   [selectedBrands, size, sortField, sortDirection, () => productStore.activePage],
@@ -127,46 +112,21 @@ onMounted(() => {
 });
 </script>
 
-
 <template>
   <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 w-full text-gray-700 relative">
     <!-- LEFT: Brand Filter -->
-    <div class="relative flex flex-wrap items-center max-w-full sm:max-w-2xl w-full">
-      <!-- Selected Brands -->
-      <div class=" flex flex-wrap items-center content-center flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[42px] px-2">
-        <div v-for="brand in selectedBrands" :key="brand"
-             class=" bg-gray-200 text-sm rounded-full px-3 py-1 mr-2 flex items-center shadow-sm">
-          {{ brand }}
-          <button @click="removeBrand(brand)" class="itbms-filter-item-clear ml-2 text-gray-500 hover:text-red-500 transition">
-            <X class="w-3 h-3" />
-          </button>
-        </div>
-      </div>
-
-      <div class="relative flex-shrink-0 flex">
-        <button @click="toggleBrandDropdown"
-                class="itbms-brand-filter px-4 py-2 bg-gray-300 border border-gray-300 hover:bg-gray-400 transition rounded-none">
-          <Filter class="w-5 h-5" />
-        </button>
-
-        <button @click="clearBrands"
-                class="itbms-brand-filter-clear px-4 py-2 bg-gray-300 border border-gray-300 rounded-r-md hover:bg-red-400 transition">
-          Clear
-        </button>
-
-        <ul v-if="showBrandDropdown"
-            class="absolute top-full right-0 bg-white border border-gray-300 rounded-md shadow-lg mt-1 z-50 max-h-200 overflow-y-auto w-[200px] sm:w-[300px]">
-          <li v-for="brand in allBrands" :key="brand" @click="addBrand(brand)"
-              class="itbms-filter-item px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm">
-            {{ brand }}
-          </li>
-        </ul>
-      </div>
-    </div>
+    <BrandSelector 
+      v-model="selectedBrands"
+      :brands="allBrands"
+      :multiple="true"
+      @brand-selected="onBrandSelected"
+      @brand-removed="onBrandRemoved"
+      @clear-brands="onBrandsClear"
+    />
 
     <!-- RIGHT: Sorting + Size -->
     <div class="flex items-center justify-between gap-2">
-      <div class="flex justify-start ">
+      <div class="flex justify-start">
         <label for="page-size" class="text-sm font-medium">Show</label>
         <select name="page-size" id="page-size" v-model="size"
                 class="itbms-page-size bg-gray-300 border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer focus:outline-none">
@@ -192,18 +152,14 @@ onMounted(() => {
                          sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-500 text-white font-medium' : '']">
           <SortDesc class="w-5 h-5" />
         </button>
-
-       
       </div>
     </div>
-     <button @click="add"
-                class="itbms-sale-item-add text-sm  bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
-          Add Product
-        </button>
+    <button @click="add"
+            class="itbms-sale-item-add text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
+      Add Product
+    </button>
   </div>
 </template>
-
-
 
 <style scoped>
 .itbms-page-size {
