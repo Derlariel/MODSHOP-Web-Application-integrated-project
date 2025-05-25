@@ -39,7 +39,7 @@ onMounted(async () => {
   product.value = await productStore.fetchProductDetail(params.productId);
 });
 </script>
-
+  
 <template>
   <div class="min-h-screen bg-black text-white">
     <div class="pt-24 pb-20">

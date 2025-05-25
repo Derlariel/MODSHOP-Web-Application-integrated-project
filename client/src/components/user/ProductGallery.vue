@@ -33,6 +33,7 @@ const filters = ref({
   sortDirection: "asc",
 });
 
+
 const props = defineProps({
   viewType: {
     type: String,
@@ -78,6 +79,18 @@ function handleModalClose() {
   sessionStorage.removeItem("error-message");
   router.push({ name: "sale-items" });
 }
+
+const filteredProducts = computed(() => {
+  if (!filters.value.filterBrands || filters.value.filterBrands.length === 0) {
+    return productStore.allProducts
+  }
+
+  const selectedBrandNames = filters.value.filterBrands.map(b => b.name)
+
+  return productStore.allProducts.filter(p =>
+    selectedBrandNames.includes(p.brandName)
+  )
+})
 
 onMounted(async () => {
   await initProducts();
