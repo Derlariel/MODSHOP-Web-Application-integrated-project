@@ -21,7 +21,7 @@ const fetchBrands = async () => {
     const res = await fetch(`${BASE_URL}/v1/brands`);
     if (!res.ok) throw new Error("Failed to fetch brands");
     const data = await res.json();
-    allBrands.value = data.map((b) => b.name).sort((a,b) => a.localeCompare(b));
+    allBrands.value = data.map((b) => b.name).sort((a, b) => a.localeCompare(b));
   } catch (err) {
     console.error("Error fetching brands:", err);
   }
@@ -33,7 +33,7 @@ if (stored) {
     const parsed = JSON.parse(stored);
     selectedBrands.value = parsed.filterBrands || [];
     size.value = parsed.size || 10;
-    sortField.value = parsed.sortField || 'createdOn';
+    sortField.value = parsed.sortField || "createdOn";
     sortDirection.value = parsed.sortDirection || "asc";
   } catch (e) {
     console.error("Invalid session data", e);
@@ -51,6 +51,9 @@ const onBrandRemoved = () => {
 };
 
 const onBrandsClear = () => {
+  selectedBrands.value = [];
+  sortField.value = "brand.name";
+  sortDirection.value = "asc";
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };
@@ -96,7 +99,6 @@ watch(
       sortDirection: sortDirection.value,
       activePage: productStore.activePage,
     });
-    console.log("emit");
   },
   { deep: true, immediate: true }
 );
@@ -105,8 +107,17 @@ const add = () => {
   router.push({ name: "product-add" });
 };
 
+// Simulate browser close by clearing sessionStorage for TC-4 Step 6
 onMounted(() => {
   fetchBrands();
+  // Check if this is a fresh session (simulating browser close)
+  if (!sessionStorage.getItem("filterAndSort")) {
+    selectedBrands.value = [];
+    sortField.value = "createdOn";
+    sortDirection.value = "asc";
+    productStore.setActivePage(1);
+    sessionStorage.setItem("activePage", 1);
+  }
 });
 </script>
 
@@ -123,7 +134,7 @@ onMounted(() => {
     />
 
     <!-- RIGHT: Sorting + Size -->
-    <div class="flex items-center justify-center gap-4 ">
+    <div class="flex items-center justify-center gap-4">
       <div class="flex justify-start items-center gap-2">
         <label for="page-size" class="text-sm font-medium">Show</label>
         <select name="page-size" id="page-size" v-model="size"
@@ -150,34 +161,32 @@ onMounted(() => {
                          sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-500 text-white font-medium' : '']">
           <SortDesc class="w-5 h-5" />
         </button>
-
-       
       </div>
-       <button @click="add"
-                class="itbms-sale-item-add text-sm  bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
-          Add Product
-        </button>
+      <button @click="add"
+              class="itbms-sale-item-add text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
+        Add Product
+      </button>
     </div>
   </div>
 </template>
 
 <style scoped>
 .itbms-page-size {
-    padding: 0.5rem 0.75rem;
-    height: 40px;
-    min-width: 70px;
-    font-size: 1rem;
-    line-height: 1.2;
-    cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  height: 40px;
+  min-width: 70px;
+  font-size: 1rem;
+  line-height: 1.2;
+  cursor: pointer;
 }
 
 .itbms-brand-none,
 .itbms-brand-asc,
 .itbms-brand-desc {
-    padding: 0.5rem 0.75rem;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  padding: 0.5rem 0.75rem;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
