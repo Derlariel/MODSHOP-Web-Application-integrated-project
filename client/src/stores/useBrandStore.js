@@ -43,6 +43,7 @@ export const useBrandStore = defineStore(
       .filter(name => !!name)
       .sort((a,b) => a.localeCompare(b))
     }
+    
 
     const createBrand = async (brandData) => {
       try {
