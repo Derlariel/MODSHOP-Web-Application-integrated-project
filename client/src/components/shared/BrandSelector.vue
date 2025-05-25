@@ -105,7 +105,6 @@ const handleSelect = (event) => {
     </div>
   </div>
 
-  <!-- Single selection mode -->
   <select
     v-if="!multiple"
     class="itbms-brand w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all cursor-pointer"
