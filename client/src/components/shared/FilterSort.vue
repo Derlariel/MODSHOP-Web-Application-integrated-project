@@ -28,6 +28,7 @@ const fetchBrands = async () => {
   }
 };
 
+// Load stored filters and sorting
 const stored = sessionStorage.getItem("filterAndSort");
 if (stored) {
   try {
@@ -36,16 +37,17 @@ if (stored) {
     size.value = parsed.size || 10;
     sortField.value = parsed.sortField || "createdOn";
     sortDirection.value = parsed.sortDirection || "asc";
+    productStore.setActivePage(parsed.activePage || 1);
   } catch (e) {
     console.error("Invalid session data", e);
   }
 }
 
 const onBrandSelected = async () => {
-  sortField.value = "brand.name"; 
+  sortField.value = "brand.name";
   sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  sessionStorage.setItem("activePage", "1");
   await productStore.loadProducts({
     filterBrands: selectedBrands.value,
     size: size.value,
@@ -53,13 +55,14 @@ const onBrandSelected = async () => {
     sortDirection: sortDirection.value,
     activePage: 1,
   });
+  console.log("onBrandSelected: Loaded products for brands", selectedBrands.value);
 };
 
 const onBrandRemoved = async () => {
-  sortField.value = "brand.name"; 
+  sortField.value = "brand.name";
   sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  sessionStorage.setItem("activePage", "1");
   await productStore.loadProducts({
     filterBrands: selectedBrands.value,
     size: size.value,
@@ -67,6 +70,7 @@ const onBrandRemoved = async () => {
     sortDirection: sortDirection.value,
     activePage: 1,
   });
+  console.log("onBrandRemoved: Loaded products for brands", selectedBrands.value);
 };
 
 const onBrandsClear = async () => {
@@ -74,7 +78,7 @@ const onBrandsClear = async () => {
   sortField.value = "brand.name";
   sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  sessionStorage.setItem("activePage", "1");
   await productStore.loadProducts({
     filterBrands: selectedBrands.value,
     size: size.value,
@@ -82,13 +86,14 @@ const onBrandsClear = async () => {
     sortDirection: sortDirection.value,
     activePage: 1,
   });
+  console.log("onBrandsClear: Loaded products with no brand filter");
 };
 
 const resetSort = async () => {
   sortField.value = "createdOn";
   sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  sessionStorage.setItem("activePage", "1");
   await productStore.loadProducts({
     filterBrands: selectedBrands.value,
     size: size.value,
@@ -96,13 +101,14 @@ const resetSort = async () => {
     sortDirection: sortDirection.value,
     activePage: 1,
   });
+  console.log("resetSort: Loaded products with createdOn sorting");
 };
 
 const sortByBrandAsc = async () => {
   sortField.value = "brand.name";
   sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  sessionStorage.setItem("activePage", "1");
   await productStore.loadProducts({
     filterBrands: selectedBrands.value,
     size: size.value,
@@ -110,13 +116,14 @@ const sortByBrandAsc = async () => {
     sortDirection: sortDirection.value,
     activePage: 1,
   });
+  console.log("sortByBrandAsc: Loaded products with brand.name asc sorting");
 };
 
 const sortByBrandDesc = async () => {
   sortField.value = "brand.name";
   sortDirection.value = "desc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  sessionStorage.setItem("activePage", "1");
   await productStore.loadProducts({
     filterBrands: selectedBrands.value,
     size: size.value,
@@ -124,6 +131,7 @@ const sortByBrandDesc = async () => {
     sortDirection: sortDirection.value,
     activePage: 1,
   });
+  console.log("sortByBrandDesc: Loaded products with brand.name desc sorting");
 };
 
 watch(
@@ -153,6 +161,16 @@ watch(
       sortDirection: sortDirection.value,
       activePage: productStore.activePage,
     });
+    console.log(
+      "watch: Loaded products with",
+      JSON.stringify({
+        filterBrands: selectedBrands.value,
+        size: size.value,
+        sortField: sortField.value,
+        sortDirection: sortDirection.value,
+        activePage: productStore.activePage,
+      })
+    );
   },
   { deep: true }
 );
@@ -163,15 +181,22 @@ const add = () => {
 
 onMounted(async () => {
   await fetchBrands();
-  
+  // Simulate browser close by resetting if no stored session
   if (!sessionStorage.getItem("filterAndSort")) {
     selectedBrands.value = [];
     sortField.value = "createdOn";
     sortDirection.value = "asc";
     productStore.setActivePage(1);
-    sessionStorage.setItem("activePage", 1);
+    sessionStorage.setItem("activePage", "1");
   }
   await productStore.loadProducts({
+    filterBrands: selectedBrands.value,
+    size: size.value,
+    sortField: sortField.value,
+    sortDirection: sortDirection.value,
+    activePage: productStore.activePage,
+  });
+  console.log("onMounted: Loaded products with", {
     filterBrands: selectedBrands.value,
     size: size.value,
     sortField: sortField.value,
