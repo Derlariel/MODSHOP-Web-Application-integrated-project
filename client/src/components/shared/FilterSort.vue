@@ -65,23 +65,15 @@ const resetSort = () => {
 };
 
 const sortByBrandAsc = () => {
-  if (selectedBrands.value.length > 0) {
-    sortField.value = "brand.name";
-    sortDirection.value = "asc";
-  } else {
-    resetSort();
-  }
+  sortField.value = "brand.name";
+  sortDirection.value = "asc";
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };
 
 const sortByBrandDesc = () => {
-  if (selectedBrands.value.length > 0) {
-    sortField.value = "brand.name";
-    sortDirection.value = "desc";
-  } else {
-    resetSort();
-  }
+  sortField.value = "brand.name";
+  sortDirection.value = "desc";
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };
