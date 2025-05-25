@@ -32,7 +32,7 @@ if (stored) {
     const parsed = JSON.parse(stored);
     selectedBrands.value = parsed.filterBrands || [];
     size.value = parsed.size || 10;
-    sortField.value = parsed.sortField || "createdOn";
+    sortField.value = parsed.sortField || 'createdOn';
     sortDirection.value = parsed.sortDirection || "asc";
   } catch (e) {
     console.error("Invalid session data", e);
