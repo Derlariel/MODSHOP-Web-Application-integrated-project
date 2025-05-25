@@ -82,7 +82,7 @@ const sortByBrandAsc = () => {
 
   
   if (selectedBrands.value.length === 0) {
-    sortField.value = "model";
+    sortField.value = "createdOn";
     sortDirection.value = "asc";
   } else {
     sortField.value = "brand.name";
@@ -96,7 +96,7 @@ const sortByBrandAsc = () => {
 const sortByBrandDesc = () => {
   
   if (selectedBrands.value.length === 0) {
-    sortField.value = "model";
+    sortField.value = "createdOn";
     sortDirection.value = "asc";
   } else {
     sortField.value = "brand.name";
