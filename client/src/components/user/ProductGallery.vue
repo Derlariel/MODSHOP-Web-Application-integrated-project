@@ -9,6 +9,7 @@ import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
 import Pagination from "@/components/shared/Pagination.vue";
 import ErrorModal from "@/components/shared/modal/ErrorModal.vue";
 import DEFAULT_IMAGE from "@/assets/default.jpg";
+import SkeletonLoader from "@/components/shared/SkeletonLoader.vue";
 
 const router = useRouter();
 
@@ -112,7 +113,7 @@ watch(filters, async () => {
 </script>
 
 <template>
-  <div v-if="!isLoading && product.length > 0" class="min-h-screen bg-black text-white">
+  <div class="min-h-screen bg-black text-white">
     <div class="pt-24 pb-8 px-6 bg-gradient-to-b from-neutral-900 to-black">
       <div class="max-w-[1200px] mx-auto text-center">
         <h1 class="text-5xl font-semibold tracking-tight mb-2">
@@ -139,7 +140,12 @@ watch(filters, async () => {
         @close="handleModalClose"
       />
 
-      <div v-if="!isLoading && !isModalOpen" class="flex-1 overflow-y-auto mb-12">
+      <!-- Loading Skeletons -->
+      <div v-if="isLoading" class="flex items-center justify-center ">
+        <SkeletonLoader />
+      </div>
+
+      <div v-if="!isLoading && !isModalOpen" class="flex-1 mb-12">
         <ListModel :saleItems="productStore.allProducts" :viewType="viewType" :adminMode="adminMode">
           <!-- Header -->
           <template #listHeader>
@@ -249,10 +255,12 @@ watch(filters, async () => {
         </ListModel>
       </div>
     </div>
-    <Pagination :totalPages="productStore.allPages" @sendPages="updatePages "/>
+    <Pagination v-if="!isLoading && product.length > 0" :totalPages="productStore.allPages" @sendPages="updatePages" />
   </div>
 
-  <div v-else>No sale item</div>
+  <div v-if="!isLoading && product.length === 0" class="min-h-screen flex items-center justify-center text-white text-xl">
+    No sale items found
+  </div>
 </template>
 
 <style>
