@@ -86,11 +86,6 @@ const sortByBrandAsc = () => {
 };
 
 const sortByBrandDesc = () => {
-  if (selectedBrands.value.length === 1) {
-    sortField.value = "createdOn";
-    sortDirection.value = "asc";
-    return
-  }
   sortField.value = "brand.name";
   sortDirection.value = "desc";
   productStore.setActivePage(1)
