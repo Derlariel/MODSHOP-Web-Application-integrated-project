@@ -29,12 +29,12 @@ public class  SaleItemController {
     private ListMapper listMapper;
 
     @GetMapping("")
-    public ResponseEntity<List<SaleItemDto>> getAllProducts() {
+    public ResponseEntity<List<SaleItem>> getAllProducts() {
         List<SaleItem> products = saleItemService.getAllSaleItems();
         if (products.isEmpty()) {
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.ok(listMapper.toListDto(products, SaleItemDto.class, modelMapper));
+        return ResponseEntity.ok(products);
     }
 
     @GetMapping("/{id}")
