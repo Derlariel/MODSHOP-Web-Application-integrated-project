@@ -79,31 +79,22 @@ const resetSort = () => {
 };
 
 const sortByBrandAsc = () => {
-
-  
-  if (selectedBrands.value.length === 0) {
-    sortField.value = "createdOn";
-    sortDirection.value = "asc";
-  } else {
-    sortField.value = "brand.name";
+  sortField.value = "brand.name";
   sortDirection.value = "asc";
   productStore.setActivePage(1)
   sessionStorage.setItem("activePage", 1)
-  }
-  
 };
 
 const sortByBrandDesc = () => {
-  
-  if (selectedBrands.value.length === 0) {
+  if (selectedBrands.value.length === 1) {
     sortField.value = "createdOn";
     sortDirection.value = "asc";
-  } else {
-    sortField.value = "brand.name";
+    return
+  }
+  sortField.value = "brand.name";
   sortDirection.value = "desc";
   productStore.setActivePage(1)
   sessionStorage.setItem("activePage", 1)
-  }
 };
 
 
