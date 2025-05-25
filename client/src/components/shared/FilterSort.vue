@@ -178,21 +178,23 @@ onMounted(() => {
                 <option value="20">20</option>
             </select>
 
-            <button @click="resetSort" title="No Sort"
-                class="bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
+           <button @click="resetSort" title="No Sort"
+                :class="['itbms-brand-none bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition', 
+                     (sortField === 'createdOn') ? 'bg-gray-500 text-white font-medium' : '']">
                 <Menu class="w-5 h-5" />
             </button>
 
             <button @click="sortByBrandAsc" title="Sort A-Z"
-                class="itbms-brand-asc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
+                :class="['itbms-brand-asc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
+                     (sortField === 'brand.name' && sortDirection === 'asc') ? 'bg-gray-500 text-white font-medium' : '']">
                 <SortAsc class="w-5 h-5" />
             </button>
 
             <button @click="sortByBrandDesc" title="Sort Z-A"
-                class="itbms-brand-desc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition">
+                :class="['itbms-brand-desc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
+                     (sortField === 'brand.name' && sortDirection === 'desc') ? 'bg-gray-500 text-white font-medium' : '']">
                 <SortDesc class="w-5 h-5" />
             </button>
-        </div>
         <button @click="add"
                 class="itbms-sale-item-add text-sm w-full bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
                 Add Product
