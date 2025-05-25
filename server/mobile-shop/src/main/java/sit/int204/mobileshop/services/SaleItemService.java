@@ -79,7 +79,7 @@ public class SaleItemService {
             if (cleanedBrands.isEmpty()) {
                 saleItemPage = saleItemRepository.findAll(pageable);
             } else {
-                saleItemPage = saleItemRepository.findAllFilter(pageable, cleanedBrands);
+                saleItemPage = saleItemRepository.findAllFilter(cleanedBrands,pageable);
             }
         }
 
