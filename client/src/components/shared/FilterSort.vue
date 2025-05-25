@@ -79,10 +79,10 @@ const resetSort = () => {
 };
 
 const sortByBrandAsc = () => {
-  console.log("sort");
+
   
   if (selectedBrands.value === 0) {
-    sortField.value = "createdOn";
+    sortField.value = "model";
     sortDirection.value = "asc";
   } else {
     sortField.value = "brand.name";
@@ -96,8 +96,8 @@ const sortByBrandAsc = () => {
 const sortByBrandDesc = () => {
   
   if (selectedBrands.value === 0) {
-    sortField.value = "createdOn";
-    sortDirection.value = "desc";
+    sortField.value = "model";
+    sortDirection.value = "asc";
   } else {
     sortField.value = "brand.name";
   sortDirection.value = "desc";
