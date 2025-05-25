@@ -81,7 +81,7 @@ const resetSort = () => {
 const sortByBrandAsc = () => {
 
   
-  if (selectedBrands.value === 0) {
+  if (selectedBrands.value.length === 0) {
     sortField.value = "model";
     sortDirection.value = "asc";
   } else {
@@ -95,7 +95,7 @@ const sortByBrandAsc = () => {
 
 const sortByBrandDesc = () => {
   
-  if (selectedBrands.value === 0) {
+  if (selectedBrands.value.length === 0) {
     sortField.value = "model";
     sortDirection.value = "asc";
   } else {
