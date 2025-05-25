@@ -26,6 +26,7 @@ export const useBrandStore = defineStore(
         isLoading.value = true;
         error.value = null;
         brands.value = await getProducts(`${BASE_URL}/v1/brands`);
+
         return brands.value;
       } catch (err) {
         console.error('Error loading brands:', err);
@@ -35,6 +36,13 @@ export const useBrandStore = defineStore(
         isLoading.value = false;
       }
     };
+
+    const filterBrands = () => {
+      return brands.value
+      .map(b => b.name)
+      .filter(name => !!name)
+      .sort((a,b) => a.localeCompare(b))
+    }
 
     const createBrand = async (brandData) => {
       try {
@@ -107,6 +115,7 @@ export const useBrandStore = defineStore(
       error,
       getBrands,
       loadBrands,
+      filterBrands,
       createBrand,
       updateBrand,
       deleteBrand,
