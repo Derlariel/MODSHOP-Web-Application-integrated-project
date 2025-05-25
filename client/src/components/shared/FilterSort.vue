@@ -33,7 +33,7 @@ if (stored) {
     const parsed = JSON.parse(stored);
     selectedBrands.value = parsed.filterBrands || [];
     size.value = parsed.size || 10;
-    sortField.value = parsed.sortField || "createdOn";
+    sortField.value = parsed.sortField;
     sortDirection.value = parsed.sortDirection || "asc";
   } catch (e) {
     console.error("Invalid session data", e);
@@ -142,13 +142,13 @@ onMounted(() => {
         </button>
 
         <button @click="sortByBrandDesc" title="Sort A-Z"
-                :class="['itbms-brand-asc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
+                :class="['itbms-brand-desc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
                          sortField === 'brand.name' && sortDirection === 'asc' ? 'bg-gray-500 text-white font-medium' : '']">
           <SortAsc class="w-5 h-5" />
         </button>
 
         <button @click="sortByBrandAsc" title="Sort Z-A"
-                :class="['itbms-brand-desc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
+                :class="['itbms-brand-asc bg-gray-300 border border-gray-300 rounded-md p-2 hover:bg-gray-400 transition',
                          sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-500 text-white font-medium' : '']">
           <SortDesc class="w-5 h-5" />
         </button>
