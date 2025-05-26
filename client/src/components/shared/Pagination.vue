@@ -39,20 +39,13 @@ const visiblePages = computed(() => {
 const paging = ref("paging");
 
 const setActivePage = (page) => {
-  const maxPage = storePages.value;
-
-  if (page > maxPage) {
-    productStore.setActivePage(1);
-  } else {
     productStore.setActivePage(page);
-  }
 
   sessionStorage.setItem("activePage", String(productStore.getActivePage));
-  emit("sendPages", productStore.getActivePage - 1);
+  emit("sendPages", productStore.getActivePage);
 };
 
 const first = () => {
-  next();
   setActivePage(1);
 };
 
