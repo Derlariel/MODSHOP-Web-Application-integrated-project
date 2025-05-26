@@ -14,8 +14,14 @@ const productStore = useProductStore();
 const storePages = computed(() => productStore.allPages);
 const activePage = computed(() => productStore.getActivePage);
 
+// Add computed property to determine if pagination should be visible
+const shouldShowPagination = computed(() => {
+  return storePages.value > 1;
+});
+
 const emit = defineEmits(["sendPages"]);
 
+// Rest of the script remains unchanged
 const visiblePages = computed(() => {
   const total = productStore.allPages;
   const current = productStore.getActivePage;
@@ -48,11 +54,12 @@ const setActivePage = (page) => {
 };
 
 const first = () => {
-  setActivePage(1); 
+  next();
+  setActivePage(1);
 };
 
 const last = () => {
-  setActivePage(storePages.value); 
+  setActivePage(storePages.value);
 };
 
 const next = () => {
@@ -63,7 +70,7 @@ const next = () => {
 
 const prev = () => {
   if (productStore.getActivePage > 1) {
-    setActivePage(productStore.getActivePage - 1); 
+    setActivePage(productStore.getActivePage - 1);
   }
 };
 
@@ -73,7 +80,7 @@ watch(
     console.log("max-emit", newVal);
     console.log("before-emit", productStore.allPages);
     if (productStore.allPages < productStore.getActivePage) {
-      setActivePage(1)
+      setActivePage(1);
     }
   }
 );
@@ -87,8 +94,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="pagination-wrapper w-full py-6 px-4 bg-gray-950 overflow-x-auto">
-    <div class="pagination-container flex items-center space-x-2 min-w-max mx-auto">
+  <!-- Change v-if to v-show to keep elements in the DOM but hide them -->
+  <div
+    v-show="shouldShowPagination"
+    class="pagination-wrapper w-full py-6 px-4 bg-gray-950 overflow-x-auto"
+  >
+    <div
+      class="pagination-container flex items-center space-x-2 min-w-max mx-auto"
+    >
       <!-- First Button -->
       <button
         @click="first"
@@ -97,12 +110,13 @@ onMounted(() => {
           'itbms-page-first px-2 py-1 text-sm font-medium rounded-md transition-all duration-200 ease-out',
           activePage === 1
             ? 'text-gray-500 cursor-not-allowed'
-            : 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700'
+            : 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700',
         ]"
       >
         First
       </button>
 
+      <!-- Rest of the template remains unchanged -->
       <!-- Previous Button -->
       <button
         @click="prev"
@@ -111,11 +125,21 @@ onMounted(() => {
           'itbms-page-prev w-8 h-8 flex items-center justify-center rounded-md transition-all duration-200 ease-out',
           activePage === 1
             ? 'text-gray-500 cursor-not-allowed'
-            : 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700'
+            : 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700',
         ]"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
         </svg>
       </button>
 
@@ -130,7 +154,7 @@ onMounted(() => {
                 'w-8 h-8 flex items-center justify-center text-sm font-medium rounded-md transition-all duration-200 ease-out',
                 activePage === page
                   ? 'bg-white text-white shadow-sm'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800 active:bg-gray-700'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800 active:bg-gray-700',
               ]"
               :aria-label="`Page ${page}`"
               :aria-current="activePage === page ? 'page' : undefined"
@@ -156,11 +180,21 @@ onMounted(() => {
           'itbms-page-next w-8 h-8 flex items-center justify-center rounded-md transition-all duration-200 ease-out',
           activePage >= storePages
             ? 'text-gray-500 cursor-not-allowed'
-            : 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700'
+            : 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700',
         ]"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5l7 7-7 7"
+          />
         </svg>
       </button>
 
@@ -172,7 +206,7 @@ onMounted(() => {
           'itbms-page-last px-2 py-1 text-sm font-medium rounded-md transition-all duration-200 ease-out',
           activePage >= storePages
             ? 'text-gray-500 cursor-not-allowed'
-            : 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700'
+            : 'text-gray-300 hover:text-white hover:bg-gray-800 active:bg-gray-700',
         ]"
       >
         Last
@@ -207,7 +241,7 @@ onMounted(() => {
   .desktop-pagination {
     display: none;
   }
-  
+
   .mobile-pagination {
     display: flex;
   }
@@ -246,16 +280,16 @@ button[aria-current="page"] {
   .pagination-container {
     gap: 0.125rem;
   }
-  
+
   button {
     font-size: 0.75rem;
   }
-  
+
   .w-8 {
     width: 1.75rem;
     height: 1.75rem;
   }
-  
+
   button:not(.w-8) {
     padding: 0.25rem 0.5rem;
   }
@@ -266,7 +300,7 @@ button[aria-current="page"] {
     width: 1.5rem;
     height: 1.5rem;
   }
-  
+
   button:not(.w-8) {
     padding: 0.25rem 0.375rem;
     font-size: 0.7rem;

@@ -143,6 +143,8 @@ watch(filters, async () => {
             <FilterSort @update:filters="updateFilters" />
           </div>
         </div>
+            <Pagination v-if="!isLoading && product.length > 0" :totalPages="productStore.allPages" @sendPages="updatePages" />
+
       </div>
     </div>
 
@@ -268,7 +270,6 @@ watch(filters, async () => {
         </ListModel>
       </div>
     </div>
-    <Pagination v-if="!isLoading && product.length > 0" :totalPages="productStore.allPages" @sendPages="updatePages" />
   </div>
 
   <div v-if="!isLoading && product.length === 0" class="min-h-screen flex items-center justify-center text-white text-xl">

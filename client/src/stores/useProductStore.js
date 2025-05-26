@@ -58,7 +58,6 @@ export const useProductStore = defineStore("product", {
       },
   },
   actions: {
-
     setActivePage(page) {
       this.activePage = page;
     },
@@ -89,27 +88,27 @@ export const useProductStore = defineStore("product", {
       }
     },
 
-      async loadProductsPage(params) {
+    async loadProductsPage(params) {
       try {
         const data = await getProductsPage(`${BASE_URL}/v2/sale-items`, params);
 
         const normalized = Array.isArray(data.content)
           ? data.content.map((product) => ({
-              ...product
+              ...product,
             }))
           : [];
-        
-        this.products = normalized
+
+        this.products = normalized;
       } catch (err) {
         console.error("Failed to load all products", err);
       }
     },
-      
-      async loadAllPages(params) {
+
+    async loadAllPages(params) {
       try {
         const data = await getProductsPage(`${BASE_URL}/v2/sale-items`, params);
 
-        this.totalPages = data.totalPages        
+        this.totalPages = data.totalPages;
       } catch (err) {
         console.error("Failed to load all page products", err);
       }
