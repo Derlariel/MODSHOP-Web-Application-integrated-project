@@ -57,7 +57,6 @@ const first = () => {
 };
 
 const last = () => {
-  productStore.get();
   console.log("last", productStore.allPages);
   setActivePage(productStore.allPages);
   console.log("last-set", productStore.getActivePage);
