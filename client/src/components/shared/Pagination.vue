@@ -52,7 +52,6 @@ const setActivePage = (page) => {
 };
 
 const first = () => {
-  next();
   setActivePage(1);
 };
 

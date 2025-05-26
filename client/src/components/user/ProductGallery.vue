@@ -94,7 +94,10 @@ const filteredProducts = computed(() => {
 
 onMounted(async () => {
   await initProducts();
-  productStore.setActivePage(1);
+  const savedPage = sessionStorage.getItem("activePage");
+  if (savedPage) {
+    productStore.setActivePage(parseInt(savedPage));
+  }
 
   if (sessionStorage.getItem("error-message") === "true") {
     isModalOpen.value = true;

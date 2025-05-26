@@ -5,7 +5,7 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-1\n
 
     beforeEach(()=> {
         cy.visit(resource) ;
-        cy.wait(100) ;
+        cy.wait(1000) ;
     }) ;
 
     it(`Open the sale item gallery page at ${resource}`, () => {

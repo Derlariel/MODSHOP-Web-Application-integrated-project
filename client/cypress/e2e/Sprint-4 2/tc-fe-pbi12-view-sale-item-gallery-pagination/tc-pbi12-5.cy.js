@@ -1,5 +1,5 @@
 describe (`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-5\n 
-    Test Scenario : normal - pagination setting persistence`, () => {
+  Test Scenario : normal - pagination setting persistence`, () => {
   let resource = '/sale-items';
 
   beforeEach (() => {
@@ -23,10 +23,10 @@ describe (`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-5\n
   });
 
   it (`should have "Filter by brand(s)",\n
-                    "No sort", "Sort By Brand in Ascending" button,\n
-                    "Sort By Brand in Descending" button and \n
-                    "Show page size" dropdown with default 10.
-                    "Navigation bar (First,Prev,1-6,Next,Last)`, () => {
+                  "No sort", "Sort By Brand in Ascending" button,\n
+                  "Sort By Brand in Descending" button and \n
+                  "Show page size" dropdown with default 10.
+                  "Navigation bar (First,Prev,1-6,Next,Last)`, () => {
     cy.get ('.itbms-brand-filter').should ('exist');
     cy.get ('.itbms-brand-none').should ('exist');
     cy.get ('.itbms-brand-asc').should ('exist');
@@ -46,9 +46,9 @@ describe (`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-5\n
   });
 
   it (`[Step 0] should change page size to 5.\n
-        should show page 1.\n
-        should show 4 page numbers (1-4)\n
-        should show 5 OPPO phones.\n`, () => {
+      should show page 1.\n
+      should show 4 page numbers (1-4)\n
+      should show 5 OPPO phones.\n`, () => {
     cy.get ('.itbms-page-size').select ('5');
     cy.wait (100);
 
@@ -85,21 +85,21 @@ describe (`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-5\n
   });
 
   it (`[Step 1] should show page 3 and show 5 Huawei phones.\n
-        [Step 2] should refresh sale item gallery page.\n
-         should have 5 page size.\n
-         There are 4 page numbers (1-4), page 3 is highlighted, and the gallery shows 5 Huawei phones.\n
-        [Step 3] should show detail and click back to return the gallery page.\n
-         should have 5 page size.\n
-         There are 4 page numbers (1-4), page 3 is highlighted, and the gallery shows 5 Huawei phones.\n
-        [Step 4] should show sale item list and click back to return the gallery page.\n
-         should have 5 page size.\n
-         There are 4 page numbers (1-4), page 3 is highlighted, and the gallery shows 5 Huawei phones.\n
-        [Step 5] should have 10 page size.\n
-         should have 2 page numbers (1-2), page 1 is highlighted, and the gallery shows 10 OPPO phones.\n
-        [Step 6] should have 5 page size.
-        should click "Last" button.
-        should have 4 page numbers (1-4), page 4 is highlighted, and the gallery shows 5 Huawei phones.\n
-        `, () => {
+      [Step 2] should refresh sale item gallery page.\n
+       should have 5 page size.\n
+       There are 4 page numbers (1-4), page 3 is highlighted, and the gallery shows 5 Huawei phones.\n
+      [Step 3] should show detail and click back to return the gallery page.\n
+       should have 5 page size.\n
+       There are 4 page numbers (1-4), page 3 is highlighted, and the gallery shows 5 Huawei phones.\n
+      [Step 4] should show sale item list and click back to return the gallery page.\n
+       should have 5 page size.\n
+       There are 4 page numbers (1-4), page 3 is highlighted, and the gallery shows 5 Huawei phones.\n
+      [Step 5] should have 10 page size.\n
+       should have 2 page numbers (1-2), page 1 is highlighted, and the gallery shows 10 OPPO phones.\n
+      [Step 6] should have 5 page size.
+      should click "Last" button.
+      should have 4 page numbers (1-4), page 4 is highlighted, and the gallery shows 5 Huawei phones.\n
+      `, () => {
     cy.get ('.itbms-page-size').select ('5');
     cy.wait (100);
 
@@ -116,7 +116,7 @@ describe (`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-5\n
     cy.contains ('.itbms-filter-item', 'OPPO').should ('exist').click ();
     cy.wait (100);
 
-    cy.get ('.itbms-page-2').should ('exist').click();
+    cy.get ('.itbms-page-2').should ('exist').click ();
     cy.wait (100);
 
     cy.get ('.itbms-brand').then ($brands => {
@@ -194,7 +194,7 @@ describe (`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-5\n
     cy.contains ('.itbms-page-size', 5);
     cy.contains ('.itbms-brand-filter', 'Huawei');
     cy.contains ('.itbms-brand-filter', 'OPPO');
-    cy.wait (100);
+
     cy.get ('.itbms-brand').then ($brands => {
       const matched = $brands.filter ((index, el) =>
         el.textContent.toLowerCase ().includes ('huawei')
@@ -229,7 +229,6 @@ describe (`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-5\n
 
     //[Step 6] Change page size to 5 and click "Last"
     cy.get ('.itbms-page-size').select ('5');
-    cy.wait (100);
 
     cy.get ('.itbms-page-0').should ('exist');
     cy.get ('.itbms-page-1').should ('exist');
@@ -246,8 +245,6 @@ describe (`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-5\n
     cy.contains ('.itbms-brand-filter', 'OPPO');
 
     cy.get ('.itbms-page-last').should ('exist').click ({force: true});
-    cy.wait (100);
-
     cy.get ('.itbms-brand').then ($brands => {
       const matched = $brands.filter ((index, el) =>
         el.textContent.toLowerCase ().includes ('huawei')
@@ -257,7 +254,7 @@ describe (`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-5\n
   });
 
   it (`[Step 7] Close the browser and open sale item gallery page at /sale-items.\n
-        should have page size 10. There are 6 page numbers (1-6), page 1 is highlighted, and the gallery shows 10 Apple phones.]`, () => {
+      should have page size 10. There are 6 page numbers (1-6), page 1 is highlighted, and the gallery shows 10 Apple phones.]`, () => {
     cy.contains ('.itbms-page-size', 10);
     cy.get ('.itbms-filter-item').should ('have.length', 0);
 
