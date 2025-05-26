@@ -58,7 +58,7 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-2\n
         should show 4 pages in page navigation bar.\n
         should show only "Samsung/Galaxy S25 Ultra" in page 4.\n`,()=>{
         cy.get('.itbms-page-size').select('20')
-        cy.wait(3000)
+        cy.wait(100)
 
         cy.get('.itbms-page-0').should('exist')
         cy.get('.itbms-page-1').should('exist')
@@ -131,7 +131,7 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-2\n
         should show 3 pages in page navigation bar.\n
         should show 20 sale items in pag 3 starting with 10 ASUS phones follow by 10 OPPO phones.\n\n`,()=>{
         cy.get('.itbms-page-size').select('20')
-        cy.wait(3000)
+        cy.wait(100)
 
         cy.get('.itbms-page-0').should('exist')
         cy.get('.itbms-page-1').should('exist')
