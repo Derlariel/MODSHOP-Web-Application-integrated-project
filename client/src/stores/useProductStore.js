@@ -107,8 +107,9 @@ export const useProductStore = defineStore("product", {
     async loadAllPages(params) {
       try {
         const data = await getProductsPage(`${BASE_URL}/v2/sale-items`, params);
-
+        console.log("data.totalPages "+data.totalPages)
         this.totalPages = data.totalPages;
+        
       } catch (err) {
         console.error("Failed to load all page products", err);
       }

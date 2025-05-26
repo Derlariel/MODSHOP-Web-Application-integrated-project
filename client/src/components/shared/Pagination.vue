@@ -14,14 +14,12 @@ const productStore = useProductStore();
 const storePages = computed(() => productStore.allPages);
 const activePage = computed(() => productStore.getActivePage);
 
-// Add computed property to determine if pagination should be visible
 const shouldShowPagination = computed(() => {
   return storePages.value > 1;
 });
 
 const emit = defineEmits(["sendPages"]);
 
-// Rest of the script remains unchanged
 const visiblePages = computed(() => {
   const total = productStore.allPages;
   const current = productStore.getActivePage;
@@ -59,7 +57,11 @@ const first = () => {
 };
 
 const last = () => {
-  setActivePage(storePages.value);
+  productStore.get();
+  console.log("last", productStore.allPages);
+  setActivePage(productStore.allPages);
+  console.log("last-set", productStore.getActivePage);
+  console.log("session" + sessionStorage.getItem("activePage"));
 };
 
 const next = () => {
@@ -94,7 +96,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- Change v-if to v-show to keep elements in the DOM but hide them -->
   <div
     v-show="shouldShowPagination"
     class="pagination-wrapper w-full py-6 px-4 bg-gray-950 overflow-x-auto"
@@ -116,7 +117,6 @@ onMounted(() => {
         First
       </button>
 
-      <!-- Rest of the template remains unchanged -->
       <!-- Previous Button -->
       <button
         @click="prev"

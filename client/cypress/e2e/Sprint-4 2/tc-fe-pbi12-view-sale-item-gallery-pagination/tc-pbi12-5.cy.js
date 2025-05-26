@@ -247,6 +247,8 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-5\n
         cy.contains('.itbms-brand-filter','Huawei')
         cy.contains('.itbms-brand-filter','OPPO')
 
+    
+
         cy.get('.itbms-page-last').should('exist').click({force: true})
         cy.wait(100)
 
