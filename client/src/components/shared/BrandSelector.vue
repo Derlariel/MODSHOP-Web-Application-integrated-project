@@ -35,7 +35,6 @@ const emit = defineEmits([
 
 const showDropdown = ref(false);
 
-// Computed property to get the current selected value for single selection
 const selectedValue = computed(() => {
   if (props.multiple) return null;
   return props.modelValue?.id || "";
@@ -77,9 +76,8 @@ const clearBrands = () => {
 const handleSelect = (event) => {
   const selectedId = parseInt(event.target.value);
   if (!selectedId) {
-    // Handle empty selection
     emit("update:modelValue", { id: null, name: null });
-    emit("blur"); // Trigger validation when empty selection is made
+    emit("blur"); 
     return;
   }
   
@@ -90,7 +88,6 @@ const handleSelect = (event) => {
   }
 };
 
-// Explicitly trigger blur event when clicking outside
 const triggerBlur = () => {
   emit("blur");
 };

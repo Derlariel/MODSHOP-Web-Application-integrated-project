@@ -53,7 +53,7 @@ export const validateNoWhitespace = data => {
 // Field validators spacific for jarn sanit
 export const validateModel = data => {
   const valid =
-  data.length >= 1 && data.length <= 100 && /^[a-zA-Z0-9-\s]+$/.test (data);
+  data.length >= 1 && data.length <= 60 && /^[a-zA-Z0-9-\s]+$/.test (data);
   return {
     valid,
     message: valid ? null : 'Model must be 1-60 characters long.',
