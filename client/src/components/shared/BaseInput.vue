@@ -1,75 +1,85 @@
 <script setup>
-import { defineProps, defineEmits } from "vue";
-const emit = defineEmits(['trim'])
+import { defineProps, defineEmits, computed, watch } from "vue";
 
-const model = defineModel();
-defineProps({
+const props = defineProps({
+  error: String,
+  modelValue: {
+    type: [String, Number],
+    default: "",
+  },
   label: String,
-  id: String,
   type: {
     type: String,
     default: "text",
   },
-  placeholder: String,
-  error: String,
-  helper: String,
-  prefix: String, 
-  step: String,
+  required: Boolean,
   cypress: String,
+  placeholder: String,
+  prefix: String,
+  step: String,
+  id: String,
   maxInput: Number,
-  inputClass: String
+  showCounter: Boolean,
+  validateOnInput: Boolean,
 });
 
-// const preventNegative = (e) => {
-//   const value = parseFloat(e.target.value);
-//   if (value < 0) {
-//     e.target.value = 0;
-//     model.value = 0; 
-//   }
-// };
+const emit = defineEmits(["update:modelValue", "trim"]);
 
-const handle = () => {
-  emit('trim')
-}
+const updateValue = (e) => {
+  emit("update:modelValue", e.target.value);
+  
+  if (props.validateOnInput && props.maxInput && e.target.value.length > props.maxInput) {
+    emit("trim");
+  }
+};
 
+const onBlur = () => {
+  emit("trim");
+};
+
+const characterCount = computed(() => {
+  return props.modelValue ? String(props.modelValue).length : 0;
+});
+
+const isExceeded = computed(() => {
+  return props.maxInput && characterCount.value > props.maxInput;
+});
 </script>
-<template>
-  <div class="space-y-3">
-    <label :for="id" class="block text-sm font-medium text-gray-300">
-      {{ label }}
-    </label>
 
-    <div class="relative">
-      <div
-        v-if="prefix"
-        class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400 font-medium"
+<template>
+  <div class="space-y-1">
+    <div class="flex justify-between items-center">
+      <label :for="id || cypress" class="block text-sm font-medium text-gray-300">
+        {{ label }}<span v-if="required" class="text-red-500 ml-1">*</span>
+      </label>
+      <span 
+        v-if="showCounter && maxInput" 
+        class="text-xs"
+        :class="isExceeded ? 'text-red-500' : 'text-gray-400'"
       >
+        {{ characterCount }}/{{ maxInput }}
+      </span>
+    </div>
+    <div class="relative">
+      <div v-if="prefix" class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
         {{ prefix }}
       </div>
-
       <input
-        v-model="model"
-        :maxlength="maxInput"
-        :min="type === 'number' ? 0 : undefined"
-        @blur="handle"
-        :step="step"
-        :type="type"
-        :id="id"
-        :placeholder="placeholder"
+        :id="id || cypress"
         :class="[
-          cypress,
-          inputClass,
-          'w-full py-3.5 pr-4 rounded-xl border transition-all bg-neutral-800 text-white',
-          prefix ? 'pl-12' : 'px-4',
-          error
-            ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-            : 'border-neutral-700 focus:ring-white focus:border-neutral-500'
+          `${cypress} w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white`,
+          (error || isExceeded) ? 'border-red-700' : 'border-neutral-700',
+          prefix ? 'pl-8' : '',
         ]"
+        :value="modelValue"
+        :type="type"
+        :placeholder="placeholder"
+        :step="step"
+        @input="updateValue"
+        @blur="onBlur"
       />
     </div>
-
-    <p v-if="error" class="text-sm text-red-500 mt-1">{{ error }}</p>
-    <p v-else-if="helper" class="text-sm text-gray-400 mt-1">{{ helper }}</p>
+    <p v-if="error" class="itbms-message text-sm text-red-500 mt-1">{{ error }}</p>
   </div>
 </template>
 

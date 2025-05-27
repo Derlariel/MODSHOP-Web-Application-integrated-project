@@ -6,7 +6,7 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-3\n
 
     beforeEach(()=> {
         cy.visit(resource) ;
-        cy.wait(1000) ;
+        cy.wait(100) ;
     }) ;
 
     it(`Open the sale item gallery page at ${resource}`, () => {
@@ -121,14 +121,13 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-3\n
     it(`[Step 1.1] should click the page 10.\n
         should show 5 Asus phones (ROG Phone 5s, ..., ROG Phone 3).\n
         should enable both "First" and "Prev" buttons.\n
-
-        cy.wait (1000);
-
-        should enable both "Next" and "Last" buttons`, () => {
+        should enable both "Next" and "Last" buttons`,()=>{
         cy.get('.itbms-page-size').select('5')
         cy.wait(100)
 
-        cy.get('.itbms-page-9').should('exist').click({force: true})
+        cy.get('.itbms-page-9').should('exist').click({ force: true })
+        cy.wait (100);
+
 
         cy.get('.itbms-brand').then(($brands) => {
             const matched = $brands.filter((index, el) =>
@@ -163,9 +162,9 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-3\n
         should show 5 OPPO phones (Find X6 Pro, ..., Find X5 Pro).\n
         should enable both "First" and "Prev" buttons\n
 
-        cy.wait (1000);
-
-        should enable both "Next" and "Last" buttons`,()=>{
+        
+        should enable both "Next" and "Last" buttons`, () => {
+            cy.wait(100)
         cy.get('.itbms-page-size').select('5')
         cy.wait(100)
 
@@ -206,10 +205,9 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-3\n
         should show the page 2.
         should show 5 Apple phones (iPhone 12, ..., iPhone 12 mini).\n
         should enable both "First" and "Prev" buttons\n
-
-        cy.wait (1000);
-
         should enable both "Next" and "Last" buttons`,()=>{
+            cy.wait (100);
+
         cy.get('.itbms-page-size').select('5')
         cy.wait(100)
 
@@ -246,10 +244,9 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-3\n
         should show the page 1.
         should show 5 Apple phones.\n
         should disable both "First" and "Prev" buttons\n
-
-        cy.wait (1000);
-
         should enable both "Next" and "Last" buttons`,()=>{
+            cy.wait (100);
+
         cy.get('.itbms-page-size').select('5')
         cy.wait(100)
 
@@ -290,14 +287,14 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-3\n
         should show the page 12.
         should show 5 OPPO phones (A78, ..., Reno6 Pro).\n
         should anable both "First" and "Prev" buttons\n
-
-        cy.wait (1000);
-
-        should disable both "Next" and "Last" buttons`,()=>{
+        should disable both "Next" and "Last" buttons`, () => {
+        cy.wait(100)
         cy.get('.itbms-page-size').select('5')
         cy.wait(100)
 
         cy.get('.itbms-page-last').should('exist').click({force: true})
+
+        cy.wait (100);
 
         cy.get('.itbms-brand').then(($brands) => {
             const matched = $brands.filter((index, el) =>

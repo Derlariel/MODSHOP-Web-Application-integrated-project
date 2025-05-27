@@ -48,7 +48,11 @@ const setActivePage = (page) => {
   }
 
   sessionStorage.setItem("activePage", String(productStore.getActivePage));
+  console.log("sendPages", productStore.getActivePage - 1);
+  
   emit("sendPages", productStore.getActivePage - 1);
+
+  console.log("sendPages", productStore.getActivePage - 1);
 };
 
 const first = () => {
