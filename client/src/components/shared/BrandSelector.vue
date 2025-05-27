@@ -1,6 +1,6 @@
 <script setup>
 import { X, Filter } from "lucide-vue-next";
-import { ref, defineProps, defineEmits } from "vue";
+import { ref, defineProps, defineEmits, computed } from "vue";
 
 const props = defineProps({
   modelValue: {
@@ -31,7 +31,14 @@ const emit = defineEmits([
   "brand-removed",
   "clear-brands",
 ]);
+
 const showDropdown = ref(false);
+
+// Computed property to get the current selected value for single selection
+const selectedValue = computed(() => {
+  if (props.multiple) return null;
+  return props.modelValue?.id || "";
+});
 
 const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value;
@@ -68,6 +75,12 @@ const clearBrands = () => {
 
 const handleSelect = (event) => {
   const selectedId = parseInt(event.target.value);
+  if (!selectedId) {
+    // Handle empty selection
+    emit("update:modelValue", { id: null, name: null });
+    return;
+  }
+  
   const selectedBrand = props.brands.find((b) => b.id === selectedId);
   if (selectedBrand) {
     emit("update:modelValue", selectedBrand);
@@ -155,7 +168,9 @@ const handleSelect = (event) => {
 
   <!-- Single selection mode -->
   <select
+    @blur="$emit('blur')"
     v-if="!multiple"
+    :value="selectedValue"
     class="itbms-brand w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all cursor-pointer"
     :class="[
       dark
@@ -169,11 +184,12 @@ const handleSelect = (event) => {
     ]"
     @change="handleSelect"
   >
-    <option disabled selected value="">Select a brand</option>
+    <option disabled value="">Select a brand</option>
     <option v-for="brand in brands" :key="brand.id" :value="brand.id">
       {{ brand.name }}
     </option>
   </select>
+
 </template>
 
 <style scoped>

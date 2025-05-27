@@ -206,7 +206,7 @@ describe(`TC-FE-PBI11-FILTER-SALE-ITEM-GALLERY-BY-BRAND-3\n
 
         cy.get('.itbms-page-last').then(($pages)=>{
             cy.get('.itbms-page-last').should('exist').click()
-            cy.wait(100)
+            cy.wait(1000)
 
             cy.get('.itbms-brand').then(($brands) => {
                 const matched = $brands.filter((index, el) =>

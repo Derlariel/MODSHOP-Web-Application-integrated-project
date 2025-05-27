@@ -16,11 +16,6 @@ import BrandSelector from "@/components/shared/BrandSelector.vue";
 
 import {
   runValidation,
-  // validateMinLength,
-  // validateMaxLength,
-  // validateExactLength,
-  // validateContainsNumber,
-  // validateNoWhitespace,
   validateModel,
   validateBrandSelected,
   validateDescription,
@@ -70,6 +65,20 @@ watch(
       console.log("props.init:", newValue);
       console.log("availableBrands:", availableBrands);
 
+      // Find the brand first
+      let selectedBrand = null;
+      if (newValue.brandName) {
+        selectedBrand = availableBrands.find(
+          (brand) => brand.name === newValue.brandName
+        );
+        
+        if (!selectedBrand) {
+          console.warn(`Brand "${newValue.brandName}" not found in available brands`);
+          errorMessage.value = `Brand "${newValue.brandName}" is not available`;
+        }
+      }
+
+      // Use Object.assign to update all properties at once
       Object.assign(temp, {
         id: newValue.id || null,
         model: newValue.model || "",
@@ -80,20 +89,13 @@ watch(
         screenSizeInch: newValue.screenSizeInch?.toString() || "",
         color: newValue.color || "",
         quantity: newValue.quantity?.toString() || "",
+        // Fix: Ensure brand object structure is correct
+        brand: selectedBrand ? { id: selectedBrand.id, name: selectedBrand.name } : { id: null, name: null },
       });
 
-      const selectedBrand = availableBrands.find(
-        (brand) => brand.name === newValue.brandName
-      );
-
-      temp.brand = selectedBrand || {
-        id: null,
-        name: newValue.brandName || null,
-      };
-
-      console.log("selectedBrand:", selectedBrand);
+      console.log("temp after assignment:", temp);
       console.log("temp.brand:", temp.brand);
-
+      
       isLoading.value = false;
     } catch (error) {
       console.error("Error loading brands:", error);
@@ -101,7 +103,7 @@ watch(
       isLoading.value = false;
     }
   },
-  { immediate: true }
+  { immediate: true, deep: true }
 );
 
 watchEffect(() => {
@@ -122,6 +124,7 @@ watchEffect(() => {
     return value == null || value.toString().trim() === "";
   });
 
+  // Clean up empty string values
   if (temp.ramGb === "") temp.ramGb = null;
   if (temp.storageGb === "") temp.storageGb = null;
   if (temp.screenSizeInch === "") temp.screenSizeInch = null;
@@ -167,16 +170,16 @@ const submit = () => {
     return;
   }
 
-  const notPass = Object.values(errors).every((value) => value !== null);
+  const notPass = Object.values(errors).some((value) => value !== null);
   if (notPass) return;
 
   emit("submit", {
     ...temp,
-    price: temp.price ? Number(temp.price) : null,
-    ramGb: temp.ramGb ? Number(temp.ramGb) : null,
-    storageGb: temp.storageGb ? Number(temp.storageGb) : null,
-    screenSizeInch: temp.screenSizeInch ? Number(temp.screenSizeInch) : null,
-    quantity: temp.quantity ? Number(temp.quantity) : null,
+    price: temp.price != null ? Number(temp.price) : null,
+    ramGb: temp.ramGb != null  ? Number(temp.ramGb) : null,
+    storageGb: temp.storageGb != null  ? Number(temp.storageGb) : null,
+    screenSizeInch: temp.screenSizeInch != null  ? Number(temp.screenSizeInch) : null,
+    quantity: temp.quantity != null  ? Number(temp.quantity) : null,
   });
 };
 
@@ -201,11 +204,7 @@ const validateField = (field) => {
   } else if (field === "price") {
     result = runValidation(temp.price, [validatePrice]);
   } else if (field === "brand") {
-    if (!temp.brand?.id) {
-      result = { valid: false, message: "Please select a brand" };
-    } else {
-      result = { valid: true, message: null };
-    }
+    result = runValidation(temp.brand.name, [validateBrandSelected]);
   } else if (field === "quantity") {
     result = runValidation(temp.quantity, [validateQuantity]);
   } else if (field === "screenSizeInch") {
@@ -223,8 +222,9 @@ const validateField = (field) => {
 };
 
 const handleBrandSelected = (brand) => {
-  temp.brand = brand;
-  validateField("brand");
+  // console.log("Brand selected:", brand);
+  // temp.brand = { id: brand.id, name: brand.name };
+  // validateField("brand");
 };
 
 const trimField = (field) => {
@@ -251,13 +251,12 @@ onMounted(() => {
             >Brand</label
           >
           <BrandSelector
+
             v-model="temp.brand"
             :brands="brands"
             :multiple="false"
             :dark="true"
-            :error="errors.brand"
-            @brand-selected="handleBrandSelected"
-            class="itbms-brand"
+
           />
           <p v-if="errors.brand" class="text-sm text-red-500 mt-1">
             {{ errors.brand }}
@@ -403,5 +402,3 @@ onMounted(() => {
     <div v-else class="text-center text-gray-400">Loading product data...</div>
   </div>
 </template>
-
-<style scoped></style>

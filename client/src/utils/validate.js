@@ -53,7 +53,7 @@ export const validateNoWhitespace = data => {
 // Field validators spacific for jarn sanit
 export const validateModel = data => {
   const valid =
-    data.length >= 1 && data.length <= 60 && /^[a-zA-Z0-9-]+$/.test (data);
+  data.length >= 1 && data.length <= 100 && /^[a-zA-Z0-9-\s]+$/.test (data);
   return {
     valid,
     message: valid ? null : 'Model must be 1-60 characters long.',
@@ -61,7 +61,7 @@ export const validateModel = data => {
 };
 
 export const validateBrandSelected = data => {
-  const valid = data !== null && data !== undefined;
+  const valid = data != '';
   return {
     valid,
     message: valid ? null : 'Brand must be selected',
@@ -78,7 +78,7 @@ export const validateDescription = data => {
 
 export const validatePrice = data => {
   const num = Number (data);
-  const valid = !isNaN (num) && Number.isInteger (num) && num >= 0;
+  const valid = data !== null && !isNaN (num) && Number.isInteger (num) && num >= 0;
   return {
     valid,
     message: valid ? null : 'Price must be a non-negative integer.',
@@ -87,7 +87,7 @@ export const validatePrice = data => {
 
 export const validateQuantity = data => {
   const num = Number (data);
-  const valid = !isNaN (num) && Number.isInteger (num) && num >= 0;
+  const valid = data !== null && !isNaN (num) && Number.isInteger (num) && num >= 0;
   return {
     valid,
     message: valid ? null : 'Quantity must be non-negative integer.',

@@ -33,6 +33,7 @@ const filters = ref({
   sortDirection: "asc",
 });
 
+const trigger = ref(0)
 
 const props = defineProps({
   viewType: {
@@ -66,7 +67,7 @@ async function initProducts() {
 }
 
 const updatePages = (pages) => {
-  filters.value.page = pages  
+  ++trigger.value
 }
 
 const updateFilters = (newFilters) => {
@@ -127,6 +128,13 @@ onMounted(async () => {
 watch(filters, async () => {
   initProducts();
 }, { deep: true, immediate: true })
+
+
+watch(trigger, async () => {
+  initProducts();
+}, { deep: true, immediate: true })
+
+
 </script>
 
 <template>
