@@ -327,6 +327,7 @@ onMounted(() => {
 
         <BaseInput
           :error="errors.price"
+          
           @trim="trimField('price')"
           v-model="temp.price"
           cypress="itbms-price"
@@ -356,7 +357,7 @@ onMounted(() => {
             placeholder="Enter product description"
             required
           ></textarea>
-          <p v-if="errors.description" class="text-sm text-red-500 mt-1">
+          <p v-if="errors.description" class="itbms-message text-sm text-red-500 mt-1">
             {{ errors.description }}
           </p>
         </div>

@@ -72,7 +72,7 @@ export const validateDescription = data => {
   const valid = data.length >= 1 && data.length <= 65535;
   return {
     valid,
-    message: valid ? null : 'Description must be 1-65535 characters long.',
+    message: valid ? null : 'Description must be 1-65,535 characters long.',
   };
 };
 
@@ -81,7 +81,7 @@ export const validatePrice = data => {
   const valid = data !== null && !isNaN (num) && Number.isInteger (num) && num >= 0;
   return {
     valid,
-    message: valid ? null : 'Price must be a non-negative integer.',
+    message: valid ? null : 'Price must be non-negative integer.',
   };
 };
 
@@ -125,7 +125,7 @@ export const validateBrandOrigin = data => {
 
 export const validateRamSize = data => {
  const num = Number (data);
-  const valid = data === undefined || !isNaN (num) && Number.isInteger (num) && num >= 0;
+  const valid = data === undefined || !isNaN (num) && Number.isInteger (num) && num > 0;
   return {
     valid,
     message: valid
@@ -149,7 +149,7 @@ export const validateScreenSize = (data) => {
   if (isNaN(num) || num <= 0) {
     return {
       valid: false,
-      message: 'Screen size must be a positive number or not specified.',
+      message: 'Screen size must be positive number with at most 2 decimal points or not specified.',
     };
   }
 
@@ -157,9 +157,10 @@ export const validateScreenSize = (data) => {
   const decimalPlaces = (StrData.split('.')[1] || '').length;
   console.log("dec", decimalPlaces);
   if (decimalPlaces > 2) {
+    
     return {
       valid: false,
-      message: 'Screen size must have at most 2 decimal places.',
+      message: 'Screen size must be positive number with at most 2 decimal points or not specified.',
     };
   }
 
@@ -171,7 +172,7 @@ export const validateScreenSize = (data) => {
 
 export const validateStorageSize = data => {
   const num = Number (data);
-  const valid = data === undefined || !isNaN (num) && Number.isInteger (num) && num >= 0;
+  const valid = data === undefined || !isNaN (num) && Number.isInteger (num) && num > 0;
   return {
     valid,
     message: valid
