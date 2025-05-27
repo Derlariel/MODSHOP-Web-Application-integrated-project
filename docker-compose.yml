@@ -1,39 +1,87 @@
 services:
   frontend:
+    container_name: frontend
     build: 
       context: ./client
+      args:
+        - NODE_ENV=production
     ports:
      - "80:80"
     networks:
-    - kk1-network
+    - backend-network
+    - frontend-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 64M
+        reservations:
+          memory: 16M
+    restart: unless-stopped  
+
   database:
     build: 
       context: ./database
     container_name: database
     environment:
-     - MYSQL_ROOT_PASSWORD=root
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./secrets/db_password:/run/secrets/db_password:ro
     networks:
-     - kk1-network
-    ports:
-     - "3306:3306"
+      - backend-network
+    expose:
+      - "3306"
     healthcheck:
       test: ["CMD","mysqladmin", "ping", "-h", "database"]
       interval: 20s
       timeout: 20s
       retries: 5
       start_period: 40s 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          memory: 400M
+    restart: unless-stopped
+ 
+
   api:
     build:
       context: ./server
-    container_name: api
+    container_name: backend
     ports:
-      - "8000:8080"
+      - "8080:8080"
     depends_on:
       database:
         condition: service_healthy   
     networks:
-      - kk1-network
+      - frontend-network
+      - backend-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_PASSWORD_FILE=/run/secrets/db_password
+      - TZ=Asia/Bangkok
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
+        reservations:
+          memory: 256M
+    restart: unless-stopped 
+    volumes:
+      - ./secrets/db_password:/run/secrets/db_password:ro
 
 networks:
-  kk1-network:
+  frontend-network:
     driver: bridge
+  backend-network:
+    driver: bridge
+    internal: true
+
+volumes:
+  mysql_data:
+    driver: local

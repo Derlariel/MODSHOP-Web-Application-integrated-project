@@ -1,25 +1,36 @@
-name: Deploy PBI-1 AND PBI-2 Sprint 1 test 
+name: Deploy kk1 test cypress PBI 11 xxxx
 
 on:
-  pull_request:
+  push:
     branches:
-      - pre-dev
+      - release-v1
 
 jobs:
   deploy:
     runs-on: self-hosted
 
     steps:
+      - name: Check current user
+        run: whoami
+
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Auto Deploy container application itb-mshop 
         run: |
           set -x  
-          cd /home/sysadmin/2-2567_INT221_KK-1 
-          git pull https://napatzzz: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@github.com/Derlariel/2-2567_INT221_KK-1.git pre-dev
-          cd client
-          npm i
-          npm run build 
+          cd /home/sysadmin/2-2567_INT221_KK-1
+
+          git pull https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git release-v1
+
+          rm -f ./secrets/db_password
+          mkdir -p ./secrets
+          echo "${{ secrets.DB_PASSWORD }}" > ./secrets/db_password
+          # sudo chown 100:101 ./secrets/db_password
+          # sudo chmod 400 ./secrets/db_password
+
           docker compose down -v
-          docker compose up -d --build
+          docker compose build --no-cache
+          docker compose up -d
+          docker image prune -f
+          # docker builder prune -f

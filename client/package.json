@@ -4,15 +4,17 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode development",
     "build": "vite build",
-    "preview": "vite preview",
+    "build-dev": "vite build --mode development",
+    "build-prod": "vite build --mode production",
+    "preview": "vite preview --mode production",
     "cypress:open": "cypress open"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.4",
     "axios": "^1.8.4",
-    "daisyui": "^5.0.28",
+    "daisyui": "^5.0.35",
     "lucide-vue-next": "^0.503.0",
     "pinia": "^3.0.2",
     "swiper": "^11.2.6",
@@ -22,6 +24,6 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
-    "cypress": "^14.3.2"
+    "cypress": "^14.3.3"
   }
 }

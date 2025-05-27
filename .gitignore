@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+target/
 node_modules/
 dist
 dist-ssr
@@ -22,3 +23,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+/server/mobile-shop/target/
+/server/mobile-shop/src/main/resources/
+
+# Security 
+secrets/
+
+server/mobile-shop/src/main/resources/application-dev.properties

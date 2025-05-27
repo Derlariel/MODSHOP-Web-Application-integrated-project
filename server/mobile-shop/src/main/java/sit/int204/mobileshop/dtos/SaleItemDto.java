@@ -1,13 +1,17 @@
 package sit.int204.mobileshop.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
+
 
 @Getter
 @Setter
-public class SaleItemDto<T> {
+
+public class SaleItemDto { 
     private Integer id;
     private String model;
     private String brandName;

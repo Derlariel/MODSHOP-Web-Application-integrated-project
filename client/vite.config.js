@@ -4,19 +4,23 @@ import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
-  // base: '/itb-mshop/',
+  base: '/kk1/',
   resolve: {
-    alias: {
+ alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)), 
     },
   },
   plugins: [
     vue(),
     tailwindcss(),
-    {
-      daisyui: {
-        themes: ["light", "dracula"],
-      },
-    },
   ],
+  preview: {
+  port: 4173,
+  proxy: {
+    '/kk1/': {
+      target: 'http://localhost:8080',
+      changeOrigin: true,
+    }
+  }
+}
 });

@@ -1,66 +1,100 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import LandingLayout from '@/layout/LandingLayout.vue';
-import DefaultLayout from '@/layout/DefaultLayout.vue';
-import HomePage from '@/pages/HomePage.vue';
-import MainPage from '@/components/user/MainPage.vue';
-import ProductManager from '@/components/user/ProductManager.vue';
-import ProductDetail from '@/components/user/ProductDetail.vue';
-import { components } from 'daisyui/imports';
-import ProductAdd from '@/components/user/ProductAdd.vue';
+import { createRouter, createWebHistory } from "vue-router";
+import LandingLayout from "@/layout/LandingLayout.vue";
+import DefaultLayout from "@/layout/DefaultLayout.vue";
+import HomePage from "@/pages/HomePage.vue";
+import MainPage from "@/components/MainPage.vue";
+import ProductManager from "@/components/admin/product/ProductManager.vue";
+import ProductDetail from "@/components/shared/ProductDetail.vue";
+import ProductList from "@/components/admin/product/ProductList.vue";
+import ProductAdd from "@/components/admin/product/ProductCreate.vue";
+import ProductEdit from "@/components/admin/product/ProductEdit.vue";
+import BrandManager from "@/components/admin/brand/BrandManager.vue";
+import BrandCreate from "@/components/admin/brand/BrandCreate.vue";
+import BrandEdit from "@/components/admin/brand/BrandEdit.vue";
 
 const routes = [
   {
-    path: '/',
+    path: "/",
     component: LandingLayout,
     children: [
       {
-        path: '',
-        name: 'Home',
+        path: "",
+        name: "Home",
         component: HomePage,
       },
     ],
   },
   {
-    path: '/',
+    path: "/",
     component: DefaultLayout,
     children: [
       {
-        path: 'main',
-        name: 'Main',
+        path: "main",
+        name: "Main",
         component: MainPage,
       },
       {
-        path: 'sale-items',
+        path: "sale-items",
+        name: "product-gallery",
         component: ProductManager,
         children: [
           {
-            path: 'add',
-            component: ProductAdd,
-            name: 'product-add'
+            path: "list",
+            component: ProductList,
+            name: "product-list",
           },
           {
-            path: ':productId',
+            path: "add",
+            component: ProductAdd,
+            name: "product-add",
+          },
+
+          {
+            path: ":productId",
             component: ProductDetail,
-            name: 'product-detail',
-          }
+            name: "product-detail",
+          },
         ],
       },
       {
-        path: '/error',
-        name: 'error-page',
-        component: () => import('@/pages/ErrorCodePage.vue'),
+        path: "sale-items/:productId/edit",
+        component: ProductEdit,
+        name: "sale-items-edit",
+      },
+      {
+        path: "brands",
+        name: "brands-list",
+        component: BrandManager,
+        children: [
+          {
+            path: "add",
+            component: BrandCreate,
+            name: "brand-add",
+          },
+        ],
+      },
+      {
+        path: "brands/:brandId/edit",
+        component: BrandEdit,
+        name: "brands-edit",
+      },
+
+      {
+        path: "/error",
+        name: "error-page",
+        component: () => import("@/pages/ErrorCodePage.vue"),
       },
     ],
   },
   // fallback route
   {
-    path: '/:pathMatch(.*)*',
-    redirect: { name: 'error-page', query: { code: 404 } },
+    path: "/:pathMatch(.*)*",
+    redirect: { name: "error-page", query: { code: 404 } },
   },
 ];
 
 const router = createRouter({
-  history: createWebHistory(''),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 });
 

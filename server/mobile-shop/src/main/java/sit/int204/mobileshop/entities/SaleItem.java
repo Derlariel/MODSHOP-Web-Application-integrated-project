@@ -16,6 +16,7 @@ import java.time.Instant;
 @Table(name = "sale_item")
 public class SaleItem {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
@@ -51,19 +52,15 @@ public class SaleItem {
     @Column(name = "color", length = 30)
     private String color;
 
-    @NotNull
     @ColumnDefault("1")
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "created_on", nullable = false)
+    @Column(name = "created_on", insertable = false, updatable = false)
     private Instant createdOn;
 
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "updated_on", nullable = false)
+    @Column(name = "updated_on", insertable = false, updatable = false)
     private Instant updatedOn;
 
 }
+
