@@ -78,7 +78,6 @@ watch(
         }
       }
 
-      // Use Object.assign to update all properties at once
       Object.assign(temp, {
         id: newValue.id || null,
         model: newValue.model || "",
@@ -89,7 +88,6 @@ watch(
         screenSizeInch: newValue.screenSizeInch?.toString() || "",
         color: newValue.color || "",
         quantity: newValue.quantity?.toString() || "",
-        // Fix: Ensure brand object structure is correct
         brand: selectedBrand ? { id: selectedBrand.id, name: selectedBrand.name } : { id: null, name: null },
       });
 
@@ -100,6 +98,9 @@ watch(
     } catch (error) {
       console.error("Error loading brands:", error);
       errorMessage.value = "Failed to load brands";
+      setTimeout(() => {
+      validateField("brand");
+    }, 100);
       isLoading.value = false;
     }
   },
@@ -164,24 +165,23 @@ const submit = () => {
     console.warn("Submit blocked: Button is disabled");
     return;
   }
-  if (!temp.brand.id) {
-    console.warn("Submit blocked: No brand selected");
-    alert("Please select a brand.");
+  
+  // Validate all fields before submission
+  if (!validateForm()) {
+    console.warn("Submit blocked: Form validation failed");
     return;
   }
-
-  const notPass = Object.values(errors).some((value) => value !== null);
-  if (notPass) return;
 
   emit("submit", {
     ...temp,
     price: temp.price != null ? Number(temp.price) : null,
-    ramGb: temp.ramGb != null  ? Number(temp.ramGb) : null,
-    storageGb: temp.storageGb != null  ? Number(temp.storageGb) : null,
-    screenSizeInch: temp.screenSizeInch != null  ? Number(temp.screenSizeInch) : null,
-    quantity: temp.quantity != null  ? Number(temp.quantity) : null,
+    ramGb: temp.ramGb != null ? Number(temp.ramGb) : null,
+    storageGb: temp.storageGb != null ? Number(temp.storageGb) : null,
+    screenSizeInch: temp.screenSizeInch != null ? Number(temp.screenSizeInch) : null,
+    quantity: temp.quantity != null ? Number(temp.quantity) : null,
   });
 };
+
 
 const errors = reactive({
   model: null,
@@ -204,7 +204,9 @@ const validateField = (field) => {
   } else if (field === "price") {
     result = runValidation(temp.price, [validatePrice]);
   } else if (field === "brand") {
-    result = runValidation(temp.brand.name, [validateBrandSelected]);
+    // This is the key change - we're validating against the brand name (or empty string if no brand)
+    const brandValue = temp.brand && temp.brand.name ? temp.brand.name : "";
+    result = runValidation(brandValue, [validateBrandSelected]);
   } else if (field === "quantity") {
     result = runValidation(temp.quantity, [validateQuantity]);
   } else if (field === "screenSizeInch") {
@@ -222,9 +224,9 @@ const validateField = (field) => {
 };
 
 const handleBrandSelected = (brand) => {
-  // console.log("Brand selected:", brand);
-  // temp.brand = { id: brand.id, name: brand.name };
-  // validateField("brand");
+  console.log("Brand selected:", brand);
+  temp.brand = { id: brand.id, name: brand.name };
+  validateField("brand");
 };
 
 const trimField = (field) => {
@@ -236,12 +238,15 @@ const trimField = (field) => {
 
 onMounted(() => {
   brandStore.loadBrands();
+  validateField("brand");
 });
+
+
 </script>
 
 <template>
   <div>
-    <div v-if="errorMessage" class="text-red-500 text-center mb-4">
+     <div v-if="errorMessage" class="text-red-500 text-center mb-4">
       {{ errorMessage }}
     </div>
     <div v-else-if="!isLoading">
@@ -251,16 +256,13 @@ onMounted(() => {
             >Brand</label
           >
           <BrandSelector
-
             v-model="temp.brand"
             :brands="brands"
             :multiple="false"
             :dark="true"
-
+            :error="errors.brand"
+            @blur="validateField('brand')"
           />
-          <p v-if="errors.brand" class="text-sm text-red-500 mt-1">
-            {{ errors.brand }}
-          </p>
         </div>
 
         <BaseInput

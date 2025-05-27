@@ -30,6 +30,7 @@ const emit = defineEmits([
   "brand-selected",
   "brand-removed",
   "clear-brands",
+  "blur"
 ]);
 
 const showDropdown = ref(false);
@@ -78,6 +79,7 @@ const handleSelect = (event) => {
   if (!selectedId) {
     // Handle empty selection
     emit("update:modelValue", { id: null, name: null });
+    emit("blur"); // Trigger validation when empty selection is made
     return;
   }
   
@@ -86,6 +88,11 @@ const handleSelect = (event) => {
     emit("update:modelValue", selectedBrand);
     emit("brand-selected", selectedBrand);
   }
+};
+
+// Explicitly trigger blur event when clicking outside
+const triggerBlur = () => {
+  emit("blur");
 };
 </script>
 
@@ -167,28 +174,32 @@ const handleSelect = (event) => {
   </div>
 
   <!-- Single selection mode -->
-  <select
-    @blur="$emit('blur')"
-    v-if="!multiple"
-    :value="selectedValue"
-    class="itbms-brand w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all cursor-pointer"
-    :class="[
-      dark
-        ? 'bg-neutral-800 text-white border-neutral-700'
-        : 'bg-white text-gray-700 border-gray-300',
-      error
-        ? 'border-red-700'
-        : dark
-        ? 'border-neutral-700'
-        : 'border-gray-300',
-    ]"
-    @change="handleSelect"
-  >
-    <option disabled value="">Select a brand</option>
-    <option v-for="brand in brands" :key="brand.id" :value="brand.id">
-      {{ brand.name }}
-    </option>
-  </select>
+  <div v-if="!multiple" class="w-full">
+    <select
+      @blur="triggerBlur"
+      :value="selectedValue"
+      class="itbms-brand w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all cursor-pointer"
+      :class=" [
+        dark
+          ? 'bg-neutral-800 text-white border-neutral-700'
+          : 'bg-white text-gray-700 border-gray-300',
+        error
+          ? 'border-red-700'
+          : dark
+          ? 'border-neutral-700'
+          : 'border-gray-300',
+      ]"
+      @change="handleSelect"
+    >
+      <option value="">Select a brand</option>
+      <option v-for="brand in brands" :key="brand.id" :value="brand.id">
+        {{ brand.name }}
+      </option>
+    </select>
+    <p v-if="error" class="itbms-message text-sm text-red-500 mt-1">
+      {{ error }}
+    </p>
+  </div>
 
 </template>
 

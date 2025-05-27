@@ -64,7 +64,7 @@ export const validateBrandSelected = data => {
   const valid = data != '';
   return {
     valid,
-    message: valid ? null : 'Brand must be selected',
+    message: valid ? null : 'Brand must be selected.',
   };
 };
 
