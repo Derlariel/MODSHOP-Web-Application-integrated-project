@@ -54,7 +54,59 @@ const temp = reactive({
 const btnNotAvailable = ref(true);
 const isLoading = ref(true);
 const errorMessage = ref(null);
-const hasValidationErrors = ref(false);
+
+watch(
+  () => props.init,
+  async (newValue) => {
+    try {
+      await brandStore.loadBrands();
+      const availableBrands = brandStore.getBrands();
+
+      console.log("props.init:", newValue);
+      console.log("availableBrands:", availableBrands);
+
+      // Find the brand first
+      let selectedBrand = null;
+      if (newValue.brandName) {
+        selectedBrand = availableBrands.find(
+          (brand) => brand.name === newValue.brandName
+        );
+        
+        if (!selectedBrand) {
+          console.warn(`Brand "${newValue.brandName}" not found in available brands`);
+          errorMessage.value = `Brand "${newValue.brandName}" is not available`;
+        }
+      }
+
+      // Use Object.assign to update all properties at once
+      Object.assign(temp, {
+        id: newValue.id || null,
+        model: newValue.model || "",
+        description: newValue.description || "",
+        price: newValue.price?.toString() || "",
+        ramGb: newValue.ramGb?.toString() || "",
+        storageGb: newValue.storageGb?.toString() || "",
+        screenSizeInch: newValue.screenSizeInch?.toString() || "",
+        color: newValue.color || "",
+        quantity: newValue.quantity?.toString() || "",
+        // Fix: Ensure brand object structure is correct
+        brand: selectedBrand ? { id: selectedBrand.id, name: selectedBrand.name } : { id: null, name: null },
+      });
+
+      console.log("temp after assignment:", temp);
+      console.log("temp.brand:", temp.brand);
+      
+      isLoading.value = false;
+    } catch (error) {
+      console.error("Error loading brands:", error);
+      errorMessage.value = "Failed to load brands";
+      isLoading.value = false;
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+const notPass = ref(false);
 
 const errors = reactive({
   model: null,
@@ -68,100 +120,7 @@ const errors = reactive({
   color: null,
 });
 
-const checkForValidationErrors = () => {
-  return Object.values(errors).some((error) => error !== null);
-};
 
-const validateForm = () => {
-  const fields = [
-    "model",
-    "brand",
-    "description",
-    "price",
-    "quantity",
-    "ramGb",
-    "storageGb",
-    "screenSizeInch",
-    "color",
-  ];
-
-  let isValid = true;
-  fields.forEach((field) => {
-    if (!validateField(field)) {
-      isValid = false;
-    }
-  });
-
-  hasValidationErrors.value = !isValid;
-  return isValid;
-};
-
-watch(
-  () => props.init,
-  async (newValue) => {
-    try {
-      await brandStore.loadBrands();
-      const availableBrands = brandStore.getBrands();
-
-      console.log("props.init:", newValue);
-      console.log("availableBrands:", availableBrands);
-
-      let selectedBrand = null;
-      if (newValue.brandName) {
-        selectedBrand = availableBrands.find(
-          (brand) => brand.name === newValue.brandName
-        );
-
-        if (!selectedBrand) {
-          console.warn(
-            `Brand "${newValue.brandName}" not found in available brands`
-          );
-          errorMessage.value = `Brand "${newValue.brandName}" is not available`;
-        }
-      }
-
-      Object.assign(temp, {
-        id: newValue.id || null,
-        model: newValue.model || "",
-        description: newValue.description || "",
-        price: newValue.price?.toString() || "",
-        ramGb: newValue.ramGb?.toString() || "",
-        storageGb: newValue.storageGb?.toString() || "",
-        screenSizeInch: newValue.screenSizeInch?.toString() || "",
-        color: newValue.color || "",
-        quantity: newValue.quantity?.toString() || "",
-        brand: selectedBrand
-          ? { id: selectedBrand.id, name: selectedBrand.name }
-          : { id: null, name: null },
-      });
-
-      console.log("temp after assignment:", temp);
-      console.log("temp.brand:", temp.brand);
-
-      isLoading.value = false;
-
-      setTimeout(() => {
-        validateForm();
-      }, 100);
-    } catch (error) {
-      console.error("Error loading brands:", error);
-      errorMessage.value = "Failed to load brands";
-      setTimeout(() => {
-        validateField("brand");
-      }, 100);
-      isLoading.value = false;
-    }
-  },
-  { immediate: true, deep: true }
-);
-
-watch(
-  errors,
-  () => {
-    hasValidationErrors.value = checkForValidationErrors();
-  },
-  { deep: true }
-);
 
 watchEffect(() => {
   const requiredFields = ["model", "price", "quantity", "description"];
@@ -178,9 +137,10 @@ watchEffect(() => {
 
   const requiredFieldsEmpty = requiredFields.some((field) => {
     const value = temp[field];
-    return value == null || value.toString().trim() === "";
+    return value == null || value.toString().trim() === null;
   });
 
+  // Clean up empty string values
   if (temp.ramGb === "") temp.ramGb = null;
   if (temp.storageGb === "") temp.storageGb = null;
   if (temp.screenSizeInch === "") temp.screenSizeInch = null;
@@ -189,6 +149,8 @@ watchEffect(() => {
 
   const isNewItem = Object.keys(props.init).length === 0;
   let isUnchanged = false;
+
+  notPass.value = Object.values(errors).some((value) => value !== null );
 
   if (!isNewItem) {
     isUnchanged =
@@ -212,10 +174,7 @@ watchEffect(() => {
   }
 
   btnNotAvailable.value =
-    requiredFieldsEmpty ||
-    (!isNewItem && isUnchanged) ||
-    !temp.brand.id ||
-    hasValidationErrors.value;
+    requiredFieldsEmpty || (!isNewItem && isUnchanged) || !temp.brand.id;
 });
 
 const submit = () => {
@@ -223,18 +182,21 @@ const submit = () => {
     console.warn("Submit blocked: Button is disabled");
     return;
   }
-  if (!validateForm()) {
-    console.warn("Submit blocked: Form validation failed");
+  if (!temp.brand.id) {
+    console.warn("Submit blocked: No brand selected");
+    alert("Please select a brand.");
     return;
   }
+
+  console.log(errors.model)
 
   emit("submit", {
     ...temp,
     price: temp.price != null ? Number(temp.price) : null,
-    ramGb: temp.ramGb != null ? Number(temp.ramGb) : null,
-    storageGb: temp.storageGb != null ? Number(temp.storageGb) : null,
-    screenSizeInch: temp.screenSizeInch != null ? Number(temp.screenSizeInch) : null,
-    quantity: temp.quantity != null ? Number(temp.quantity) : null,
+    ramGb: temp.ramGb != null  ? Number(temp.ramGb) : null,
+    storageGb: temp.storageGb != null  ? Number(temp.storageGb) : null,
+    screenSizeInch: temp.screenSizeInch != null  ? Number(temp.screenSizeInch) : null,
+    quantity: temp.quantity != null  ? Number(temp.quantity) : null,
   });
 };
 
@@ -247,8 +209,7 @@ const validateField = (field) => {
   } else if (field === "price") {
     result = runValidation(temp.price, [validatePrice]);
   } else if (field === "brand") {
-    const brandValue = temp.brand && temp.brand.name ? temp.brand.name : "";
-    result = runValidation(brandValue, [validateBrandSelected]);
+    result = runValidation(temp.brand.name, [validateBrandSelected]);
   } else if (field === "quantity") {
     result = runValidation(temp.quantity, [validateQuantity]);
   } else if (field === "screenSizeInch") {
@@ -262,17 +223,10 @@ const validateField = (field) => {
   }
 
   errors[field] = result.message;
-
-  hasValidationErrors.value = checkForValidationErrors();
-
   return result.valid;
 };
 
-const handleBrandSelected = (brand) => {
-  console.log("Brand selected:", brand);
-  temp.brand = { id: brand.id, name: brand.name };
-  validateField("brand");
-};
+
 
 const trimField = (field) => {
   if (typeof temp[field] === "string") {
@@ -283,11 +237,6 @@ const trimField = (field) => {
 
 onMounted(() => {
   brandStore.loadBrands();
-  validateField("brand");
-
-  setTimeout(() => {
-    validateForm();
-  }, 300);
 });
 </script>
 
@@ -303,13 +252,15 @@ onMounted(() => {
             >Brand</label
           >
           <BrandSelector
+            @blur="trimField('brand')"
             v-model="temp.brand"
             :brands="brands"
             :multiple="false"
             :dark="true"
-            :error="errors.brand"
-            @blur="validateField('brand')"
           />
+          <p v-if="errors.brand" class="itbms-message text-sm text-red-500 mt-1">
+            {{ errors.brand }}
+          </p>
         </div>
 
         <BaseInput
@@ -320,14 +271,10 @@ onMounted(() => {
           cypress="itbms-model"
           placeholder="IPhone 15"
           label="Model"
-          required
-          :showCounter="true"
-          :validateOnInput="true"
         />
 
         <BaseInput
           :error="errors.price"
-          
           @trim="trimField('price')"
           v-model="temp.price"
           cypress="itbms-price"
@@ -336,7 +283,6 @@ onMounted(() => {
           step="0.01"
           label="Price (Baht)"
           prefix="฿"
-          required
         />
 
         <div class="space-y-3">
@@ -406,8 +352,6 @@ onMounted(() => {
               placeholder="Black"
               :error="errors.color"
               id="color"
-              :maxInput="40"
-              :showCounter="true"
             />
           </div>
         </div>
@@ -430,10 +374,10 @@ onMounted(() => {
           <button
             type="button"
             @click="submit"
-            :disabled="btnNotAvailable"
+            :disabled="notPass || btnNotAvailable"
             class="itbms-save-button"
             :class="
-              btnNotAvailable
+              notPass || btnNotAvailable
                 ? 'flex-1 bg-red-400/20 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium'
                 : 'flex-1 bg-white text-black py-4 px-6 rounded-full hover:bg-gray-200 transition-colors duration-300 font-medium'
             "

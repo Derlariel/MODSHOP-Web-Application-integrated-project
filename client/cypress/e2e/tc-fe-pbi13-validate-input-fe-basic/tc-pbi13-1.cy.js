@@ -96,23 +96,15 @@ describe(`TC-FE-PBI13-VALIDATE-INPUT-FE-BASIC-1\n
     it(`[Step 6] should have "Add Sale Item" button and click to open the page for entry new sale item\n
         shoud add from SALE_ITEMS_VALIDATION (td-2).\n
         should enable "Save" without the error message.
-        [Step 7] should add the sale item successfully.`,
-        () => {
-            cy.wait (1000);
-
+        [Step 7] should add the sale item successfully.`,()=>{
         cy.intercept('POST', `${baseAPI}/v1/**`).as('saveRequest') ;
-        cy.wait (1000);
-
 
         cy.get('.itbms-sale-item-add').should('exist').as('addSaleItemButton'); 
         cy.get('@addSaleItemButton').click();
-        cy.wait (1000);
-
+        cy.wait(100)
 
         cy.get('.itbms-brand').as('brandSelect') ;
-        cy.get('@brandSelect').select('Xiaomi');
-        cy.wait(1000);
-
+        cy.get('@brandSelect').select('Xiaomi') ;
 
         cy.get('.itbms-model').as('modelInput') ;
         cy.get('@modelInput').type('1') ;
