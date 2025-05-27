@@ -118,10 +118,12 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-3\n
         })
     })
 
+
     it(`[Step 1.1] should click the page 10.\n
         should show 5 Asus phones (ROG Phone 5s, ..., ROG Phone 3).\n
         should enable both "First" and "Prev" buttons.\n
-        should enable both "Next" and "Last" buttons`,()=>{
+        should enable both "Next" and "Last" buttons`, () => {
+        cy.wait(1000)
         cy.get('.itbms-page-size').select('5')
         cy.wait(100)
 

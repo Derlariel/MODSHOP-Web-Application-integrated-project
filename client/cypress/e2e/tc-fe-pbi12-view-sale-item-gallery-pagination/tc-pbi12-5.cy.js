@@ -187,19 +187,19 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-5\n
     
         //[Step 4] Open sale item list page at /sale-items/list
         cy.visit('/sale-items/list')
-        cy.wait(100)
+        cy.wait(1000)
 
         it('The sale item list has sale items.',()=>{
             cy.get('.itbms-row').should('have.length.above',0)
         })
 
         cy.visit('/sale-items')
-        cy.wait(100)
+        cy.wait(1000)
 
         cy.contains('.itbms-page-size',5)
         cy.contains('.itbms-brand-filter','Huawei')
         cy.contains('.itbms-brand-filter','OPPO')
-        cy.wait (100);
+        cy.wait (1000);
 
         cy.get('.itbms-brand').then(($brands) => {
             const matched = $brands.filter((index, el) =>
@@ -235,7 +235,7 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-5\n
 
         //[Step 6] Change page size to 5 and click "Last"
         cy.get('.itbms-page-size').select('5')
-        cy.wait(100)
+        cy.wait(1000)
 
         cy.get('.itbms-page-0').should('exist')
         cy.get('.itbms-page-1').should('exist')
@@ -252,14 +252,14 @@ describe(`TC-FE-PBI12-VIEW-SALE-ITEM-GALLERY-PAGINATION-5\n
         cy.contains('.itbms-brand-filter','OPPO')
 
         cy.get('.itbms-page-last').should('exist').click({force: true})
-        cy.wait(100)
+        cy.wait(1000)
 
         cy.get('.itbms-brand').then(($brands) => {
-            cy.wait(100)
+            cy.wait(1000)
             const matched = $brands.filter((index, el) =>
                 el.textContent.toLowerCase().includes('huawei')
             )
-            cy.wait (100);
+            cy.wait (1000);
 
             expect(matched).to.have.length(5)
         })
