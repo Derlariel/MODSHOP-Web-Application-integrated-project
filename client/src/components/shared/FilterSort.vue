@@ -2,10 +2,10 @@
 import { Menu, SortAsc, SortDesc } from "lucide-vue-next";
 import { ref, watch, onMounted } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
-import { useRouter } from "vue-router";
+    
 import BrandSelector from "@/components/shared/BrandSelector.vue";
+   
 
-const router = useRouter();
 const emit = defineEmits(["update:filters"]);
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 const selectedBrands = ref([]);
@@ -101,9 +101,7 @@ watch(
   { deep: true, immediate: true }
 );
 
-const add = () => {
-  router.push({ name: "product-add" });
-};
+
 
 // Simulate browser close by clearing sessionStorage for TC-4 Step 6
 onMounted(() => {
@@ -120,7 +118,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col sm:flex-row sm:items-start justify-center gap-4 w-full text-gray-700 relative">
+  <div class="flex flex-col justify-center items-center sm:flex-row sm:items-start justify-center gap-4 w-full text-gray-700 relative">
     <!-- LEFT: Brand Filter -->
     <BrandSelector 
       v-model="selectedBrands"
@@ -160,10 +158,6 @@ onMounted(() => {
           <SortDesc class="w-5 h-5" />
         </button>
       </div>
-      <button @click="add"
-              class="itbms-sale-item-add text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
-        Add Product
-      </button>
     </div>
   </div>
 </template>

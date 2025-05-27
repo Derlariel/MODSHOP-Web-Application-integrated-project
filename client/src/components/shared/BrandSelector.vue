@@ -129,7 +129,7 @@ const triggerBlur = () => {
       <div class="flex-shrink-0 flex">
         <button
           @click="toggleDropdown"
-          class="itbms-brand-filter px-4 py-2 bg-gray-300 border border-gray-300 hover:bg-gray-400 transition rounded-none h-[42px]"
+          class="itbms-brand-filter px-4 py-2 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-none h-[42px]"
         >
           <Filter class="w-5 h-5" />
           <span class="sr-only">
@@ -139,7 +139,7 @@ const triggerBlur = () => {
 
         <button
           @click="clearBrands"
-          class="itbms-brand-filter-clear px-4 py-2 bg-gray-300 border border-gray-300 rounded-r-md hover:bg-red-400 transition h-[42px]"
+          class="itbms-brand-filter-clear px-4 py-2 bg-gray-500 border border-gray-500 rounded-r-md hover:bg-red-400 transition h-[42px]"
         >
           Clear
         </button>
@@ -147,26 +147,25 @@ const triggerBlur = () => {
     </div>
 
     <!-- Dropdown menu -->
-    <div
-      v-if="showDropdown"
-      class="relative w-full mt-1"
-    >
-      <ul
-        class="bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto w-full z-10"
-      >
-        <li
-          v-for="brand in brands"
-          :key="brand"
-          @click="selectBrand(brand)"
-          class="itbms-filter-item px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0 transition-colors"
-          :class="{ 'bg-blue-50 text-blue-700': modelValue.includes(brand) }"
+    <div class="relative w-full">
+      <div v-if="showDropdown" class="absolute left-0 top-full mt-1 w-full z-50">
+        <ul
+          class="bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto w-full"
         >
-          <span class="flex items-center justify-between">
-            {{ typeof brand === "object" ? brand.name : brand }}
-            <span v-if="modelValue.includes(brand)" class="text-blue-600">✓</span>
-          </span>
-        </li>
-      </ul>
+          <li
+            v-for="brand in brands"
+            :key="brand"
+            @click="selectBrand(brand)"
+            class="itbms-filter-item px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0 transition-colors"
+            :class="{ 'bg-blue-50 text-blue-700': modelValue.includes(brand) }"
+          >
+            <span class="flex items-center justify-between">
+              {{ typeof brand === "object" ? brand.name : brand }}
+              <span v-if="modelValue.includes(brand)" class="text-blue-600">✓</span>
+            </span>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 

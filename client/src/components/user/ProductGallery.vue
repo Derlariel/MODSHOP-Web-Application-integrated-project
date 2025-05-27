@@ -51,7 +51,7 @@ const detail = (productId) => {
 };
 
 async function initProducts() {
-    await productStore.loadAllPages(filters.value);
+  await productStore.loadAllPages(filters.value);
   try {
     await productStore.loadProductsPage(filters.value);
     totalPages.value = productStore.allPages
@@ -70,6 +70,14 @@ const updatePages = (pages) => {
   ++trigger.value
 }
 
+const add = () => {
+  router.push({ name: "product-add" });
+};
+
+const salItemList = () => {
+  router.push({ name: "product-list" });
+}
+
 const updateFilters = (newFilters) => {
   filters.value.page = newFilters.activePage - 1
   Object.assign(filters.value, newFilters)
@@ -81,17 +89,7 @@ function handleModalClose() {
   router.push({ name: "sale-items" });
 }
 
-const filteredProducts = computed(() => {
-  if (!filters.value.filterBrands || filters.value.filterBrands.length === 0) {
-    return productStore.allProducts
-  }
 
-  const selectedBrandNames = filters.value.filterBrands.map(b => b.name)
-
-  return productStore.allProducts.filter(p =>
-    selectedBrandNames.includes(p.brandName)
-  )
-})
 
 onMounted(async () => {
   await initProducts();
@@ -106,7 +104,7 @@ onMounted(async () => {
 
   if (sessionStorage.getItem("add-success") === "true") {
     alertMessage.value = "The sale item has been successfully added.";
-    showSuccess.value = true;  
+    showSuccess.value = true;
     sessionStorage.removeItem("add-success");
     setTimeout(() => {
       showSuccess.value = false;
@@ -150,22 +148,27 @@ watch(trigger, async () => {
 
         <SuccessModal :message="alertMessage" :visible="showSuccess" />
 
-        <div class="flex flex-wrap items-center justify-center gap-4 mt-4">
-          <div class="flex-1 min-w-[250px]">
-            <FilterSort @update:filters="updateFilters" />
+        <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
+          <div class="flex gap-3 w-full sm:w-auto justify-center sm:justify-end">
+            <button @click="add"
+              class="itbms-sale-item-add text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
+              Add Product
+            </button>
+            <button @click="salItemList"
+              class="itbms-item-list text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
+              Sale Item List
+            </button>
           </div>
+          <div class=" min-w-[300px] sm:w-auto">
+            <FilterSort @update:filters="updateFilters" />
+          </div>   
         </div>
-          
 
       </div>
     </div>
 
     <div class="max-w-[1200px] mx-auto px-6 pb-20">
-      <ErrorModal
-        :visible="isModalOpen"
-        message="The requested sale item does not exist."
-        @close="handleModalClose"
-      />
+      <ErrorModal :visible="isModalOpen" message="The requested sale item does not exist." @close="handleModalClose" />
 
       <!-- Loading Skeletons -->
       <div v-if="isLoading" class="flex items-center justify-center ">
@@ -176,10 +179,8 @@ watch(trigger, async () => {
         <ListModel :saleItems="productStore.allProducts" :viewType="viewType" :adminMode="adminMode">
           <!-- Header -->
           <template #listHeader>
-            <div
-              v-if="viewType === 'list'"
-              class="grid grid-cols-7 gap-4 py-3 px-4 border-b border-neutral-800 text-gray-400 text-sm font-medium"
-            >
+            <div v-if="viewType === 'list'"
+              class="grid grid-cols-7 gap-4 py-3 px-4 border-b border-neutral-800 text-gray-400 text-sm font-medium">
               <span>IMAGE</span>
               <span>BRAND</span>
               <span>MODEL</span>
@@ -193,23 +194,21 @@ watch(trigger, async () => {
           <!-- Items -->
           <template #listItems="{ Item: product, viewType }">
             <!-- Gallery View -->
-            <div
-              v-if="viewType === 'gallery'"
-              @click="detail(product.id)"
-              class="itbms-row group cursor-pointer transform transition-all duration-500 hover:scale-[1.02] gap-8"
-            >
-              <div class="relative h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-white to-neutral-100 mb-4 perspective group-hover:shadow-2xl group-hover:shadow-white/30 transition-shadow duration-700">
+            <div v-if="viewType === 'gallery'" @click="detail(product.id)"
+              class="itbms-row group cursor-pointer transform transition-all duration-500 hover:scale-[1.02] gap-8">
+              <div
+                class="relative h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-white to-neutral-100 mb-4 perspective group-hover:shadow-2xl group-hover:shadow-white/30 transition-shadow duration-700">
                 <div class="absolute inset-0 flex items-center justify-center transition-transform duration-700">
-                  <img
-                    :src="productImages[Number(product.id)] || DEFAULT_IMAGE"
+                  <img :src="productImages[Number(product.id)] || DEFAULT_IMAGE"
                     class="max-h-full max-w-full object-contain transform transition-transform duration-700 -mt-10 group-hover:scale-110"
-                    alt=""
-                  />
-                  <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/30 to-transparent"></div>
+                    alt="" />
+                  <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/30 to-transparent">
+                  </div>
                 </div>
 
                 <div class="absolute bottom-6 left-6 flex space-x-3">
-                  <div class="bg-gradient-to-r from-neutral-600 to-neutral-800 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium">
+                  <div
+                    class="bg-gradient-to-r from-neutral-600 to-neutral-800 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium">
                     <span class="itbms-ramGb flex">
                       {{ product.ramGb === null ? "-" : product.ramGb }}
                       <p class="itbms-storageGb-unit">
@@ -218,7 +217,8 @@ watch(trigger, async () => {
                       <p class="ml-1">RAM</p>
                     </span>
                   </div>
-                  <div class="bg-gradient-to-r from-neutral-600 to-neutral-900 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium">
+                  <div
+                    class="bg-gradient-to-r from-neutral-600 to-neutral-900 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium">
                     <span class="itbms-storageGb flex">
                       {{ product.storageGb === null ? "-" : product.storageGb }}
                       <p class="itbms-storageGb-unit">
@@ -243,7 +243,8 @@ watch(trigger, async () => {
                 </p>
 
                 <div class="pt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <button class="w-full bg-white text-black rounded-full py-1 font-medium hover:bg-gray-200 transition-colors">
+                  <button
+                    class="w-full bg-white text-black rounded-full py-1 font-medium hover:bg-gray-200 transition-colors">
                     Buy
                   </button>
                 </div>
@@ -251,19 +252,16 @@ watch(trigger, async () => {
             </div>
 
             <!-- List View -->
-            <div
-              v-else
-              @click="detail(product.id)"
-              class="border-b relative border-neutral-800 hover:bg-neutral-900 transition-colors"
-            >
+            <div v-else @click="detail(product.id)"
+              class="border-b relative border-neutral-800 hover:bg-neutral-900 transition-colors">
               <div class="grid grid-cols-7 items-center gap-4 py-6 px-4">
-                <div class="bg-gradient-to-br from-neutral-800 to-neutral-900 w-24 h-24 rounded-xl flex items-center justify-center overflow-hidden perspective">
-                  <div class="transform-style-3d hover:rotate-y-10 transition-transform duration-500 w-full h-full flex items-center justify-center">
-                    <img
-                      :src="productImages[Number(product.id)] || DEFAULT_IMAGE"
+                <div
+                  class="bg-gradient-to-br from-neutral-800 to-neutral-900 w-24 h-24 rounded-xl flex items-center justify-center overflow-hidden perspective">
+                  <div
+                    class="transform-style-3d hover:rotate-y-10 transition-transform duration-500 w-full h-full flex items-center justify-center">
+                    <img :src="productImages[Number(product.id)] || DEFAULT_IMAGE"
                       class="itbms-image max-h-full max-w-full object-contain hover:scale-105 transition-transform duration-500"
-                      alt=""
-                    />
+                      alt="" />
                   </div>
                 </div>
                 <div class="itbms-brand font-medium">{{ product.brandName }}</div>
@@ -285,7 +283,8 @@ watch(trigger, async () => {
     <Pagination v-if="!isLoading && product.length > 0" :totalPages="productStore.allPages" @sendPages="updatePages" />
   </div>
 
-  <div v-if="!isLoading && product.length === 0" class="min-h-screen flex items-center justify-center text-white text-xl">
+  <div v-if="!isLoading && product.length === 0"
+    class="min-h-screen flex items-center justify-center text-white text-xl">
     No sale items found
   </div>
 </template>

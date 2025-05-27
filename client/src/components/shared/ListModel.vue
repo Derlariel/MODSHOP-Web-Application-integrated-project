@@ -28,7 +28,7 @@ const appStore = useAppStore();
 </script>
 
 <template>
-  <div class="container mx-auto px-2 sm:px-4">
+  <div class="w-full max-w-screen-2xl mx-auto px-2 sm:px-4">
     <div v-if="appStore.adminMode" class="flex justify-end space-x-2 mb-4">
       <button @click="toggleView('gallery')"
         :class="['p-2 rounded-md', currentView === 'gallery' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black']">
@@ -40,35 +40,44 @@ const appStore = useAppStore();
       </button>
     </div>
 
-    <!-- Views -->
-    <div v-if="currentView === 'gallery'" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-8 gap-x-10">
+    <!-- Gallery View -->
+    <div
+      v-if="currentView === 'gallery'"
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-6 sm:gap-y-8 gap-x-4 sm:gap-x-6"
+    >
       <div v-for="(item, index) in saleItems" :key="index">
         <slot name="listItems" :Item="item" :viewType="currentView" />
       </div>
     </div>
 
+    <!-- Table View -->
     <div v-else class="responsive-table-wrapper">
-      <!-- Table Header -->
-      <div class="overflow-x-auto shadow-md rounded-md">
-        <table class="min-w-full bg-black border border-neutral-800">
-          <thead>
-            <tr class="bg-neutral-900 text-white text-left">
-              <slot name="tableHeader" />
-            </tr>
-          </thead>
-          <tbody>
-            <template v-if="saleItems && saleItems.length > 0">
-              <tr v-for="(item, index) in saleItems" :key="index" class="border-t border-neutral-800 hover:bg-neutral-800 transition-colors itbms-row">
-                <slot name="listItems" :Item="item" :viewType="currentView" />
+      <div class="overflow-x-auto w-full">
+        <div class="min-w-[600px] shadow-md rounded-md">
+          <table class="w-full bg-black border border-neutral-800 text-sm sm:text-base">
+            <thead>
+              <tr class="bg-neutral-900 text-white text-left">
+                <slot name="tableHeader" />
               </tr>
-            </template>
-            <template v-else>
-              <tr>
-                <td colspan="9" class="py-4 text-center text-gray-400">no sale item</td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <template v-if="saleItems && saleItems.length > 0">
+                <tr
+                  v-for="(item, index) in saleItems"
+                  :key="index"
+                  class="border-t border-neutral-800 hover:bg-neutral-800 transition-colors itbms-row"
+                >
+                  <slot name="listItems" :Item="item" :viewType="currentView" />
+                </tr>
+              </template>
+              <template v-else>
+                <tr>
+                  <td colspan="9" class="py-4 text-center text-gray-400">no sale item</td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -77,9 +86,17 @@ const appStore = useAppStore();
 <style scoped>
 .responsive-table-wrapper {
   width: 100%;
+  overflow-x: auto;
 }
 
-:deep(td), :deep(th) {
+:deep(table) {
+  min-width: 600px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+:deep(td),
+:deep(th) {
   white-space: normal;
   word-wrap: break-word;
   max-width: 200px;
@@ -87,16 +104,12 @@ const appStore = useAppStore();
 }
 
 @media (max-width: 640px) {
-  :deep(td), :deep(th) {
+  :deep(td),
+  :deep(th) {
     padding: 0.25rem 0.5rem;
     font-size: 0.875rem;
     max-width: 150px;
   }
-}
-
-:deep(table) {
-  border-collapse: collapse;
-  width: 100%;
 }
 
 :deep(th) {
@@ -104,7 +117,6 @@ const appStore = useAppStore();
   text-transform: capitalize;
 }
 
-/* Better hover effect */
 :deep(.itbms-row:hover) {
   background-color: rgba(255, 255, 255, 0.1);
 }
