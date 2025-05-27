@@ -37,28 +37,16 @@ const onBlur = () => {
   emit("trim");
 };
 
-const characterCount = computed(() => {
-  return props.modelValue ? String(props.modelValue).length : 0;
-});
 
-const isExceeded = computed(() => {
-  return props.maxInput && characterCount.value > props.maxInput;
-});
 </script>
 
 <template>
   <div class="space-y-1">
     <div class="flex justify-between items-center">
       <label :for="id || cypress" class="block text-sm font-medium text-gray-300">
-        {{ label }}<span v-if="required" class="text-red-500 ml-1">*</span>
+        {{ label }}<span class="text-red-500 ml-1">*</span>
       </label>
-      <span 
-        v-if="showCounter && maxInput" 
-        class="text-xs"
-        :class="isExceeded ? 'text-red-500' : 'text-gray-400'"
-      >
-        {{ characterCount }}/{{ maxInput }}
-      </span>
+
     </div>
     <div class="relative">
       <div v-if="prefix" class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
@@ -68,7 +56,7 @@ const isExceeded = computed(() => {
         :id="id || cypress"
         :class="[
           `${cypress} w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white`,
-          (error || isExceeded) ? 'border-red-700' : 'border-neutral-700',
+          (error) ? 'border-red-700' : 'border-neutral-700',
           prefix ? 'pl-8' : '',
         ]"
         :value="modelValue"

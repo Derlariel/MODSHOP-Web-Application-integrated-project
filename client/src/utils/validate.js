@@ -61,7 +61,7 @@ export const validateModel = data => {
 };
 
 export const validateBrandSelected = data => {
-  const valid = data != '';
+  const valid = data != null;
   return {
     valid,
     message: valid ? null : 'Brand must be selected.',
@@ -114,7 +114,7 @@ export const validateBrandURL = data => {
 export const validateBrandOrigin = data => {
   const valid =
     data === '' ||
-    (/^[a-zA-Z\s]+$/.test (data) && data.length >= 1 && data.length <= 10);
+    data.length >= 1 && data.length <= 80;
   return {
     valid,
     message: valid
@@ -124,8 +124,7 @@ export const validateBrandOrigin = data => {
 };
 
 export const validateRamSize = data => {
- const num = Number (data);
-  const valid = data === undefined || !isNaN (num) && Number.isInteger (num) && num > 0;
+  const valid = data == null || data > 0;
   return {
     valid,
     message: valid
@@ -171,8 +170,7 @@ export const validateScreenSize = (data) => {
 };
 
 export const validateStorageSize = data => {
-  const num = Number (data);
-  const valid = data === undefined || !isNaN (num) && Number.isInteger (num) && num > 0;
+  const valid = data == null || data > 0;
   return {
     valid,
     message: valid

@@ -25,12 +25,15 @@ const props = defineProps({
 
 const emit = defineEmits(["submit", "cancel"]);
 
+const isError = ref(false)
+
 const formData = reactive({
   name: "",
   websiteUrl: "",
   countryOfOrigin: "",
   isActive: true,
 });
+
 
 const originalData = ref({});
 
@@ -45,14 +48,14 @@ watch(
   { immediate: true, deep: true }
 );
 
-const validateName = () => {
-  if (!formData.name.trim()) {
-    errors.name = "Brand name is required";
-    return false;
-  }
-  errors.name = "";
-  return true;
-};
+// const validateName = () => {
+//   if (!formData.name.trim()) {
+//     errors.name = "Brand name is required";
+//     return false;
+//   }
+//   errors.name = "";
+//   return true;
+// };
 
 const hasFormChanges = computed(() => {
   if (props.mode !== "edit") return true;
@@ -80,8 +83,14 @@ const isFormValid = computed(() => {
   return formData.name.trim().length > 0 && hasFormChanges.value;
 });
 
+const errors = reactive({
+  name: null,
+  websiteUrl: null,
+  countryOfOrigin: null
+});
+
 const handleSubmit = () => {
-  if (validateName()) {
+  if (isFormValid.value) {
     emit("submit", {
       name: formData.name.trim(),
       websiteUrl: formData.websiteUrl.trim(),
@@ -106,11 +115,6 @@ const trimField = (field) => {
   validateField(field);
 };
 
-const errors = reactive({
-  name: null,
-  websiteUrl: null,
-  countryOfOrigin: null
-});
 
 const validateField = (field) => {
   let result = { valid: true, message: null };
@@ -124,11 +128,19 @@ const validateField = (field) => {
   errors[field] = result.message;
   return result.valid;
 };
+
+watch(formData,() => {
+
+  isError.value = Object.values(errors).some(error => error !== null)
+
+}, {deep: true, immediate: true})
+
 </script>
 
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-6">
     <BaseInput
+      cypress="itbms-name"
       v-model="formData.name"
       label="Brand Name *"
       id="brand-name"
@@ -139,6 +151,7 @@ const validateField = (field) => {
     />
 
     <BaseInput
+      cypress="itbms-websiteUrl"
       v-model="formData.websiteUrl"
       label="Website URL"
       id="website-url"
@@ -148,6 +161,7 @@ const validateField = (field) => {
       :error="errors.websiteUrl"
     />
     <BaseInput
+      cypress="itbms-countryOfOrigin"
       v-model="formData.countryOfOrigin"
       label="Country of Origin"
       id="country"
@@ -199,8 +213,9 @@ const validateField = (field) => {
       </button>
       <button
         type="submit"
-        class="itbms-save-button bg-white text-black px-6 py-2.5 rounded hover:bg-gray-200 transition-colors duration-200 font-medium"
-        :disabled="isSubmitting || !isFormValid"
+        class="itbms-save-button text-black px-6 py-2.5 rounded hover:bg-gray-200 transition-colors duration-200 font-medium"
+        :disabled="!isFormValid || isError"
+        :class=" isFormValid && !isError ? 'bg-white' : 'bg-red-600' "
       >
         {{
           isSubmitting

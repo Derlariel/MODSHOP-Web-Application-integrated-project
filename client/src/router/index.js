@@ -5,7 +5,7 @@ import HomePage from "@/pages/HomePage.vue";
 import MainPage from "@/components/MainPage.vue";
 import ProductManager from "@/components/admin/product/ProductManager.vue";
 import ProductDetail from "@/components/shared/ProductDetail.vue";
-import SaleItem from "@/pages/SaleItem.vue";
+import ProductList from "@/components/admin/product/ProductList.vue";
 import ProductAdd from "@/components/admin/product/ProductCreate.vue";
 import ProductEdit from "@/components/admin/product/ProductEdit.vue";
 import BrandManager from "@/components/admin/brand/BrandManager.vue";
@@ -40,7 +40,7 @@ const routes = [
         children: [
           {
             path: "list",
-            component: SaleItem,
+            component: ProductList,
             name: "product-list",
           },
           {

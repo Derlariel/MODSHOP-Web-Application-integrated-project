@@ -48,7 +48,11 @@ describe(`TC-FE-PBI11-FILTER-SALE-ITEM-GALLERY-BY-BRAND-1\n
     it(`[step 1] should have a "Filter by brand(s)" button.\n
         should show a brand list in alphabetical order (20 brands)\n
         should show "Asus" brand in "Filter by brand(s)" with a clear(x) button.\n
-        should show a a list of "ASUS" phones`,()=>{
+        should show a a list of "ASUS" phones`,
+        
+        () => {
+        cy.wait (1000);
+
         cy.get('.itbms-brand-filter').should('exist').as('brand-filter')
         cy.get('@brand-filter').click()
         cy.wait(100)

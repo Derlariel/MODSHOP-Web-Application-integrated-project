@@ -1,7 +1,6 @@
 CREATE DATABASE mobile_shop CHARACTER SET utf8mb4;
 USE mobile_shop;
 
-show variables like 'time_zone';
 SET GLOBAL time_zone = '+07:00';
 SET time_zone = '+07:00';
 
@@ -45,8 +44,8 @@ CREATE TABLE sale_item (
     ram_gb INT,
     screen_size_inch DECIMAL(5,2),
     storage_gb INT,
-	color VARCHAR(30),
-    quantity INT NOT NULL DEFAULT 1,
+	color VARCHAR(40),
+    quantity INT NOT NULL,
     created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT chk_rate CHECK (rate >= 0.0 AND rate <= 5.0),
