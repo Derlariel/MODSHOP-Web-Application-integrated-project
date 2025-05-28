@@ -61,13 +61,21 @@ const confirm = async () => {
 const showSuccess = ref(false);
 
 onMounted(async () => {
-  await productStore.loadProducts();
-  const result = await productStore.fetchProductDetail(productId);
-  product.value = result;
+  isLoading.value = true;
 
-  if (checkUpToDate(result)) {
-    showSuccess.value = false;
-    router.push("/sale-items");
+  try {
+    await productStore.loadProducts();
+
+    const product = await productStore.fetchProductDetail(productId);
+
+    if (product && checkUpToDate(product)) {
+      showSuccess.value = false;
+      router.push("/sale-items");
+      return;
+    }
+  } catch (e) {
+    router.push("/sale-items")
+    sessionStorage.setItem("error-message", "true")
   }
 
   if (sessionStorage.getItem("edit-success") === "true") {
@@ -77,6 +85,7 @@ onMounted(async () => {
       showSuccess.value = false;
     }, 3000);
   }
+
   isLoading.value = false;
 });
 
