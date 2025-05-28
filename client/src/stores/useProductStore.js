@@ -6,6 +6,7 @@ import {
   updateProductById,
   deleteProductById,
 } from "@/utils/tool";
+import defaultImage from "@/assets/default.jpg";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 
@@ -16,7 +17,12 @@ export const useProductStore = defineStore("product", {
     activePage: 1,
     totalPages: 0,
     products: [],
-
+    productImages: [
+      {
+        id: 0,
+        image: defaultImage,
+      },
+    ],
   }),
   getters: {
     allProducts: (state) => state.products,

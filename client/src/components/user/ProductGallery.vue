@@ -202,7 +202,7 @@ watch(trigger, async () => {
               class="itbms-row group cursor-pointer transform transition-all duration-500 hover:scale-[1.0] gap-8 rounded-md py-2"
             >
               <div class="relative h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-white to-neutral-100 mb-4 perspective group-hover:shadow-2xl group-hover:shadow-white/30 transition-shadow duration-700">
-                <div class="absolute inset-0 flex items-center justify-center transition-transform duration-700 ">
+                <div class="absolute inset-0 flex items-center justify-center transition-transform duration-700 py-6 ">
                   <img
                     :src="DEFAULT_IMAGE"
                     class="max-h-full max-w-full object-contain transform transition-transform duration-700 -mt-10 group-hover:scale-110"
@@ -211,7 +211,7 @@ watch(trigger, async () => {
                   </div>
                 </div>
 
-                <div class="absolute bottom-6 left-6 flex space-x-3">
+                <div class="absolute bottom-4 left-6 flex space-x-3 ">
                   <div
                     class="bg-gradient-to-r from-neutral-600 to-neutral-800 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium">
                     <span class="itbms-ramGb flex">
