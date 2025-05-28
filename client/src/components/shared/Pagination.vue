@@ -1,5 +1,9 @@
+```vue
 <script setup>
+<<<<<<< HEAD
 
+=======
+>>>>>>> e04638aef388dc62bd983d7cc55b27191fb73b67
 import { ref, defineProps, defineEmits, computed, watch, onMounted } from "vue";
 
 const props = defineProps({
@@ -23,14 +27,27 @@ const emit = defineEmits(["sendPages"]);
 const visiblePages = computed(() => {
   const total = productStore.allPages;
   const current = productStore.getActivePage;
+  const maxVisible = 10; // Maximum number of visible pages
 
-  const maxVisible = 10;
-  let start = Math.max(1, current - Math.floor(maxVisible / 2));
-  let end = start + maxVisible - 1;
+  // If total pages are less than or equal to maxVisible, show all pages
+  if (total <= maxVisible) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
 
-  if (end > total) {
-    end = total;
-    start = Math.max(1, end - maxVisible + 1);
+  // Keep range fixed at 1 to maxVisible until current page exceeds maxVisible
+  let start = 1;
+  let end = maxVisible;
+
+  // Start shifting the range when current page exceeds maxVisible
+  if (current > maxVisible) {
+    start = current - maxVisible + 1;
+    end = current;
+
+    // Ensure the range doesn't exceed total pages
+    if (end > total) {
+      end = total;
+      start = Math.max(1, end - maxVisible + 1);
+    }
   }
 
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
@@ -47,11 +64,8 @@ const setActivePage = (page) => {
   }
 
   sessionStorage.setItem("activePage", String(productStore.getActivePage));
-  console.log("sendPages", productStore.getActivePage - 1);
-  
+  console.log("Active Page:", productStore.getActivePage, "Visible Pages:", visiblePages.value);
   emit("sendPages", productStore.getActivePage - 1);
-
-  console.log("sendPages", productStore.getActivePage - 1);
 };
 
 const first = () => {
@@ -62,7 +76,7 @@ const last = () => {
   console.log("last", productStore.allPages);
   setActivePage(productStore.allPages);
   console.log("last-set", productStore.getActivePage);
-  console.log("session" + sessionStorage.getItem("activePage"));
+  console.log("session", sessionStorage.getItem("activePage"));
 };
 
 const next = () => {
@@ -133,9 +147,47 @@ onMounted(() => {
           ]"
           :aria-current="activePage === page ? 'page' : undefined"
         >
+<<<<<<< HEAD
           {{ page }}
         </button>
       </template>
+=======
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+
+      <!-- Page Numbers (Desktop) -->
+      <div class="desktop-pagination flex items-center space-x-1 no-wrap">
+        <button
+          v-for="(page, index) in visiblePages"
+          :key="page"
+          @click="setActivePage(page)"
+          :class="[
+            `itbms-page-${index}`,
+            'w-8 h-8 flex items-center justify-center text-sm font-medium rounded-md transition-all duration-200 ease-out',
+            activePage === page
+              ? 'bg-white text-white shadow-sm'
+              : 'text-gray-400 hover:text-white hover:bg-gray-800 active:bg-gray-700',
+          ]"
+          :aria-label="`Page ${page}`"
+          :aria-current="activePage === page ? 'page' : undefined"
+        >
+          {{ page }}
+        </button>
+      </div>
+
+      <!-- Page Indicator (Mobile) -->
+      <div class="mobile-pagination page-indicator">
+        <span class="px-3 py-1 bg-gray-800 rounded-md text-white">
+          {{ activePage }} / {{ storePages }}
+        </span>
+      </div>
+>>>>>>> e04638aef388dc62bd983d7cc55b27191fb73b67
 
       <!-- Next Button -->
       <button
@@ -220,3 +272,4 @@ onMounted(() => {
   }
 }
 </style>
+```

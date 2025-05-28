@@ -7,11 +7,9 @@ import {
   Menu,
 } from "lucide-vue-next";
 import { useRoute } from "vue-router";
-import { useAppStore } from "@/stores/useAppStore";
 import { ref } from "vue";
 
 const route = useRoute();
-const appStore = useAppStore();
 const isMobileMenuOpen = ref(false);
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
@@ -48,8 +46,8 @@ const toggleMobileMenu = () => {
       <div class="hidden lg:flex text-white items-center space-x-4">
         <Heart class="w-5 h-5 cursor-pointer hover:text-white" />
         <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
-        <div @click="appStore.toggleAdminMode" class="cursor-pointer">
-          <component :is="appStore.adminMode ? UserCog : User" class="w-5 h-5" />
+        <div  class="cursor-pointer">
+          <component  :is="User" class="w-5 h-5" />
         </div>
       </div>
 

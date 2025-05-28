@@ -91,6 +91,14 @@ function handleModalClose() {
 
 
 
+const add = () => {
+  router.push({ name: "product-add" });
+};
+
+const salItemList = () => {
+  router.push({ name: "product-list" });
+}
+
 onMounted(async () => {
   await initProducts();
   const savedPage = sessionStorage.getItem("activePage");
@@ -194,12 +202,15 @@ watch(trigger, async () => {
           <!-- Items -->
           <template #listItems="{ Item: product, viewType }">
             <!-- Gallery View -->
-            <div v-if="viewType === 'gallery'" @click="detail(product.id)"
-              class="itbms-row group cursor-pointer transform transition-all duration-500 hover:scale-[1.02] gap-8">
-              <div
-                class="relative h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-white to-neutral-100 mb-4 perspective group-hover:shadow-2xl group-hover:shadow-white/30 transition-shadow duration-700">
-                <div class="absolute inset-0 flex items-center justify-center transition-transform duration-700">
-                  <img :src="productImages[Number(product.id)] || DEFAULT_IMAGE"
+            <div
+              v-if="viewType === 'gallery'"
+              @click="detail(product.id)"
+              class="itbms-row group cursor-pointer transform transition-all duration-500 hover:scale-[1.0] gap-8 rounded-md py-1"
+            >
+              <div class="relative h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-white to-neutral-100 mb-4 perspective group-hover:shadow-2xl group-hover:shadow-white/30 transition-shadow duration-700">
+                <div class="absolute inset-0 flex items-center justify-center transition-transform duration-700 ">
+                  <img
+                    :src="productImages[Number(product.id)] || DEFAULT_IMAGE"
                     class="max-h-full max-w-full object-contain transform transition-transform duration-700 -mt-10 group-hover:scale-110"
                     alt="" />
                   <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/30 to-transparent">
