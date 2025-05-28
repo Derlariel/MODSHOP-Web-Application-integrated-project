@@ -1,4 +1,4 @@
-name: Deploy kk1 test cypress PBI 11 
+name: Deploy kk1 test cypress PBI 11 x
 
 on:
   push:
