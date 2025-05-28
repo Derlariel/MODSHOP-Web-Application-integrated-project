@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, computed, watch, ref } from "vue"; // Added ref import
+import { reactive, computed, watch, ref } from "vue"; 
 import BaseInput from "@/components/shared/BaseInput.vue";
 import { validateBrandName , runValidation , validateBrandOrigin , validateBrandURL } from "@/utils/validate.js"; 
 const props = defineProps({
