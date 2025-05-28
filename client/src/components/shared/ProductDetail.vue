@@ -66,9 +66,9 @@ onMounted(async () => {
   try {
     await productStore.loadProducts();
 
-    const product = await productStore.fetchProductDetail(productId);
+    product.value = await productStore.fetchProductDetail(productId);
 
-    if (product && checkUpToDate(product)) {
+    if (product.value && checkUpToDate(product)) {
       showSuccess.value = false;
       router.push("/sale-items");
       return;
