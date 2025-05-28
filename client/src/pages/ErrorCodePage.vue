@@ -21,14 +21,20 @@ const errorImages = {
   default: "default.svg",
 };
 
+const images = import.meta.glob("@/assets/images/error/*.svg", {
+  eager: true,
+  import: "default",
+});
+
+const imageFileName = errorImages[code] || errorImages.default;
+const imagePath = images[`/src/assets/images/error/${imageFileName}`];
 const message = errorMessages[code] || errorMessages.default;
-const imageFile = errorImages[code] || errorImages.default;
+
 </script>
 
 <template>
   <div class="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-    <img :src="`@/assets/images/error/${imageFile}`" alt="error image" class="w-96 mb-6" />
-    <!-- ใช้ v-if ตรวจสอบค่า code แทนที่ Nodata -->
+    <img  :src="imagePath" alt="error image" class="w-96 mb-6" />
     <h1 v-if="code !== 'NODATA'" class="text-4xl font-bold text-red-600 mb-2">Error {{ code }}</h1>
     <h1 v-else class="text-4xl font-bold text-red-600 mb-2">{{ message }}</h1>
     <p v-if="code !== 'NODATA'" class="text-lg text-gray-700 text-center">{{ message }}</p>
