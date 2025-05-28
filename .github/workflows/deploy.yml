@@ -3,7 +3,7 @@ name: Deploy kk1 test cypress PBI 11 -
 on:
   push:
     branches:
-      - release-v1
+      - main
 
 jobs:
   deploy:
