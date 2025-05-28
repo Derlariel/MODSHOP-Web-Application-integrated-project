@@ -17,5 +17,5 @@
 ## Hierarchy
 ![Hierarchy](docs/hierarchy.jpg)
 
-## Logo
+## ER-DIAGRAM
 ![ITB MShop](docs/itb-mshop.png)
