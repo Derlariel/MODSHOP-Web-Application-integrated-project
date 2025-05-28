@@ -22,3 +22,6 @@
 
 ## ER-DIAGRAM
 ![ITB MShop](docs/itb-mshop.png)
+
+## Component relationship
+![Component Relationship](docs/component-relationship.png)
