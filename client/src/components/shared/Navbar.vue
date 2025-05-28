@@ -3,7 +3,6 @@ import {
   Heart,
   ShoppingCart,
   User,
-  UserCog,
   Menu,
 } from "lucide-vue-next";
 import { useRoute } from "vue-router";
@@ -21,7 +20,7 @@ const toggleMobileMenu = () => {
     <div class="relative flex justify-between items-center h-14 w-full px-4 sm:px-6 lg:px-8">
       <!-- Logo -->
       <router-link to="/" class="flex items-center gap-2">
-        <img src="/icon.png" alt="logo" class="w-8 h-8 rounded-md">
+        <img src="@/assets/icon.png" alt="logo" class="w-8 h-8 rounded-md">
         <div class="text-xl  tracking-wide text-white font-bold">MODSHOP</div>
       </router-link>
 

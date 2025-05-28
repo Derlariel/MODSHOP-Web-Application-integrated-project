@@ -1,7 +1,5 @@
 <script setup>
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/effect-fade';
+
 import { ref, onMounted, onUnmounted } from 'vue';
 import AppFooter from '@/components/shared/AppFooter.vue';
 import Apple from '@/assets/logo/Apple.svg';
@@ -108,7 +106,7 @@ onUnmounted(() => {
           </div>
           
           <div class="mt-8 max-w-4xl mx-auto relative overflow-hidden group">
-            <img src="/placeholder.png?height=500&width=1000&text=Apple+Watch+Series+10" alt="Apple Watch Series 10" 
+            <img src="@/assets/placeholder.png" alt="Apple Watch Series 10" 
                  class="w-full transition-transform duration-700 group-hover:scale-[1.02]" />
             <div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-700"></div>
           </div>
@@ -197,7 +195,7 @@ onUnmounted(() => {
         </p>
         
         <div class="mt-8 max-w-4xl mx-auto relative overflow-hidden group">
-          <img src="/placeholder.png?height=500&width=1000&text=iPhone+16+Family" alt="iPhone 16 Family" 
+          <img src="@/assets/placeholder.png" alt="iPhone 16 Family" 
                class="w-full transition-transform duration-700 group-hover:scale-[1.02]" />
           <div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-700"></div>
         </div>
@@ -230,7 +228,7 @@ onUnmounted(() => {
                   </svg>
                 </a>
               </div>
-              <img src="/placeholder.png?height=300&width=400&text=iPad+Pro" alt="iPad Pro" 
+              <img src="@/assets/placeholder.png" alt="iPad Pro" 
                    class="w-full max-w-xs mx-auto transform transition-all duration-700 group-hover:scale-105 group-hover:translate-y-[-5px]" />
             </div>
           </div>
@@ -257,7 +255,7 @@ onUnmounted(() => {
                   </svg>
                 </a>
               </div>
-              <img src="/placeholder.png?height=300&width=400&text=MacBook+Air" alt="MacBook Air" 
+              <img src="@/assets/placeholder.png" alt="MacBook Air" 
                    class="w-full max-w-xs mx-auto transform transition-all duration-700 group-hover:scale-105 group-hover:translate-y-[-5px]" />
             </div>
           </div>
@@ -291,7 +289,7 @@ onUnmounted(() => {
                   </svg>
                 </a>
               </div>
-              <img src="/placeholder.png?height=300&width=400&text=AirPods+Pro" alt="AirPods Pro" 
+              <img src="@/assets/placeholder.png" alt="AirPods Pro" 
                    class="w-full max-w-xs mx-auto transform transition-all duration-700 group-hover:scale-105 group-hover:translate-y-[-5px]" />
             </div>
           </div>
@@ -318,7 +316,7 @@ onUnmounted(() => {
                   </svg>
                 </a>
               </div>
-              <img src="/placeholder.png?height=300&width=400&text=Vision+Pro" alt="Vision Pro" 
+              <img src="@/assets/placeholder.png" alt="Vision Pro" 
                    class="w-full max-w-xs mx-auto transform transition-all duration-700 group-hover:scale-105 group-hover:translate-y-[-5px]" />
             </div>
           </div>
