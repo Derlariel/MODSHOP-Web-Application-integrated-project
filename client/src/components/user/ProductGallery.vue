@@ -93,6 +93,14 @@ const filteredProducts = computed(() => {
   )
 })
 
+const add = () => {
+  router.push({ name: "product-add" });
+};
+
+const salItemList = () => {
+  router.push({ name: "product-list" });
+}
+
 onMounted(async () => {
   await initProducts();
   const savedPage = sessionStorage.getItem("activePage");
@@ -150,10 +158,20 @@ watch(trigger, async () => {
 
         <SuccessModal :message="alertMessage" :visible="showSuccess" />
 
-        <div class="flex flex-wrap items-center justify-center gap-4 mt-4">
-          <div class="flex-1 min-w-[250px]">
-            <FilterSort @update:filters="updateFilters" />
+        <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
+          <div class="flex gap-3 w-full sm:w-auto justify-center sm:justify-end">
+            <button @click="add"
+              class="itbms-sale-item-add text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
+              Add Product
+            </button>
+            <button @click="salItemList"
+              class="itbms-item-list text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
+              Sale Item List
+            </button>
           </div>
+          <div class=" min-w-[300px] sm:w-auto">
+            <FilterSort @update:filters="updateFilters" />
+          </div>   
         </div>
           
 
@@ -196,10 +214,10 @@ watch(trigger, async () => {
             <div
               v-if="viewType === 'gallery'"
               @click="detail(product.id)"
-              class="itbms-row group cursor-pointer transform transition-all duration-500 hover:scale-[1.02] gap-8"
+              class="itbms-row group cursor-pointer transform transition-all duration-500 hover:scale-[1.0] gap-8 rounded-md py-1"
             >
               <div class="relative h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-white to-neutral-100 mb-4 perspective group-hover:shadow-2xl group-hover:shadow-white/30 transition-shadow duration-700">
-                <div class="absolute inset-0 flex items-center justify-center transition-transform duration-700">
+                <div class="absolute inset-0 flex items-center justify-center transition-transform duration-700 ">
                   <img
                     :src="productImages[Number(product.id)] || DEFAULT_IMAGE"
                     class="max-h-full max-w-full object-contain transform transition-transform duration-700 -mt-10 group-hover:scale-110"

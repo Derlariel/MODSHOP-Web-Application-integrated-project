@@ -49,7 +49,6 @@ const visiblePages = computed(() => {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 
-const paging = ref("paging");
 
 const setActivePage = (page) => {
   const maxPage = storePages.value;

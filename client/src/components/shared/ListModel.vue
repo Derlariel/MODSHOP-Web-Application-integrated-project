@@ -1,7 +1,5 @@
 <script setup>
-import { List, GalleryThumbnails } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
-import { useAppStore } from '@/stores/useAppStore';
 
 const props = defineProps({
   saleItems: Array,
@@ -19,26 +17,12 @@ watch(() => props.viewType, (val) => {
   currentView.value = val;
 });
 
-const toggleView = (type) => {
-  currentView.value = type;
-  emit('update:viewType', type);
-};
 
-const appStore = useAppStore();
 </script>
 
 <template>
   <div class="container mx-auto px-2 sm:px-4">
-    <div v-if="appStore.adminMode" class="flex justify-end space-x-2 mb-4">
-      <button @click="toggleView('gallery')"
-        :class="['p-2 rounded-md', currentView === 'gallery' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black']">
-        <GalleryThumbnails class="w-5 h-5" />
-      </button>
-      <button @click="toggleView('list')"
-        :class="['p-2 rounded-md', currentView === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black']">
-        <List class="w-5 h-5" />
-      </button>
-    </div>
+
 
     <!-- Views -->
     <div v-if="currentView === 'gallery'" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-y-8 gap-x-10">
