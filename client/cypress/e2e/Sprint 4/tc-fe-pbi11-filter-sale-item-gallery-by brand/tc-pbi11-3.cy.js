@@ -166,7 +166,7 @@ describe(`TC-FE-PBI11-FILTER-SALE-ITEM-GALLERY-BY-BRAND-3\n
         should show "Apple" phones in the first page and "Xiaomi" phone in the last page.`,()=>{
         cy.get('.itbms-brand-filter').should('exist').as('brand-filter')
         cy.get('@brand-filter').click()
-        cy.wait(100)
+        cy.wait(1000)
 
         cy.contains('.itbms-filter-item', 'ASUS').should('exist').click()
         cy.wait(100)
@@ -180,7 +180,8 @@ describe(`TC-FE-PBI11-FILTER-SALE-ITEM-GALLERY-BY-BRAND-3\n
         cy.get('.itbms-brand-asc').should('exist').as('brand-asc')
         cy.get('@brand-asc').click()
         cy.wait(1000)
-
+cy.wait;
+ (1000);
         cy.get('.itbms-brand').then(($brands) => {
             cy.wait (1000);
 
@@ -189,7 +190,7 @@ describe(`TC-FE-PBI11-FILTER-SALE-ITEM-GALLERY-BY-BRAND-3\n
             )
             expect(matched).to.have.length(10)
         })
-        cy.wait(100)
+        cy.wait(1000)
 
         cy.get('.itbms-filter-item-clear').as('clear-item')
         cy.get('@clear-item').eq(0).should('exist').click()
@@ -211,9 +212,13 @@ describe(`TC-FE-PBI11-FILTER-SALE-ITEM-GALLERY-BY-BRAND-3\n
             cy.wait(1000)
 
             cy.get('.itbms-brand').then(($brands) => {
+                cy.wait (1000);
+
                 const matched = $brands.filter((index, el) =>
                     el.textContent.toLowerCase().includes('xiaomi')
                 )
+                cy.wait (1000);
+
                 expect(matched).to.have.length(10)
             })
         })
