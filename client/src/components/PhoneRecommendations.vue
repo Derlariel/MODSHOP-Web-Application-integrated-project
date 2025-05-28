@@ -23,7 +23,7 @@ const breakPoint = {
   '1024': { slidesPerView: 4, spaceBetween: 24 },
 };
 
-const productImages = products.productImages;
+
 </script>
 
 <template>
@@ -51,7 +51,7 @@ const productImages = products.productImages;
           class="bg-white shadow-xl rounded-xl p-4 sm:p-6 h-full flex flex-col justify-between"
         >
           <img
-            :src="productImages[product.id] || DEFALUT_IMAGE"
+            :src="DEFALUT_IMAGE"
             alt="product image"
             class="h-60 sm:h-72 lg:h-80 xl:h-96 w-full object-contain mb-4"
           />

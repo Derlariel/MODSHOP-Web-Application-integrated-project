@@ -20,8 +20,9 @@ const toggleMobileMenu = () => {
   <nav class="fixed top-0 inset-x-0 bg-black bg-opacity-80 backdrop-blur-lg z-50 border-b border-neutral-800">
     <div class="relative flex justify-between items-center h-14 w-full px-4 sm:px-6 lg:px-8">
       <!-- Logo -->
-      <router-link to="/">
-        <div class="text-xl font-light tracking-wide text-white">KK1</div>
+      <router-link to="/" class="flex items-center gap-2">
+        <img src="/icon.png" alt="logo" class="w-8 h-8 rounded-md">
+        <div class="text-xl  tracking-wide text-white font-bold">MODSHOP</div>
       </router-link>
 
       <!-- Desktop Nav -->

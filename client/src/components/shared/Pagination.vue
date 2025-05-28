@@ -1,13 +1,6 @@
-```vue
-<script setup>
-<<<<<<< HEAD
-<<<<<<< HEAD
 
-=======
->>>>>>> e04638aef388dc62bd983d7cc55b27191fb73b67
-=======
->>>>>>> 57980e302c9014c4719d486d72758040454358ab
-import { ref, defineProps, defineEmits, computed, watch, onMounted } from "vue";
+<script setup>
+import {  defineProps, defineEmits, computed, watch, onMounted } from "vue";
 
 const props = defineProps({
   totalPages: {
@@ -56,7 +49,6 @@ const visiblePages = computed(() => {
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 
-const paging = ref("paging");
 
 const setActivePage = (page) => {
   const maxPage = storePages.value;
@@ -178,41 +170,8 @@ onMounted(() => {
           :aria-label="`Page ${page}`"
           :aria-current="activePage === page ? 'page' : undefined"
         >
-<<<<<<< HEAD
           {{ page }}
         </button>
-<<<<<<< HEAD
-      </template>
-=======
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
-      </button>
-
-      <!-- Page Numbers (Desktop) -->
-      <div class="desktop-pagination flex items-center space-x-1 no-wrap">
-        <button
-          v-for="(page, index) in visiblePages"
-          :key="page"
-          @click="setActivePage(page)"
-          :class="[
-            `itbms-page-${index}`,
-            'w-8 h-8 flex items-center justify-center text-sm font-medium rounded-md transition-all duration-200 ease-out',
-            activePage === page
-              ? 'bg-white text-white shadow-sm'
-              : 'text-gray-400 hover:text-white hover:bg-gray-800 active:bg-gray-700',
-          ]"
-          :aria-label="`Page ${page}`"
-          :aria-current="activePage === page ? 'page' : undefined"
-        >
-          {{ page }}
-        </button>
-=======
->>>>>>> 57980e302c9014c4719d486d72758040454358ab
       </div>
 
       <!-- Page Indicator (Mobile) -->
@@ -221,10 +180,6 @@ onMounted(() => {
           {{ activePage }} / {{ storePages }}
         </span>
       </div>
-<<<<<<< HEAD
->>>>>>> e04638aef388dc62bd983d7cc55b27191fb73b67
-=======
->>>>>>> 57980e302c9014c4719d486d72758040454358ab
 
       <!-- Next Button -->
       <button
@@ -300,10 +255,6 @@ onMounted(() => {
     display: flex;
   }
 }
-<<<<<<< HEAD
-</style>
-```
-=======
 
 .page-indicator {
   color: white;
@@ -365,5 +316,3 @@ button[aria-current="page"] {
   }
 }
 </style>
-```
->>>>>>> 57980e302c9014c4719d486d72758040454358ab

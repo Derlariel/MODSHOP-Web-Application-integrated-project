@@ -8,6 +8,8 @@ const setSelectedImage = (index) => {
   selectedImage.value = index;
 };
 
+
+
 </script>
 
 <template>

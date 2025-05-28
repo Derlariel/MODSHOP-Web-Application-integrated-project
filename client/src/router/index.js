@@ -11,7 +11,7 @@ import ProductEdit from "@/components/admin/product/ProductEdit.vue";
 import BrandManager from "@/components/admin/brand/BrandManager.vue";
 import BrandCreate from "@/components/admin/brand/BrandCreate.vue";
 import BrandEdit from "@/components/admin/brand/BrandEdit.vue";
-
+import About from "@/pages/About.vue";
 const routes = [
   {
     path: "/",
@@ -77,6 +77,11 @@ const routes = [
         path: "brands/:brandId/edit",
         component: BrandEdit,
         name: "brands-edit",
+      },
+      {
+        path: "about",
+        name: "about",
+        component: About,
       },
 
       {

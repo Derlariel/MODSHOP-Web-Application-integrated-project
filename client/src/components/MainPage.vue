@@ -3,9 +3,13 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 import { ref, onMounted, onUnmounted } from 'vue';
-
 import AppFooter from '@/components/shared/AppFooter.vue';
-
+import Apple from '@/assets/logo/Apple.svg';
+import Huawei from '@/assets/logo/Huawei.png';
+import Xiaomi from '@/assets/logo/Xiaomi.png';
+import Asus from '@/assets/logo/asus.svg';
+import Sony from '@/assets/logo/sony.svg';
+import Samsung from '@/assets/logo/Samsung.svg';
 const selectedBrand = ref(null);
 
 // Featured brands for Summer Sale
@@ -14,31 +18,31 @@ const featuredBrands = [
     id: 1,
     name: "Apple",
     tagline: "Think Different",
-    logo: "/placeholder.svg?height=80&width=80&text=Apple",
+    logo: Apple,
     color: "from-gray-100 to-white",
     products: ["iPhone", "MacBook", "iPad", "Apple Watch"]
   },
   {
     id: 2,
-    name: "Beats",
+    name: "Huawei",
     tagline: "Hear What You Want",
-    logo: "/placeholder.svg?height=80&width=80&text=Beats",
+    logo: Huawei,
     color: "from-gray-200 to-gray-50",
     products: ["Beats Studio", "Beats Solo", "Powerbeats", "Beats Pill"]
   },
   {
     id: 3,
-    name: "Belkin",
+    name: "Xiaomi",
     tagline: "Quality & Innovation",
-    logo: "/placeholder.svg?height=80&width=80&text=Belkin",
+    logo: Xiaomi,
     color: "from-gray-100 to-white",
     products: ["Chargers", "Cables", "Screen Protectors", "Cases"]
   },
   {
     id: 4,
-    name: "Logitech",
+    name: "Asus",
     tagline: "Defy Logic",
-    logo: "/placeholder.svg?height=80&width=80&text=Logitech",
+    logo: Asus,
     color: "from-gray-200 to-gray-50",
     products: ["Keyboards", "Mice", "Webcams", "Speakers"]
   },
@@ -46,7 +50,7 @@ const featuredBrands = [
     id: 5,
     name: "Sony",
     tagline: "Be Moved",
-    logo: "/placeholder.svg?height=80&width=80&text=Sony",
+    logo: Sony,
     color: "from-gray-100 to-white",
     products: ["Headphones", "Speakers", "Cameras", "TVs"]
   },
@@ -54,7 +58,7 @@ const featuredBrands = [
     id: 6,
     name: "Samsung",
     tagline: "Do What You Can't",
-    logo: "/placeholder.svg?height=80&width=80&text=Samsung",
+    logo: Samsung,
     color: "from-gray-200 to-gray-50",
     products: ["Galaxy", "Monitors", "TVs", "Accessories"]
   }
@@ -64,6 +68,9 @@ const selectBrand = (brand) => {
   selectedBrand.value = selectedBrand.value === brand ? null : brand;
 };
 
+const handleScroll = () => {
+  // placeholder: เอาไว้ใส่ logic ถ้าต้องการ sticky header หรือ scroll effect
+};
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll);

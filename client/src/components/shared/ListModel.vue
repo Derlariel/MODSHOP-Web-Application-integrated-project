@@ -21,22 +21,8 @@ watch(() => props.viewType, (val) => {
 </script>
 
 <template>
-<<<<<<< HEAD
-  <div class="w-full max-w-screen-2xl mx-auto px-2 sm:px-4">
-    <div v-if="appStore.adminMode" class="flex justify-end space-x-2 mb-4">
-      <button @click="toggleView('gallery')"
-        :class="['p-2 rounded-md', currentView === 'gallery' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black']">
-        <GalleryThumbnails class="w-5 h-5" />
-      </button>
-      <button @click="toggleView('list')"
-        :class="['p-2 rounded-md', currentView === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black']">
-        <List class="w-5 h-5" />
-      </button>
-    </div>
-=======
   <div class="container mx-auto px-2 sm:px-4">
 
->>>>>>> e04638aef388dc62bd983d7cc55b27191fb73b67
 
     <!-- Gallery View -->
     <div
