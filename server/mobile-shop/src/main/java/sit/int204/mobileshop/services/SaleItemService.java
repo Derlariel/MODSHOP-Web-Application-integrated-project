@@ -18,7 +18,6 @@ import sit.int204.mobileshop.repositories.SaleItemRepository;
 import sit.int204.mobileshop.utils.ListMapper;
 import org.springframework.data.domain.*;
 import sit.int204.mobileshop.dtos.PageDto;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.List;
 
