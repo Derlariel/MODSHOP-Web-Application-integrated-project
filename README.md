@@ -8,6 +8,9 @@
 
 # About Phonezy Web Application
 
+## API Document
+[INT221_KK1_API_DOCUMENTS_1.pdf](https://github.com/user-attachments/files/20492491/INT221_KK1_API_DOCUMENTS_1.pdf)
+
 ## System Architecture
 ![System Architecture](docs/System%20Architecture%20Diagram.png)
 
