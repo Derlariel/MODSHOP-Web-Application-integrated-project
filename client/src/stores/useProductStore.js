@@ -6,36 +6,23 @@ import {
   updateProductById,
   deleteProductById,
 } from "@/utils/tool";
+import defaultImage from "@/assets/default.jpg";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
-import I14PROMAX from "@/assets/apple/iPhone-14-Pro-Max-Space-Black.webp";
-import I14 from "@/assets/apple/iPhone_14_Midnight.png";
-import I13PRO from "@/assets/apple/iphone-13-pro-blue-select.png";
-import SE2020 from "@/assets/apple/iPhone_SE3_Starlight.webp";
-import I14PLUS from "@/assets/apple/iPhone_14_Plus_Blue-square_medium.webp";
 
-import HuaweiP40 from "@/assets/banner/huawei-p40-banner.webp";
-import Mi9 from "@/assets/banner/Mi9-banner.jpg";
-import S24 from "@/assets/banner/S24-banner.jpg";
-import Vivo from "@/assets/banner/vivo-banner.webp";
+
+
 import { getProductsPage } from "../utils/tool";
 export const useProductStore = defineStore("product", {
   state: () => ({
     activePage: 1,
     totalPages: 0,
     products: [],
-    productImages: {
-      1: I14PROMAX,
-      2: I14,
-      3: I13PRO,
-      7: SE2020,
-      8: I14PLUS,
-    },
-    bannerImages: {
-      1: HuaweiP40,
-      2: Mi9,
-      3: S24,
-      4: Vivo,
-    },
+    productImages: [
+      {
+        id: 0,
+        image: defaultImage,
+      },
+    ],
   }),
   getters: {
     allProducts: (state) => state.products,

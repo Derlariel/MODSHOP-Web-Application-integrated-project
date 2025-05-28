@@ -3,15 +3,12 @@ import {
   Heart,
   ShoppingCart,
   User,
-  UserCog,
   Menu,
 } from "lucide-vue-next";
 import { useRoute } from "vue-router";
-import { useAppStore } from "@/stores/useAppStore";
 import { ref } from "vue";
 
 const route = useRoute();
-const appStore = useAppStore();
 const isMobileMenuOpen = ref(false);
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
@@ -22,8 +19,9 @@ const toggleMobileMenu = () => {
   <nav class="fixed top-0 inset-x-0 bg-black bg-opacity-80 backdrop-blur-lg z-50 border-b border-neutral-800">
     <div class="relative flex justify-between items-center h-14 w-full px-4 sm:px-6 lg:px-8">
       <!-- Logo -->
-      <router-link to="/">
-        <div class="text-xl font-light tracking-wide text-white">KK1</div>
+      <router-link to="/" class="flex items-center gap-2">
+        <img src="@/assets/icon.png" alt="logo" class="w-8 h-8 rounded-md">
+        <div class="text-xl  tracking-wide text-white font-bold">MODSHOP</div>
       </router-link>
 
       <!-- Desktop Nav -->
@@ -48,8 +46,8 @@ const toggleMobileMenu = () => {
       <div class="hidden lg:flex text-white items-center space-x-4">
         <Heart class="w-5 h-5 cursor-pointer hover:text-white" />
         <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
-        <div @click="appStore.toggleAdminMode" class="cursor-pointer">
-          <component :is="appStore.adminMode ? UserCog : User" class="w-5 h-5" />
+        <div  class="cursor-pointer">
+          <component  :is="User" class="w-5 h-5" />
         </div>
       </div>
 

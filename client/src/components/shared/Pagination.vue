@@ -1,6 +1,9 @@
+
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useProductStore } from "@/stores/useProductStore";
+
+
 
 const productStore = useProductStore();
 // Props
@@ -48,6 +51,7 @@ const isFirstDisabled = computed(() => currentPage.value === 1)
 const isPrevDisabled = computed(() => currentPage.value === 1)
 const isNextDisabled = computed(() => currentPage.value === props.totalPages)
 const isLastDisabled = computed(() => currentPage.value === props.totalPages)
+
 
 // Functions
 const setActivePage = (page) => {
@@ -321,4 +325,7 @@ button[aria-current="page"] {
     font-size: 0.7rem;
   }
 }
+
 </style>
+
+

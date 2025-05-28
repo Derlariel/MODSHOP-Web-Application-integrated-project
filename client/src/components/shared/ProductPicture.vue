@@ -1,12 +1,15 @@
 <script setup>
 import { ref } from 'vue'
 import { useProductStore } from '@/stores/useProductStore';
+import defaultImage from '@/assets/default.jpg';
 const productStore = useProductStore();
 const selectedImage = ref(1);
 
 const setSelectedImage = (index) => {
   selectedImage.value = index;
 };
+
+
 
 </script>
 
@@ -18,7 +21,7 @@ const setSelectedImage = (index) => {
       >
         <img
           class="object-contain max-h-full w-auto transition-all duration-700 hover:scale-105 hover:translate-z-20"
-          :src="productStore.productImages[selectedImage]"
+          :src="productStore.productImages[selectedImage] || defaultImage"
           alt="product"
         />
         <div
@@ -37,7 +40,7 @@ const setSelectedImage = (index) => {
             class="transform-style-3d hover:rotate-y-10 transition-transform duration-300"
           >
             <img
-              :src="productStore.productImages[i]"
+              :src="productStore.productImages[i] || defaultImage"
               class="h-20 w-20 object-contain bg-neutral-800 rounded-xl shadow-sm transition-all duration-300 group-hover:shadow-lg"
               :class="{ 'ring-2 ring-white': selectedImage === i }"
               alt="thumbnail"
