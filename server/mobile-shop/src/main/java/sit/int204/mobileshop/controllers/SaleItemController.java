@@ -1,5 +1,12 @@
 package sit.int204.mobileshop.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +25,8 @@ import java.util.List;
 @CrossOrigin(origins = "${app.origins}")
 @RestController
 @RequestMapping("/v1/sale-items")
-public class  SaleItemController {
+@Tag(name = "Sale Item API V1", description = "API for managing product data in the system")
+public class SaleItemController {
     @Autowired
     private SaleItemService saleItemService;
 
@@ -28,6 +36,13 @@ public class  SaleItemController {
     @Autowired
     private ListMapper listMapper;
 
+    @Operation(summary = "Get all products", description = "Retrieve all products")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved products", 
+                    content = @Content(schema = @Schema(implementation = SaleItemDto.class))),
+        @ApiResponse(responseCode = "200", description = "Product is empty",
+                    content = @Content)
+    })
     @GetMapping("")
     public ResponseEntity<List<SaleItemDto>> getAllProducts() {
         List<SaleItem> products = saleItemService.getAllSaleItems();
@@ -37,36 +52,70 @@ public class  SaleItemController {
         return ResponseEntity.ok(listMapper.toListDto(products, SaleItemDto.class, modelMapper));
     }
 
+    @Operation(summary = "Get product by ID", description = "Search and retrieve product using product ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Product found", 
+                    content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class))),
+        @ApiResponse(responseCode = "404", description = "Product not found", 
+                    content = @Content)
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<SaleItemDetailDto> getProductById(@PathVariable Integer id) {
+    public ResponseEntity<SaleItemDetailDto> getProductById(
+            @Parameter(description = "ID of the product to search", required = true)
+            @PathVariable Integer id) {
         SaleItem item = saleItemService.getSaleItemById(id);
         SaleItemDetailDto dto = modelMapper.map(item, SaleItemDetailDto.class);
         dto.setBrandName(item.getBrand().getName());
         return ResponseEntity.ok(dto);
     }
 
+    @Operation(summary = "Create new product", description = "Add new product to the system")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Product created successfully", 
+                    content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input data", 
+                    content = @Content)
+    })
     @PostMapping("")
-    public ResponseEntity<SaleItemDetailDto> createSaleItem(@Valid @RequestBody SaleItemRequestDto dtoItem) {
+    public ResponseEntity<SaleItemDetailDto> createSaleItem(
+            @Parameter(description = "Product data to create", required = true)
+            @Valid @RequestBody SaleItemRequestDto dtoItem) {
         SaleItemDetailDto createdItem = saleItemService.createSaleItem(dtoItem);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdItem);
     }
 
+    @Operation(summary = "Update product", description = "Update existing product information")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Product updated successfully", 
+                    content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input data", 
+                    content = @Content),
+        @ApiResponse(responseCode = "404", description = "Product not found", 
+                    content = @Content)
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<SaleItemDetailDto> updateSaleItemById(@PathVariable Integer id,
+    public ResponseEntity<SaleItemDetailDto> updateSaleItemById(
+            @Parameter(description = "ID of the product to update", required = true)
+            @PathVariable Integer id,
+            @Parameter(description = "Updated product data", required = true)
             @Valid @RequestBody SaleItemRequestDto dtoItem) {
         SaleItemDetailDto updatedItem = saleItemService.updateSaleItemById(id, dtoItem);
         return ResponseEntity.ok(updatedItem);
     }
 
+    @Operation(summary = "Delete product", description = "Delete product by specified ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Product deleted successfully", 
+                    content = @Content),
+        @ApiResponse(responseCode = "404", description = "Product not found", 
+                    content = @Content)
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSaleItemById(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteSaleItemById(
+            @Parameter(description = "ID of the product to delete", required = true)
+            @PathVariable Integer id) {
         saleItemService.deleteSaleItemById(id);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/delete/all")
-    public ResponseEntity<Void> deleteAllProducts() {
-        saleItemService.deleteAllForTest();
-        return ResponseEntity.noContent().build();
-    }
 }
