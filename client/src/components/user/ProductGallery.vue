@@ -67,6 +67,7 @@ async function initProducts() {
 }
 
 const updatePages = (pages) => {
+  productStore.setActivePage(pages)
   ++trigger.value
 }
 
