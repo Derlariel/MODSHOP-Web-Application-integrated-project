@@ -2,14 +2,11 @@ package sit.int204.mobileshop.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
-
 import sit.int204.mobileshop.dtos.BrandInfoDto;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.exceptions.BrandAlreadyExistException;
-
 import sit.int204.mobileshop.repositories.BrandRepository;
 
 import java.util.List;
@@ -23,7 +20,6 @@ public class BrandService {
     @Autowired
     private ModelMapper modelMapper;
 
-
     public List<Brand> getAllBrands() {
         return brandRepository.findAll();
     }
@@ -34,8 +30,19 @@ public class BrandService {
     }
 
     public Optional<BrandInfoDto> createBrandByName(BrandInfoDto brandInfoDto) {
+
+        if (brandInfoDto.getName() != null) {
+            brandInfoDto.setName(brandInfoDto.getName().trim());
+        }
+        if (brandInfoDto.getWebsiteUrl() != null) {
+            brandInfoDto.setWebsiteUrl(brandInfoDto.getWebsiteUrl().trim());
+        }
+        if (brandInfoDto.getCountryOfOrigin() != null) {
+            brandInfoDto.setCountryOfOrigin(brandInfoDto.getCountryOfOrigin().trim());
+        }
+
         if (brandRepository.existsByNameIgnoreCase(brandInfoDto.getName())) {
-            throw new BrandAlreadyExistException("Brand with name" + brandInfoDto.getName() + "already exits.");
+            throw new BrandAlreadyExistException("Brand with name '" + brandInfoDto.getName() + "' already exists.");
         }
 
         brandInfoDto.setId(null);
@@ -44,8 +51,17 @@ public class BrandService {
     }
 
     public Optional<BrandInfoDto> updateBrand(Integer id, BrandInfoDto brandInfoDto) {
-
         Brand brand = getBrandById(id);
+
+        if (brandInfoDto.getName() != null) {
+            brandInfoDto.setName(brandInfoDto.getName().trim());
+        }
+        if (brandInfoDto.getWebsiteUrl() != null) {
+            brandInfoDto.setWebsiteUrl(brandInfoDto.getWebsiteUrl().trim());
+        }
+        if (brandInfoDto.getCountryOfOrigin() != null) {
+            brandInfoDto.setCountryOfOrigin(brandInfoDto.getCountryOfOrigin().trim());
+        }
 
         if (!brand.getName().equals(brandInfoDto.getName())
                 && brandRepository.existsByNameIgnoreCase(brandInfoDto.getName())) {
@@ -57,20 +73,17 @@ public class BrandService {
 
         return Optional.of(modelMapper.map(brandRepository.saveAndFlush(
                 modelMapper.map(brandInfoDto, Brand.class)), BrandInfoDto.class));
-
     }
 
     public void removeBrand(Integer id) {
-
         Brand brand = getBrandById(id);
-        if (brand.getSaleItems().size() > 0 ) {
-            throw new BrandAlreadyExistException(null);
+        if (brand.getSaleItems().size() > 0) {
+            throw new BrandAlreadyExistException("Cannot delete brand with associated sale items.");
         }
 
-        //soft delete brand
-        //  brand.setIsActive(false);
+        // soft delete brand
+        // brand.setIsActive(false);
 
         brandRepository.deleteById(id);
     }
-    
 }
