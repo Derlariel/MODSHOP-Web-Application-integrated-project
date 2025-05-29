@@ -13,7 +13,7 @@ public interface SaleItemRepository extends JpaRepository<SaleItem, Integer> {
 
     List<SaleItem> findAllByOrderByCreatedOnAsc();
 
-    @Query("SELECT s FROM SaleItem s WHERE s.brand.name IN :filterBrands")
+    @Query("SELECT s FROM SaleItem s WHERE s.brand.name IN :filterBrands") 
     Page<SaleItem> findAllFilter(Pageable page, @Param("filterBrands") List<String> filterBrands);
 
 

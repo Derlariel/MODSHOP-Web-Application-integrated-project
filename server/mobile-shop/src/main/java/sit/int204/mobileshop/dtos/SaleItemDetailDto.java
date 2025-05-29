@@ -24,7 +24,8 @@ public class SaleItemDetailDto {
     @Min(value = 0)
     private Integer storageGb;
     private String color;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "Asia/Bangkok")
     private Instant createdOn;
-  
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "Asia/Bangkok")
     private Instant updatedOn;
 }
