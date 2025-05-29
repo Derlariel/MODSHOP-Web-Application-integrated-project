@@ -166,8 +166,5 @@ public class SaleItemService {
         saleItemRepository.delete(getSaleItemById(id));
     }
 
-    public void deleteAllForTest() {
-        saleItemRepository.deleteAll();
-    }
 
 }
