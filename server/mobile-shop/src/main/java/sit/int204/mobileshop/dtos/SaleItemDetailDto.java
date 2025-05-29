@@ -48,10 +48,8 @@ public class SaleItemDetailDto {
     private String color;
     
     @Schema(description = "Creation timestamp", example = "2023-05-15T10:30:00+07:00")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "Asia/Bangkok")
     private Instant createdOn;
     
     @Schema(description = "Last update timestamp", example = "2023-05-16T14:20:00+07:00")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "Asia/Bangkok")
     private Instant updatedOn;
 }
