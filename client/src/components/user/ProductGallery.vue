@@ -28,6 +28,8 @@ const adminMode = ref(false);
 const filters = ref({
   page: 0,
   filterBrands: [],
+  priceRange: { min: null, max: null },
+  storageSize: [],
   size: 10,
   sortField: "createdOn",
   sortDirection: "asc",
