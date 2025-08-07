@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useProductStore } from "@/stores/useProductStore";
 
 import ListModel from "@/components/shared/ListModel.vue";
@@ -12,12 +12,13 @@ import DEFAULT_IMAGE from "@/assets/default.jpg";
 import SkeletonLoader from "@/components/shared/SkeletonLoader.vue";
 
 const router = useRouter();
+const route = useRoute();
 
 const productStore = useProductStore();
 
 const product = computed(() => productStore.allProducts);
-const totalPages = ref(0)
-
+const totalPages = ref(0);
+const filterSortRef = ref(null);
 
 const isLoading = ref(true);
 const isModalOpen = ref(false);
@@ -53,16 +54,34 @@ const detail = (productId) => {
 };
 
 async function initProducts() {
-  await productStore.loadAllPages(filters.value);
+  isLoading.value = true;
   try {
+    await productStore.loadAllPages(filters.value);
     await productStore.loadProductsPage(filters.value);
-    totalPages.value = productStore.allPages
+    totalPages.value = productStore.allPages;
     console.log(totalPages.value);
+    
+    // Check if no products found and filters are applied
     if (product.value.length === 0) {
-      router.push({ name: "error-page", query: { code: "NODATA" } });
+      const hasFilters = filters.value.filterBrands.length > 0 || 
+                        filters.value.priceRange.min !== null || 
+                        filters.value.priceRange.max !== null || 
+                        filters.value.storageSize.length > 0;
+      
+      if (hasFilters) {
+        // If filters are applied and no results, redirect to NODATA error
+        router.push({ name: "error-page", query: { code: "NODATA" } });
+        return;
+      } else {
+        // If no filters and no results, show general error
+        router.push({ name: "error-page", query: { code: "500" } });
+        return;
+      }
     }
   } catch (err) {
     console.error("Load products failed:", err);
+    // On API error, redirect to error page
+    router.push({ name: "error-page", query: { code: "500" } });
   } finally {
     isLoading.value = false;
   }
@@ -97,6 +116,14 @@ const salItemList = () => {
 }
 
 onMounted(async () => {
+  // Check if filters were cleared due to NODATA error
+  const filtersCleared = sessionStorage.getItem("filters-cleared-from-error");
+  if (filtersCleared) {
+    sessionStorage.removeItem("filters-cleared-from-error");
+    // Don't load products yet, let the cleared filters trigger reload
+    return;
+  }
+
   await initProducts();
   const savedPage = sessionStorage.getItem("activePage");
   if (savedPage) {

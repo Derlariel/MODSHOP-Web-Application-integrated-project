@@ -162,6 +162,11 @@ onMounted(() => {
     sessionStorage.setItem("activePage", 1);
   }
 });
+
+// Expose clearAllFilters function for parent components
+defineExpose({
+  clearAllFilters
+});
 </script>
 
 <template>
@@ -217,7 +222,7 @@ onMounted(() => {
       <div>
         <label for="page-size" class="text-sm font-medium mx-2">Show</label>
         <select name="page-size" id="page-size" v-model="size"
-                class="itbms-page-size bg-gray-400 text-black/80 border border-gray-300 rounded-md  text-sm cursor-pointer focus:outline-none">
+                class="itbms-page-size bg-gray-400/70 text-black/70 border border-gray-300 rounded-md  text-sm cursor-pointer focus:outline-none">
           <option value="5">5</option>
           <option value="10">10</option>
           <option value="20">20</option>
@@ -227,19 +232,19 @@ onMounted(() => {
       <!-- Sort Buttons -->
       <div class="flex items-center gap-2">
         <button @click="resetSort" title="No Sort"
-                :class="['itbms-brand-none bg-gray-400 text-black rounded-md p-2 hover:bg-gray-400 transition', 
+                :class="['itbms-brand-none bg-gray-400/70 text-black/70 rounded-md p-2 hover:bg-gray-400 transition', 
                          sortField === 'createdOn' ? 'bg-gray-600 text-white font-medium' : '']">
           <Menu class="w-5 h-5" />
         </button>
 
         <button @click="sortByBrandAsc" title="Sort A-Z"
-                :class="['itbms-brand-asc bg-gray-400 text-black rounded-md p-2 hover:bg-gray-400 transition',
+                :class="['itbms-brand-asc bg-gray-400/70 text-black/70 rounded-md p-2 hover:bg-gray-400 transition',
                          sortField === 'brand.name' && sortDirection === 'asc' ? 'bg-gray-600 text-white font-medium' : '']">
           <SortAsc class="w-5 h-5" />
         </button>
 
         <button @click="sortByBrandDesc" title="Sort Z-A"
-                :class="['itbms-brand-desc bg-gray-400 text-black rounded-md p-2 hover:bg-gray-400 transition',
+                :class="['itbms-brand-desc bg-gray-400/70 text-black/70 rounded-md p-2 hover:bg-gray-400 transition',
                          sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-600 text-white font-medium' : '']">
           <SortDesc class="w-5 h-5" />
         </button>

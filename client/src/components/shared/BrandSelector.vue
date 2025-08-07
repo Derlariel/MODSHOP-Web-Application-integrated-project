@@ -104,26 +104,28 @@ const handleSelect = (event) => {
     <!-- Selected brands display area -->
     <div class="flex items-center w-full">
       <div
-        class="flex flex-wrap items-center content-center flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[42px] px-2 py-1 gap-1"
+        class="flex-1 rounded-md rounded-r-none bg-white min-h-[42px] max-h-[45px] overflow-y-auto"
       >
-        <div
-          v-if="modelValue.length === 0"
-          class="text-gray-500 text-sm py-1"
-        >
-          Select brands...
-        </div>
-        <div
-          v-for="brand in modelValue"
-          :key="brand"
-          class="bg-blue-100 text-blue-800 text-sm rounded-full px-3 py-1 flex items-center shadow-sm border border-blue-200 transition-colors hover:bg-blue-200"
-        >
-          {{ brand }}
-          <button
-            @click="removeBrand(brand)"
-            class="itbms-filter-item-clear ml-2 text-blue-600 hover:text-red-600 transition-colors"
+        <div class="grid grid-cols-2 gap-1 p-2">
+          <div
+            v-if="modelValue.length === 0"
+            class="col-span-2 text-gray-500 text-sm py-1"
           >
-            <X class="w-3 h-3" />
-          </button>
+            Select brands...
+          </div>
+          <div
+            v-for="brand in modelValue"
+            :key="brand"
+            class="bg-blue-100 text-blue-800 text-xs rounded-full px-2 py-1 flex items-center shadow-sm border border-blue-200 transition-colors hover:bg-blue-200 min-w-0"
+          >
+            <span class="truncate flex-1">{{ brand }}</span>
+            <button
+              @click="removeBrand(brand)"
+              class="itbms-filter-item-clear ml-1 text-blue-600 hover:text-red-600 transition-colors flex-shrink-0"
+            >
+              <X class="w-3 h-3" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -131,7 +133,7 @@ const handleSelect = (event) => {
       <div class="flex-shrink-0 flex">
         <button
           @click="toggleDropdown"
-          class="itbms-brand-filter px-4 py-2 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md h-[42px]"
+          class="itbms-brand-filter px-4 py-2 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md rounded-l-none h-[42px]"
         >
           <Filter stroke="white" class="w-5 h-5 " />
           <span class="sr-only">

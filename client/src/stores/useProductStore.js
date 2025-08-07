@@ -9,8 +9,6 @@ import {
 import defaultImage from "@/assets/default.jpg";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-
-
 import { getProductsPage } from "../utils/tool";
 export const useProductStore = defineStore("product", {
   state: () => ({
@@ -86,8 +84,11 @@ export const useProductStore = defineStore("product", {
           : [];
 
         this.products = normalized;
+        return data;
       } catch (err) {
         console.error("Failed to load all products", err);
+        this.products = [];
+        throw err;
       }
     },
 
@@ -96,7 +97,7 @@ export const useProductStore = defineStore("product", {
         const data = await getProductsPage(`${BASE_URL}/v2/sale-items`, params);
         console.log("data.totalPages "+data.totalPages)
         this.totalPages = data.totalPages;
-        
+        return data;
       } catch (err) {
         console.error("Failed to load all page products", err);
       }
