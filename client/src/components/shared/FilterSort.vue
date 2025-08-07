@@ -235,18 +235,22 @@ defineExpose({
                 :class="['itbms-brand-none bg-gray-400/70 text-black/70 rounded-md p-2 hover:bg-gray-400 transition', 
                          sortField === 'createdOn' ? 'bg-gray-600 text-white font-medium' : '']">
           <Menu class="w-5 h-5" />
+          <span class="ml-1 text-xs font-bold">DEFAULT</span>
         </button>
 
         <button @click="sortByBrandAsc" title="Sort A-Z"
-                :class="['itbms-brand-asc bg-gray-400/70 text-black/70 rounded-md p-2 hover:bg-gray-400 transition',
-                         sortField === 'brand.name' && sortDirection === 'asc' ? 'bg-gray-600 text-white font-medium' : '']">
-          <SortAsc class="w-5 h-5" />
+          :class="['itbms-brand-asc bg-gray-400/70 text-black/70 rounded-md p-2 hover:bg-gray-400 transition',
+             sortField === 'brand.name' && sortDirection === 'asc' ? 'bg-gray-600 text-white font-medium' : '']">
+          <SortAsc class="w-5 h-5"/>
+          <span class="ml-1 text-xs font-bold">A-Z</span>
         </button>
 
         <button @click="sortByBrandDesc" title="Sort Z-A"
                 :class="['itbms-brand-desc bg-gray-400/70 text-black/70 rounded-md p-2 hover:bg-gray-400 transition',
                          sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-600 text-white font-medium' : '']">
           <SortDesc class="w-5 h-5" />
+                    <span class="ml-1 text-xs font-bold">Z-A</span>
+
         </button>
       </div>
     </div>
