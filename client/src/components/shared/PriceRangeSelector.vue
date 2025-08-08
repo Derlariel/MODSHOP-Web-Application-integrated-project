@@ -115,7 +115,7 @@ watch(() => props.modelValue, (newValue) => {
     <!-- Selected price display area -->
     <div class="flex items-center w-full">
       <div 
-        class="flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[36px] md:min-h-[42px] max-h-[42px] md:max-h-[48px] overflow-y-auto"
+        class="flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[36px] md:min-h-[42px] max-h-[42px] md:max-h-[42px] overflow-y-auto"
       >
         <div class="grid grid-cols-2 gap-1 p-1.5 md:p-2">
           <div v-if="!selectedRange" class="col-span-2 text-gray-500 text-xs md:text-sm py-1">

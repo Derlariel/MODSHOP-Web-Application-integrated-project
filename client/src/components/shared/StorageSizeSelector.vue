@@ -102,7 +102,7 @@ onMounted(() => {
     <!-- Selected storage display area -->
     <div class="flex items-center w-full">
       <div 
-        class="flex-1 rounded-md rounded-r-none bg-white min-h-[36px] md:min-h-[42px] max-h-[42px] md:max-h-[45px] overflow-y-auto border border-gray-300"
+        class="flex-1 rounded-md rounded-r-none bg-white min-h-[36px] md:min-h-[42px] max-h-[42px] md:max-h-[42px] overflow-y-auto border border-gray-300"
       >
         <div :class="selectedSizes.length > 1 ? 'grid grid-cols-2 gap-1 p-1.5 md:p-2' : 'grid grid-cols-1 gap-1 p-1.5 md:p-2'">
           <div v-if="selectedSizes.length === 0" class="col-span-2 text-gray-500 text-xs md:text-sm py-1">

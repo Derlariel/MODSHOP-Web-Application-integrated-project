@@ -103,7 +103,7 @@ const handleSelect = (event) => {
     <!-- Selected brands display area -->
     <div class="flex items-center w-full">
       <div
-        class="flex-1 rounded-md rounded-r-none bg-white min-h-[36px] md:min-h-[42px] max-h-[42px] md:max-h-[45px] overflow-y-auto border border-gray-300"
+        class="flex-1 rounded-md rounded-r-none bg-white min-h-[36px] md:min-h-[42px] max-h-[42px] md:max-h-[42px] overflow-y-auto border border-gray-300"
       >
         <div :class="modelValue.length > 1 ? 'grid grid-cols-2 gap-1 p-1.5 md:p-2' : 'grid grid-cols-1 gap-1 p-1.5 md:p-2'">
           <div
