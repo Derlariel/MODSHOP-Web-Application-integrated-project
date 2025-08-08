@@ -170,87 +170,94 @@ defineExpose({
 </script>
 
 <template>
-  <div class="flex flex-col gap-3 md:gap-4 w-full text-gray-700">
-    <!-- Main Filter Row: Brand, Price, Storage + Clear Button -->
-    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-2 md:gap-3 w-full px-3 md:px-4  py-2 md:py-3 rounded-2xl md:rounded-3xl">
-      <!-- LEFT: Brand Filter -->
-      <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[160px] xl:w-[180px]">
-        <BrandSelector
-          v-model="selectedBrands"
-          :brands="allBrands"
-          :multiple="true"
-          @brand-selected="onBrandSelected"
-          @brand-removed="onBrandRemoved"
-          @clear-brands="onBrandsClear"
-        />
-      </div>
+  <div class="w-full text-gray-700">
+    <!-- Container for lg+ screens: side-by-side layout -->
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 w-full">
+      
+      <!-- Filter Section -->
+      <div class="flex flex-col gap-3 lg:flex-1 lg:max-w-2xl">
+        <!-- Main Filter Row: Brand, Price, Storage + Clear Button -->
+        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-2 md:gap-3 w-full px-3 md:px-4 py-2 md:py-3 rounded-2xl md:rounded-3xl">
+          <!-- LEFT: Brand Filter -->
+          <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[160px] xl:w-[180px]">
+            <BrandSelector
+              v-model="selectedBrands"
+              :brands="allBrands"
+              :multiple="true"
+              @brand-selected="onBrandSelected"
+              @brand-removed="onBrandRemoved"
+              @clear-brands="onBrandsClear"
+            />
+          </div>
 
-      <!-- CENTER: Price Filter -->
-      <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[1ุ60px] xl:w-[180px]">
-        <PriceRangeSelector
-          v-model="priceRange"
-          @price-selected="onPriceSelected"
-          @price-cleared="onPriceCleared"
-        />
-      </div>
+          <!-- CENTER: Price Filter -->
+          <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[1ุ60px] xl:w-[180px]">
+            <PriceRangeSelector
+              v-model="priceRange"
+              @price-selected="onPriceSelected"
+              @price-cleared="onPriceCleared"
+            />
+          </div>
 
-      <!-- RIGHT: Storage Size Filter -->
-      <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[1ุ60px] xl:w-[180px]">
-        <StorageSizeSelector
-          v-model="selectedStorageSizes"
-          @storage-selected="onStorageSelected"
-          @storage-removed="onStorageRemoved"
-          @clear-storage="onStorageClear"
-        />
-      </div>
+          <!-- RIGHT: Storage Size Filter -->
+          <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[1ุ60px] xl:w-[180px]">
+            <StorageSizeSelector
+              v-model="selectedStorageSizes"
+              @storage-selected="onStorageSelected"
+              @storage-removed="onStorageRemoved"
+              @clear-storage="onStorageClear"
+            />
+          </div>
 
-      <!-- Clear All Button -->
-      <div class="w-full md:w-auto md:flex-shrink-0">
-        <button 
-          @click="clearAllFilters"
-          class="itbms-brand-filter-clear w-full md:w-auto px-4 md:px-6 py-2 md:py-2.5 bg-gray-700 text-white rounded-full hover:bg-gray-500 transition-colors duration-200 font-medium text-sm md:text-base h-[38px] md:h-[42px] whitespace-nowrap"
-        >
-          Clear
-        </button>
-      </div>
-    </div>
-
-    <!-- Sort Controls Row -->
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-end gap-3 sm:gap-4 w-full">
-      <!-- Page Size -->
-      <div class="flex items-center justify-center sm:justify-start gap-2 border rounded-2xl md:rounded-3xl px-3 md:px-4 py-2 md:py-2.5 bg-gray-200">
-        <div class="flex items-center gap-2">
-          <label for="page-size" class="text-xs md:text-sm font-medium whitespace-nowrap">Show</label>
-          <select name="page-size" id="page-size" v-model="size"
-                  class="itbms-page-size bg-gray-400/70 text-black/70 border border-gray-300 rounded-md text-xs md:text-sm cursor-pointer focus:outline-none px-2 md:px-3 py-1 md:py-2">
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="20">20</option>
-          </select>
+          <!-- Clear All Button -->
+          <div class="w-full md:w-auto md:flex-shrink-0">
+            <button 
+              @click="clearAllFilters"
+              class="itbms-brand-filter-clear w-full md:w-auto px-4 md:px-6 py-2 md:py-2.5 bg-gray-700 text-white rounded-full hover:bg-gray-500 transition-colors duration-200 font-medium text-sm md:text-base h-[38px] md:h-[42px] whitespace-nowrap"
+            >
+              Clear
+            </button>
+          </div>
         </div>
+      </div>
 
-        <!-- Sort Buttons -->
-        <div class="flex items-center gap-1 md:gap-2 ml-2 md:ml-3">
-          <button @click="resetSort" title="No Sort"
-                  :class="['itbms-brand-none bg-gray-400/70 text-black/70 rounded-md px-2 py-1 md:p-2 hover:bg-gray-400 transition', 
-                           sortField === 'createdOn' ? 'bg-gray-600 text-white font-medium' : '']">
-            <Menu class="w-4 h-4 md:w-5 md:h-5" />
-            <span class="ml-1 text-xs font-bold hidden sm:inline">DEFAULT</span>
-          </button>
+      <!-- Sort Controls Section -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-end gap-3 sm:gap-4 w-full lg:w-auto lg:flex-shrink-0">
+        <!-- Page Size -->
+        <div class="flex items-center justify-center sm:justify-start gap-2 border rounded-2xl md:rounded-3xl px-3 md:px-4 py-2 md:py-2.5 bg-gray-200">
+          <div class="flex items-center gap-2">
+            <label for="page-size" class="text-xs md:text-sm font-medium whitespace-nowrap">Show</label>
+            <select name="page-size" id="page-size" v-model="size"
+                    class="itbms-page-size bg-gray-400/70 text-black/70 border border-gray-300 rounded-md text-xs md:text-sm cursor-pointer focus:outline-none px-2 md:px-3 py-1 md:py-2">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+          </div>
 
-          <button @click="sortByBrandAsc" title="Sort A-Z"
-            :class="['itbms-brand-asc bg-gray-400/70 text-black/70 rounded-md px-2 py-1 md:p-2 hover:bg-gray-400 transition',
-               sortField === 'brand.name' && sortDirection === 'asc' ? 'bg-gray-600 text-white font-medium' : '']">
-            <SortAsc class="w-4 h-4 md:w-5 md:h-5"/>
-            <span class="ml-1 text-xs font-bold hidden sm:inline">A-Z</span>
-          </button>
+          <!-- Sort Buttons -->
+          <div class="flex items-center gap-1 md:gap-2 ml-2 md:ml-3">
+            <button @click="resetSort" title="No Sort"
+                    :class="['itbms-brand-none bg-gray-400/70 text-black/70 rounded-md px-2 py-1 md:p-2 hover:bg-gray-400 transition', 
+                             sortField === 'createdOn' ? 'bg-gray-600 text-white font-medium' : '']">
+              <Menu class="w-4 h-4 md:w-5 md:h-5" />
+              <span class="ml-1 text-xs font-bold hidden sm:inline">DEFAULT</span>
+            </button>
 
-          <button @click="sortByBrandDesc" title="Sort Z-A"
-                  :class="['itbms-brand-desc bg-gray-400/70 text-black/70 rounded-md px-2 py-1 md:p-2 hover:bg-gray-400 transition',
-                           sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-600 text-white font-medium' : '']">
-            <SortDesc class="w-4 h-4 md:w-5 md:h-5" />
-            <span class="ml-1 text-xs font-bold hidden sm:inline">Z-A</span>
-          </button>
+            <button @click="sortByBrandAsc" title="Sort A-Z"
+              :class="['itbms-brand-asc bg-gray-400/70 text-black/70 rounded-md px-2 py-1 md:p-2 hover:bg-gray-400 transition',
+                 sortField === 'brand.name' && sortDirection === 'asc' ? 'bg-gray-600 text-white font-medium' : '']">
+              <SortAsc class="w-4 h-4 md:w-5 md:h-5"/>
+              <span class="ml-1 text-xs font-bold hidden sm:inline">A-Z</span>
+            </button>
+
+            <button @click="sortByBrandDesc" title="Sort Z-A"
+                    :class="['itbms-brand-desc bg-gray-400/70 text-black/70 rounded-md px-2 py-1 md:p-2 hover:bg-gray-400 transition',
+                             sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-600 text-white font-medium' : '']">
+              <SortDesc class="w-4 h-4 md:w-5 md:h-5" />
+              <span class="ml-1 text-xs font-bold hidden sm:inline">Z-A</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

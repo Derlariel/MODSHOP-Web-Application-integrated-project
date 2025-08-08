@@ -110,7 +110,7 @@ const handleSelect = (event) => {
             v-if="modelValue.length === 0"
             class="col-span-2 text-gray-500 text-xs md:text-sm py-1"
           >
-            Select brands...
+            Select Brands
           </div>
           <div
             v-for="brand in modelValue"
