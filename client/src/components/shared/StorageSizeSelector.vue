@@ -102,10 +102,10 @@ onMounted(() => {
     <!-- Selected storage display area -->
     <div class="flex items-center w-full">
       <div 
-        class="flex-1 rounded-md rounded-r-none bg-white min-h-[42px] max-h-[45px] overflow-y-auto"
+        class="flex-1 rounded-md rounded-r-none bg-white min-h-[36px] md:min-h-[42px] max-h-[42px] md:max-h-[45px] overflow-y-auto"
       >
-        <div :class="selectedSizes.length > 1 ? 'grid grid-cols-2 gap-1 p-2' : 'grid grid-cols-1 gap-1 p-2'">
-          <div v-if="selectedSizes.length === 0" class="col-span-2 text-gray-500 text-sm py-1">
+        <div :class="selectedSizes.length > 1 ? 'grid grid-cols-2 gap-1 p-1.5 md:p-2' : 'grid grid-cols-1 gap-1 p-1.5 md:p-2'">
+          <div v-if="selectedSizes.length === 0" class="col-span-2 text-gray-500 text-xs md:text-sm py-1">
             Storage Size
           </div>
           <div
@@ -128,9 +128,9 @@ onMounted(() => {
       <div class="flex-shrink-0 flex">
         <button
           @click="toggleDropdown"
-          class="itbms-storage-size-filter px-4 py-2 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md rounded-l-none h-[42px]"
+          class="itbms-storage-size-filter px-3 md:px-4 py-2 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md rounded-l-none h-[36px] md:h-[42px]"
         >
-          <HardDrive class="w-5 h-5 text-white" />
+          <HardDrive class="w-4 h-4 md:w-5 md:h-5 text-white" />
           <span class="sr-only">
             <span v-for="size in selectedSizes" :key="size">{{ formatStorageSize(size) }}</span>
           </span>

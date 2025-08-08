@@ -180,18 +180,18 @@ watch(trigger, async () => {
 
         <SuccessModal :message="alertMessage" :visible="showSuccess" />
 
-        <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
-          <div class="flex gap-3 w-full sm:w-auto justify-center sm:justify-end">
+        <div class="mt-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 w-full">
+          <div class="flex flex-row  gap-2 xs:gap-3 w-full lg:w-auto justify-center lg:justify-start">
             <button @click="add"
-              class="itbms-sale-item-add text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
+              class="itbms-sale-item-add text-xs xs:text-sm md:text-base bg-white text-black font-medium py-2 xs:py-2.5 md:py-3 px-4 xs:px-6 md:px-8 rounded-lg transition-colors duration-300 hover:bg-gray-200 whitespace-nowrap">
               Add Product
             </button>
             <button @click="salItemList"
-              class="itbms-item-list text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
+              class="itbms-item-list text-xs xs:text-sm md:text-base bg-white text-black font-medium py-2 xs:py-2.5 md:py-3 px-4 xs:px-6 md:px-8 rounded-lg transition-colors duration-300 hover:bg-gray-200 whitespace-nowrap">
               Sale Item List
             </button>
           </div>
-          <div class=" min-w-[300px] sm:w-auto">
+          <div class="w-full lg:w-auto lg:min-w-[280px] xl:min-w-[320px]">
             <FilterSort @update:filters="updateFilters" />
           </div>   
         </div>
