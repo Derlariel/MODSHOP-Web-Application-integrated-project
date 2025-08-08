@@ -115,13 +115,13 @@ watch(() => props.modelValue, (newValue) => {
     <!-- Selected price display area -->
     <div class="flex items-center w-full">
       <div 
-        class="flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[36px] md:min-h-[42px] max-h-[42px] md:max-h-[42px] overflow-y-auto"
+        class="flex-1 border border-gray-300 rounded-md rounded-r-none bg-white min-h-[32px] md:min-h-[36px] max-h-[36px] md:max-h-[36px] overflow-y-auto"
       >
-        <div class="grid grid-cols-2 gap-1 p-1.5 md:p-2">
-          <div v-if="!selectedRange" class="col-span-2 text-gray-500 text-xs md:text-sm py-1">
+        <div class="grid grid-cols-2 gap-1 p-1 md:p-1.5">
+          <div v-if="!selectedRange" class="col-span-2 text-gray-500 text-xs md:text-sm py-0.5">
             Price Range
           </div>
-          <div v-if="selectedRange" class="col-span-2 itbms-price-item bg-blue-100 text-blue-800 text-xs rounded-full px-2 py-1 flex items-center shadow-sm border border-blue-200 transition-colors hover:bg-blue-200 min-w-0">
+          <div v-if="selectedRange" class="col-span-2 itbms-price-item bg-blue-100 text-blue-800 text-xs rounded-full px-1.5 py-0.5 flex items-center shadow-sm border border-blue-200 transition-colors hover:bg-blue-200 min-w-0">
             <span class="truncate flex-1">{{ selectedRange }}</span>
             <button @click="clearPriceRange" class="itbms-price-item-clear ml-1 text-blue-600 hover:text-red-600 transition-colors flex-shrink-0">
               <X class="w-3 h-3" />
@@ -132,7 +132,7 @@ watch(() => props.modelValue, (newValue) => {
 
       <!-- Action buttons -->
       <div class="flex-shrink-0 flex">
-        <button @click="toggleDropdown" class="itbms-price-filter px-3 md:px-4 py-2 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md w-[48px] md:w-[54px] h-[36px] md:h-[42px] rounded-l-none flex items-center justify-center">
+        <button @click="toggleDropdown" class="itbms-price-filter px-2 md:px-3 py-1.5 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md w-[42px] md:w-[48px] h-[32px] md:h-[36px] rounded-l-none flex items-center justify-center">
           <span class="text-white text-sm md:text-base">₿</span>
         </button>
       </div>
