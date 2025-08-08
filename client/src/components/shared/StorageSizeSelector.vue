@@ -161,5 +161,13 @@ onMounted(() => {
 </template>
  
 <style scoped>
-/* Custom styles for storage selector */
+/* Hide scrollbars */
+.overflow-y-auto::-webkit-scrollbar {
+  display: none;
+}
+
+.overflow-y-auto {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 </style>

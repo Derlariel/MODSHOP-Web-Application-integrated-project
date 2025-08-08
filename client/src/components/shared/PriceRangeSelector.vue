@@ -146,7 +146,7 @@ watch(() => props.modelValue, (newValue) => {
           
           <!-- Pre-defined ranges -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Price Options</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2 text-center">Price Options</label>
             <div class="space-y-1">
               <button
                 v-for="range in priceRanges"
@@ -159,7 +159,7 @@ watch(() => props.modelValue, (newValue) => {
                     : 'hover:bg-gray-100'
                 ]"
               >
-                <span class="flex items-center justify-center ">
+                <span class="flex items-center justify-start ">
                   {{ range.label }}
                   <span v-if="minPrice === range.min && maxPrice === range.max" class="text-blue-600">✓</span>
                 </span>
@@ -193,4 +193,13 @@ watch(() => props.modelValue, (newValue) => {
 </template>
  
 <style scoped>
+/* Hide scrollbars */
+.overflow-y-auto::-webkit-scrollbar {
+  display: none;
+}
+
+.overflow-y-auto {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 </style>

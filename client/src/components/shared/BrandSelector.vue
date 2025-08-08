@@ -203,4 +203,14 @@ const handleSelect = (event) => {
   white-space: nowrap;
   border-width: 0;
 }
+
+/* Hide scrollbars */
+.overflow-y-auto::-webkit-scrollbar {
+  display: none;
+}
+
+.overflow-y-auto {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 </style>
