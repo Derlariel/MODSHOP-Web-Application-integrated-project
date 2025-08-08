@@ -34,7 +34,6 @@ const emit = defineEmits([
 
 const showDropdown = ref(false);
 
-// Computed property to get the current selected value for single selection
 const selectedValue = computed(() => {
   if (props.multiple) return null;
   return props.modelValue?.id || "";
@@ -106,7 +105,7 @@ const handleSelect = (event) => {
       <div
         class="flex-1 rounded-md rounded-r-none bg-white min-h-[42px] max-h-[45px] overflow-y-auto"
       >
-        <div class="grid grid-cols-2 gap-1 p-2">
+        <div :class="modelValue.length > 1 ? 'grid grid-cols-2 gap-1 p-2' : 'grid grid-cols-1 gap-1 p-2'">
           <div
             v-if="modelValue.length === 0"
             class="col-span-2 text-gray-500 text-sm py-1"

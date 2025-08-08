@@ -19,8 +19,8 @@ const emit = defineEmits([
 const showDropdown = ref(false);
 const availableStorageSizes = ref([]);
 
-// Available storage sizes from database
-const defaultStorageSizes = [32, 64, 128, 256, 512, 1024]; // 1TB = 1024GB
+// Available storage sizes from database (include special values)
+const defaultStorageSizes = [32, 64, 128, 256, 512, 1024, "Not specified"]; // 1TB = 1024GB
 
 const selectedSizes = computed({
   get() {
@@ -61,6 +61,9 @@ const clearAllStorageSizes = () => {
 };
 
 const formatStorageSize = (size) => {
+  if (size === "Not specified") {
+    return "Not specified";
+  }
   if (size >= 1024) {
     return `${size / 1024}TB`;
   }
@@ -76,7 +79,9 @@ const fetchStorageSizes = async () => {
     if (res.ok) {
       const data = await res.json();
       // Assuming the view returns an array of objects with storage_gb property
-      availableStorageSizes.value = data.map(item => item.storage_gb || item.storageGb).sort((a, b) => a - b);
+      const dbSizes = data.map(item => item.storage_gb || item.storageGb).sort((a, b) => a - b);
+      // Add "Not specified" option
+      availableStorageSizes.value = [...dbSizes, "Not specified"];
     } else {
       // Fallback to default sizes if API fails
       availableStorageSizes.value = defaultStorageSizes;
@@ -99,7 +104,7 @@ onMounted(() => {
       <div 
         class="flex-1 rounded-md rounded-r-none bg-white min-h-[42px] max-h-[45px] overflow-y-auto"
       >
-        <div class="grid grid-cols-2 gap-1 p-2">
+        <div :class="selectedSizes.length > 1 ? 'grid grid-cols-2 gap-1 p-2' : 'grid grid-cols-1 gap-1 p-2'">
           <div v-if="selectedSizes.length === 0" class="col-span-2 text-gray-500 text-sm py-1">
             Storage Size
           </div>
