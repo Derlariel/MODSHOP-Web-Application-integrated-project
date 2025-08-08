@@ -98,11 +98,11 @@ onMounted(() => {
 </script>
  
 <template>
-  <div class="flex flex-col max-w-full sm:max-w-2xl w-full">
+  <div class="flex flex-col w-full">
     <!-- Selected storage display area -->
     <div class="flex items-center w-full">
       <div 
-        class="flex-1 rounded-md rounded-r-none bg-white min-h-[36px] md:min-h-[42px] max-h-[42px] md:max-h-[45px] overflow-y-auto"
+        class="flex-1 rounded-md rounded-r-none bg-white min-h-[36px] md:min-h-[42px] max-h-[42px] md:max-h-[45px] overflow-y-auto border border-gray-300"
       >
         <div :class="selectedSizes.length > 1 ? 'grid grid-cols-2 gap-1 p-1.5 md:p-2' : 'grid grid-cols-1 gap-1 p-1.5 md:p-2'">
           <div v-if="selectedSizes.length === 0" class="col-span-2 text-gray-500 text-xs md:text-sm py-1">
@@ -128,7 +128,7 @@ onMounted(() => {
       <div class="flex-shrink-0 flex">
         <button
           @click="toggleDropdown"
-          class="itbms-storage-size-filter px-3 md:px-4 py-2 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md rounded-l-none h-[36px] md:h-[42px]"
+          class="itbms-storage-size-filter px-3 md:px-4 py-2 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md rounded-l-none h-[36px] md:h-[42px] w-[48px] md:w-[54px] flex items-center justify-center"
         >
           <HardDrive class="w-4 h-4 md:w-5 md:h-5 text-white" />
           <span class="sr-only">

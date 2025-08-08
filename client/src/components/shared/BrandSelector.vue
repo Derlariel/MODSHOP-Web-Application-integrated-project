@@ -98,12 +98,12 @@ const handleSelect = (event) => {
   <!-- Multiple selection mode -->
   <div
     v-if="multiple"
-    class="flex flex-col max-w-full sm:max-w-2xl w-full"
+    class="flex flex-col w-full"
   >
     <!-- Selected brands display area -->
     <div class="flex items-center w-full">
       <div
-        class="flex-1 rounded-md rounded-r-none bg-white min-h-[36px] md:min-h-[42px] max-h-[42px] md:max-h-[45px] overflow-y-auto"
+        class="flex-1 rounded-md rounded-r-none bg-white min-h-[36px] md:min-h-[42px] max-h-[42px] md:max-h-[45px] overflow-y-auto border border-gray-300"
       >
         <div :class="modelValue.length > 1 ? 'grid grid-cols-2 gap-1 p-1.5 md:p-2' : 'grid grid-cols-1 gap-1 p-1.5 md:p-2'">
           <div
@@ -132,7 +132,7 @@ const handleSelect = (event) => {
       <div class="flex-shrink-0 flex">
         <button
           @click="toggleDropdown"
-          class="itbms-brand-filter px-3 md:px-4 py-2 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md rounded-l-none h-[36px] md:h-[42px]"
+          class="itbms-brand-filter px-3 md:px-4 py-2 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md rounded-l-none h-[36px] md:h-[42px] w-[48px] md:w-[54px] flex items-center justify-center"
         >
           <Filter stroke="white" class="w-4 h-4 md:w-5 md:h-5" />
           <span class="sr-only">

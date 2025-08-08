@@ -111,7 +111,7 @@ watch(() => props.modelValue, (newValue) => {
 </script>
  
 <template>
-  <div class="flex flex-col max-w-full sm:max-w-2xl w-full">
+  <div class="flex flex-col w-full">
     <!-- Selected price display area -->
     <div class="flex items-center w-full">
       <div 
@@ -132,7 +132,7 @@ watch(() => props.modelValue, (newValue) => {
 
       <!-- Action buttons -->
       <div class="flex-shrink-0 flex">
-        <button @click="toggleDropdown" class="itbms-price-filter px-3 md:px-4 py-2 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md w-[48px] md:w-[54px] h-[36px] md:h-[42px] rounded-l-none ">
+        <button @click="toggleDropdown" class="itbms-price-filter px-3 md:px-4 py-2 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md w-[48px] md:w-[54px] h-[36px] md:h-[42px] rounded-l-none flex items-center justify-center">
           <span class="text-white text-sm md:text-base">₿</span>
         </button>
       </div>

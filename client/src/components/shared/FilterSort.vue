@@ -174,7 +174,7 @@ defineExpose({
     <!-- Main Filter Row: Brand, Price, Storage + Clear Button -->
     <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-2 md:gap-3 w-full border px-3 md:px-4 bg-gray-200 py-2 md:py-3 rounded-2xl md:rounded-3xl">
       <!-- LEFT: Brand Filter -->
-      <div class="w-full md:w-auto md:flex-1 lg:flex-none">
+      <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[170px] xl:w-[220px]">
         <BrandSelector 
           v-model="selectedBrands"
           :brands="allBrands"
@@ -186,7 +186,7 @@ defineExpose({
       </div>
 
       <!-- CENTER: Price Filter -->
-      <div class="w-full md:w-auto md:flex-1 lg:flex-none">
+      <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[160px] xl:w-[220px]">
         <PriceRangeSelector
           v-model="priceRange"
           @price-selected="onPriceSelected"
@@ -195,7 +195,7 @@ defineExpose({
       </div>
 
       <!-- RIGHT: Storage Size Filter -->
-      <div class="w-full md:w-auto md:flex-1 lg:flex-none">
+      <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[160px] xl:w-[220px]">
         <StorageSizeSelector
           v-model="selectedStorageSizes"
           @storage-selected="onStorageSelected"
