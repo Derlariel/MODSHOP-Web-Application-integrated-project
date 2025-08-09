@@ -46,7 +46,7 @@ public class SaleItemService {
             Integer page,
             Integer size,
             List<String> filterBrands,
-            Integer storageSize,
+            List<String> storageSize,
             Integer lowerPrice,
             Integer upperPrice,
             String sortField,
@@ -85,6 +85,16 @@ public class SaleItemService {
                     .collect(Collectors.toList());
             if (filterBrands.isEmpty()) {
                 filterBrands = null;
+            }
+        }
+
+
+        if (storageSize != null) {
+            storageSize = storageSize.stream()
+                    .filter(b -> b != null && !b.trim().isEmpty() && !b.equals("[]"))
+                    .collect(Collectors.toList());
+            if (storageSize.isEmpty()) {
+                storageSize = null;
             }
         }
 

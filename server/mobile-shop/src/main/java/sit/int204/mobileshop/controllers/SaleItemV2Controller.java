@@ -47,7 +47,7 @@ public class SaleItemV2Controller {
             @RequestParam(defaultValue = "createdOn") String sortField,
 
             @Parameter(description = "Filter storage size")
-            @RequestParam(required = false) Integer storageSize,
+            @RequestParam(defaultValue = "[]") List<String> storageSize,
 
             @Parameter(description = "Price range")
             @RequestParam(required = false) String lowerPrice,
