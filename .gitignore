@@ -25,6 +25,9 @@ dist-ssr
 *.sw?
 
 /server/mobile-shop/target/
+/server/mobile-shop/src/main/resources/
 
 # Security 
 secrets/
+
+server/mobile-shop/src/main/resources/application-dev.properties

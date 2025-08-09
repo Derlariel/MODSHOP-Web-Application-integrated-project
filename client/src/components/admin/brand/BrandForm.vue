@@ -1,7 +1,7 @@
 <script setup>
-import { reactive, computed, watch, ref } from "vue"; // Added ref import
+import { reactive, computed, watch, ref } from "vue"; 
 import BaseInput from "@/components/shared/BaseInput.vue";
-
+import { validateBrandName , runValidation , validateBrandOrigin , validateBrandURL } from "@/utils/validate.js"; 
 const props = defineProps({
   initialData: {
     type: Object,
@@ -25,12 +25,15 @@ const props = defineProps({
 
 const emit = defineEmits(["submit", "cancel"]);
 
+const isError = ref(false)
+
 const formData = reactive({
   name: "",
   websiteUrl: "",
   countryOfOrigin: "",
   isActive: true,
 });
+
 
 const originalData = ref({});
 
@@ -45,18 +48,14 @@ watch(
   { immediate: true, deep: true }
 );
 
-const errors = reactive({
-  name: "",
-});
-
-const validateName = () => {
-  if (!formData.name.trim()) {
-    errors.name = "Brand name is required";
-    return false;
-  }
-  errors.name = "";
-  return true;
-};
+// const validateName = () => {
+//   if (!formData.name.trim()) {
+//     errors.name = "Brand name is required";
+//     return false;
+//   }
+//   errors.name = "";
+//   return true;
+// };
 
 const hasFormChanges = computed(() => {
   if (props.mode !== "edit") return true;
@@ -84,8 +83,14 @@ const isFormValid = computed(() => {
   return formData.name.trim().length > 0 && hasFormChanges.value;
 });
 
+const errors = reactive({
+  name: null,
+  websiteUrl: null,
+  countryOfOrigin: null
+});
+
 const handleSubmit = () => {
-  if (validateName()) {
+  if (isFormValid.value && !isError.value) { 
     emit("submit", {
       name: formData.name.trim(),
       websiteUrl: formData.websiteUrl.trim(),
@@ -98,33 +103,72 @@ const handleSubmit = () => {
 const handleCancel = () => {
   emit("cancel");
 };
+
+const trimField = (field) => {
+  console.log(field);
+  if (typeof formData[field] === "string") {
+    formData[field] = formData[field].trim() || "";
+  }
+
+  console.log(field);
+
+  validateField(field);
+};
+
+
+const validateField = (field) => {
+  let result = { valid: true, message: null };
+  if (field === "name") {
+    result = runValidation(formData.name, [validateBrandName]);
+  } else if (field === "websiteUrl") {
+    result = runValidation(formData.websiteUrl, [validateBrandURL]);
+  } else if (field === "countryOfOrigin") {
+    result = runValidation(formData.countryOfOrigin, [validateBrandOrigin]);
+  } 
+  errors[field] = result.message;
+  return result.valid;
+};
+
+watch(formData,() => {
+
+  isError.value = Object.values(errors).some(error => error !== null)
+
+}, {deep: true, immediate: true})
+
 </script>
 
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-6">
     <BaseInput
+      cypress="itbms-name"
       v-model="formData.name"
       label="Brand Name *"
       id="brand-name"
       placeholder="Enter brand name"
       inputClass="itbms-name"
       :error="errors.name"
-      @blur="validateName"
+      @trim="trimField('name')"
     />
 
     <BaseInput
+      cypress="itbms-websiteUrl"
       v-model="formData.websiteUrl"
       label="Website URL"
       id="website-url"
       placeholder="https://www.example.com"
       inputClass="itbms-websiteUrl"
+      @trim="trimField('websiteUrl')"
+      :error="errors.websiteUrl"
     />
     <BaseInput
+      cypress="itbms-countryOfOrigin"
       v-model="formData.countryOfOrigin"
       label="Country of Origin"
       id="country"
       placeholder="Enter country of origin"
       inputClass="itbms-countryOfOrigin"
+      @trim="trimField('countryOfOrigin')"
+      :error="errors.countryOfOrigin"
     />
 
     <div class="flex items-center space-x-3">
@@ -169,8 +213,13 @@ const handleCancel = () => {
       </button>
       <button
         type="submit"
-        class="itbms-save-button bg-white text-black px-6 py-2.5 rounded hover:bg-gray-200 transition-colors duration-200 font-medium"
-        :disabled="isSubmitting || !isFormValid"
+        class="itbms-save-button px-6 py-2.5 rounded transition-colors duration-200 font-medium"
+        :disabled="!isFormValid || isError" 
+        :class="[
+          isFormValid && !isError 
+            ? 'bg-white text-black hover:bg-gray-100' 
+            : 'bg-red-400 text-black hover:bg-rose-600 cursor-not-allowed'
+        ]"
       >
         {{
           isSubmitting

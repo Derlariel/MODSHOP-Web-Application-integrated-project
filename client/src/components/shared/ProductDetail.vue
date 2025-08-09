@@ -6,8 +6,7 @@ import ProductPicture from "@/components/shared/ProductPicture.vue";
 import HistoryPath from "@/components/shared/HistoryPath.vue";
 import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
-import { checkUptodate } from "@/utils/validate";
-
+import { checkUpToDate } from "@/utils/validate";
 
 const router = useRouter();
 const route = useRoute();
@@ -51,6 +50,8 @@ const confirm = async () => {
     await productStore.deleteProduct(productId);
     sessionStorage.setItem("delete-success", "true");
     router.push("/sale-items");
+    sessionStorage.setItem("activePage", 1);
+    productStore.setActivePage(1)
   } catch (error) {
     sessionStorage.setItem("error-message", "true");
     console.log(sessionStorage.getItem("error-message"));
@@ -59,16 +60,22 @@ const confirm = async () => {
 };
 const showSuccess = ref(false);
 
-
-
 onMounted(async () => {
-  await productStore.loadProducts();
-  const result = await productStore.fetchProductDetail(productId);
-  product.value = result;
+  isLoading.value = true;
 
-  if (checkUptodate(result)) {
-    showSuccess.value = false;
-    router.push("/sale-items");
+  try {
+    await productStore.loadProducts();
+
+    product.value = await productStore.fetchProductDetail(productId);
+
+    if (product.value && checkUpToDate(product)) {
+      showSuccess.value = false;
+      router.push("/sale-items");
+      return;
+    }
+  } catch (e) {
+    router.push("/sale-items")
+    sessionStorage.setItem("error-message", "true")
   }
 
   if (sessionStorage.getItem("edit-success") === "true") {
@@ -78,6 +85,7 @@ onMounted(async () => {
       showSuccess.value = false;
     }, 3000);
   }
+
   isLoading.value = false;
 });
 

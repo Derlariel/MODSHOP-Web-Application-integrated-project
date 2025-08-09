@@ -1,17 +1,11 @@
 <script setup>
-import { onMounted } from "vue";
-import { useProductStore } from "@/stores/useProductStore";
+
 import ProductGallery from "@/components/user/ProductGallery.vue";
 import AppFooter from "@/components/shared/AppFooter.vue";
 import { useRoute } from "vue-router";
 const route = useRoute()
 
 
-
-onMounted(async () => {
-    // await productStore.loadProducts();
-    
-});
 </script>
  
 <template>

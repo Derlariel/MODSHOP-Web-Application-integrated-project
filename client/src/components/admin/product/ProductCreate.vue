@@ -6,7 +6,6 @@ import { useProductStore } from "@/stores/useProductStore";
 import { useRouter } from "vue-router";
 import HistoryPath from "@/components/shared/HistoryPath.vue";
 
-
 const productStore = useProductStore();
 const router = useRouter();
 
@@ -17,12 +16,15 @@ const add = async (data) => {
     router.push({ name: "product-gallery" });
     sessionStorage.setItem("activePage", 1);
     productStore.setActivePage(1)
-    console.log("active page" ,productStore.getActivePage);
+    console.log("active page", productStore.getActivePage);
+   console.log("test", sessionStorage.getItem("add-success"));
+   
     
   } catch (error) {
     console.error("Error creating product:", error);
   }
 };
+
 </script>
 
 <template>

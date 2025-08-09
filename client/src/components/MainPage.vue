@@ -1,11 +1,13 @@
 <script setup>
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/effect-fade';
+
 import { ref, onMounted, onUnmounted } from 'vue';
-
 import AppFooter from '@/components/shared/AppFooter.vue';
-
+import Apple from '@/assets/logo/Apple.svg';
+import Huawei from '@/assets/logo/Huawei.png';
+import Xiaomi from '@/assets/logo/Xiaomi.png';
+import Asus from '@/assets/logo/asus.svg';
+import Sony from '@/assets/logo/sony.svg';
+import Samsung from '@/assets/logo/Samsung.svg';
 const selectedBrand = ref(null);
 
 // Featured brands for Summer Sale
@@ -14,31 +16,31 @@ const featuredBrands = [
     id: 1,
     name: "Apple",
     tagline: "Think Different",
-    logo: "/placeholder.svg?height=80&width=80&text=Apple",
+    logo: Apple,
     color: "from-gray-100 to-white",
     products: ["iPhone", "MacBook", "iPad", "Apple Watch"]
   },
   {
     id: 2,
-    name: "Beats",
+    name: "Huawei",
     tagline: "Hear What You Want",
-    logo: "/placeholder.svg?height=80&width=80&text=Beats",
+    logo: Huawei,
     color: "from-gray-200 to-gray-50",
     products: ["Beats Studio", "Beats Solo", "Powerbeats", "Beats Pill"]
   },
   {
     id: 3,
-    name: "Belkin",
+    name: "Xiaomi",
     tagline: "Quality & Innovation",
-    logo: "/placeholder.svg?height=80&width=80&text=Belkin",
+    logo: Xiaomi,
     color: "from-gray-100 to-white",
     products: ["Chargers", "Cables", "Screen Protectors", "Cases"]
   },
   {
     id: 4,
-    name: "Logitech",
+    name: "Asus",
     tagline: "Defy Logic",
-    logo: "/placeholder.svg?height=80&width=80&text=Logitech",
+    logo: Asus,
     color: "from-gray-200 to-gray-50",
     products: ["Keyboards", "Mice", "Webcams", "Speakers"]
   },
@@ -46,7 +48,7 @@ const featuredBrands = [
     id: 5,
     name: "Sony",
     tagline: "Be Moved",
-    logo: "/placeholder.svg?height=80&width=80&text=Sony",
+    logo: Sony,
     color: "from-gray-100 to-white",
     products: ["Headphones", "Speakers", "Cameras", "TVs"]
   },
@@ -54,7 +56,7 @@ const featuredBrands = [
     id: 6,
     name: "Samsung",
     tagline: "Do What You Can't",
-    logo: "/placeholder.svg?height=80&width=80&text=Samsung",
+    logo: Samsung,
     color: "from-gray-200 to-gray-50",
     products: ["Galaxy", "Monitors", "TVs", "Accessories"]
   }
@@ -64,6 +66,9 @@ const selectBrand = (brand) => {
   selectedBrand.value = selectedBrand.value === brand ? null : brand;
 };
 
+const handleScroll = () => {
+  // placeholder: เอาไว้ใส่ logic ถ้าต้องการ sticky header หรือ scroll effect
+};
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll);
@@ -101,7 +106,7 @@ onUnmounted(() => {
           </div>
           
           <div class="mt-8 max-w-4xl mx-auto relative overflow-hidden group">
-            <img src="/placeholder.png?height=500&width=1000&text=Apple+Watch+Series+10" alt="Apple Watch Series 10" 
+            <img src="@/assets/placeholder.png" alt="Apple Watch Series 10" 
                  class="w-full transition-transform duration-700 group-hover:scale-[1.02]" />
             <div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-700"></div>
           </div>
@@ -190,7 +195,7 @@ onUnmounted(() => {
         </p>
         
         <div class="mt-8 max-w-4xl mx-auto relative overflow-hidden group">
-          <img src="/placeholder.png?height=500&width=1000&text=iPhone+16+Family" alt="iPhone 16 Family" 
+          <img src="@/assets/placeholder.png" alt="iPhone 16 Family" 
                class="w-full transition-transform duration-700 group-hover:scale-[1.02]" />
           <div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-700"></div>
         </div>
@@ -223,7 +228,7 @@ onUnmounted(() => {
                   </svg>
                 </a>
               </div>
-              <img src="/placeholder.png?height=300&width=400&text=iPad+Pro" alt="iPad Pro" 
+              <img src="@/assets/placeholder.png" alt="iPad Pro" 
                    class="w-full max-w-xs mx-auto transform transition-all duration-700 group-hover:scale-105 group-hover:translate-y-[-5px]" />
             </div>
           </div>
@@ -250,7 +255,7 @@ onUnmounted(() => {
                   </svg>
                 </a>
               </div>
-              <img src="/placeholder.png?height=300&width=400&text=MacBook+Air" alt="MacBook Air" 
+              <img src="@/assets/placeholder.png" alt="MacBook Air" 
                    class="w-full max-w-xs mx-auto transform transition-all duration-700 group-hover:scale-105 group-hover:translate-y-[-5px]" />
             </div>
           </div>
@@ -284,7 +289,7 @@ onUnmounted(() => {
                   </svg>
                 </a>
               </div>
-              <img src="/placeholder.png?height=300&width=400&text=AirPods+Pro" alt="AirPods Pro" 
+              <img src="@/assets/placeholder.png" alt="AirPods Pro" 
                    class="w-full max-w-xs mx-auto transform transition-all duration-700 group-hover:scale-105 group-hover:translate-y-[-5px]" />
             </div>
           </div>
@@ -311,7 +316,7 @@ onUnmounted(() => {
                   </svg>
                 </a>
               </div>
-              <img src="/placeholder.png?height=300&width=400&text=Vision+Pro" alt="Vision Pro" 
+              <img src="@/assets/placeholder.png" alt="Vision Pro" 
                    class="w-full max-w-xs mx-auto transform transition-all duration-700 group-hover:scale-105 group-hover:translate-y-[-5px]" />
             </div>
           </div>

@@ -12,6 +12,20 @@ import {
 import { useBrandStore } from "@/stores/useBrandStore";
 import { useRouter } from "vue-router";
 import BaseInput from "@/components/shared/BaseInput.vue";
+import BrandSelector from "@/components/shared/BrandSelector.vue";
+
+import {
+  runValidation,
+  validateModel,
+  validateBrandSelected,
+  validateDescription,
+  validatePrice,
+  validateQuantity,
+  validateRamSize,
+  validateStorageSize,
+  validateScreenSize,
+  validateColor,
+} from "@/utils/validate.js";
 
 const router = useRouter();
 const brandStore = useBrandStore();
@@ -51,6 +65,20 @@ watch(
       console.log("props.init:", newValue);
       console.log("availableBrands:", availableBrands);
 
+      // Find the brand first
+      let selectedBrand = null;
+      if (newValue.brandName) {
+        selectedBrand = availableBrands.find(
+          (brand) => brand.name === newValue.brandName
+        );
+        
+        if (!selectedBrand) {
+          console.warn(`Brand "${newValue.brandName}" not found in available brands`);
+          errorMessage.value = `Brand "${newValue.brandName}" is not available`;
+        }
+      }
+
+      // Use Object.assign to update all properties at once
       Object.assign(temp, {
         id: newValue.id || null,
         model: newValue.model || "",
@@ -61,20 +89,13 @@ watch(
         screenSizeInch: newValue.screenSizeInch?.toString() || "",
         color: newValue.color || "",
         quantity: newValue.quantity?.toString() || "",
+        // Fix: Ensure brand object structure is correct
+        brand: selectedBrand ? { id: selectedBrand.id, name: selectedBrand.name } : { id: null, name: null },
       });
 
-      const selectedBrand = availableBrands.find(
-        (brand) => brand.name === newValue.brandName
-      );
-
-      temp.brand = selectedBrand || {
-        id: null,
-        name: newValue.brandName || null,
-      };
-
-      console.log("selectedBrand:", selectedBrand);
+      console.log("temp after assignment:", temp);
       console.log("temp.brand:", temp.brand);
-
+      
       isLoading.value = false;
     } catch (error) {
       console.error("Error loading brands:", error);
@@ -82,8 +103,24 @@ watch(
       isLoading.value = false;
     }
   },
-  { immediate: true }
+  { immediate: true, deep: true }
 );
+
+const notPass = ref(false);
+
+const errors = reactive({
+  model: null,
+  brand: null,
+  description: null,
+  price: null,
+  quantity: null,
+  ramGb: null,
+  storageGb: null,
+  screenSizeInch: null,
+  color: null,
+});
+
+
 
 watchEffect(() => {
   const requiredFields = ["model", "price", "quantity", "description"];
@@ -100,18 +137,20 @@ watchEffect(() => {
 
   const requiredFieldsEmpty = requiredFields.some((field) => {
     const value = temp[field];
-    return value == null || value.toString().trim() === "";
+    return value == null || value.toString().trim() === null;
   });
 
+  // Clean up empty string values
   if (temp.ramGb === "") temp.ramGb = null;
   if (temp.storageGb === "") temp.storageGb = null;
   if (temp.screenSizeInch === "") temp.screenSizeInch = null;
   if (temp.quantity === "") temp.quantity = null;
   if (temp.price === "") temp.price = null;
 
-
   const isNewItem = Object.keys(props.init).length === 0;
   let isUnchanged = false;
+
+  notPass.value = Object.values(errors).some((value) => value !== null );
 
   if (!isNewItem) {
     isUnchanged =
@@ -120,9 +159,13 @@ watchEffect(() => {
         const initValue =
           props.init[field] === undefined ? null : props.init[field];
         if (
-          ["price", "ramGb", "storageGb", "screenSizeInch", "quantity"].includes(
-            field
-          )
+          [
+            "price",
+            "ramGb",
+            "storageGb",
+            "screenSizeInch",
+            "quantity",
+          ].includes(field)
         ) {
           return Number(tempValue) === Number(initValue);
         }
@@ -130,8 +173,8 @@ watchEffect(() => {
       }) && temp.brand.name === (props.init.brandName || null);
   }
 
-  btnNotAvailable.value = requiredFieldsEmpty || (!isNewItem && isUnchanged) || !temp.brand.id;
-
+  btnNotAvailable.value =
+    requiredFieldsEmpty || (!isNewItem && isUnchanged) || !temp.brand.id;
 });
 
 const submit = () => {
@@ -145,20 +188,51 @@ const submit = () => {
     return;
   }
 
+  console.log(errors.model)
+
   emit("submit", {
     ...temp,
-    price: temp.price ? Number(temp.price) : null,
-    ramGb: temp.ramGb ? Number(temp.ramGb) : null,
-    storageGb: temp.storageGb ? Number(temp.storageGb) : null,
-    screenSizeInch: temp.screenSizeInch ? Number(temp.screenSizeInch) : null,
-    quantity: temp.quantity ? Number(temp.quantity) : null,
+    price: temp.price != null ? Number(temp.price) : null,
+    ramGb: temp.ramGb != null  ? Number(temp.ramGb) : null,
+    storageGb: temp.storageGb != null  ? Number(temp.storageGb) : null,
+    screenSizeInch: temp.screenSizeInch != null  ? Number(temp.screenSizeInch) : null,
+    quantity: temp.quantity != null  ? Number(temp.quantity) : null,
   });
 };
+
+const validateField = (field) => {
+  let result = { valid: true, message: null };
+  if (field === "model") {
+    result = runValidation(temp.model, [validateModel]);
+  } else if (field === "description") {
+    result = runValidation(temp.description, [validateDescription]);
+  } else if (field === "price") {
+    result = runValidation(temp.price, [validatePrice]);
+  } else if (field === "brand") {
+    result = runValidation(temp.brand.name, [validateBrandSelected]);
+  } else if (field === "quantity") {
+    result = runValidation(temp.quantity, [validateQuantity]);
+  } else if (field === "screenSizeInch") {
+    result = runValidation(temp.screenSizeInch, [validateScreenSize]);
+  } else if (field === "color") {
+    result = runValidation(temp.color, [validateColor]);
+  } else if (field === "storageGb") {
+    result = runValidation(temp.storageGb, [validateStorageSize]);
+  } else if (field === "ramGb") {
+    result = runValidation(temp.ramGb, [validateRamSize]);
+  }
+
+  errors[field] = result.message;
+  return result.valid;
+};
+
+
 
 const trimField = (field) => {
   if (typeof temp[field] === "string") {
     temp[field] = temp[field].trim() || "";
   }
+  validateField(field);
 };
 
 onMounted(() => {
@@ -177,50 +251,31 @@ onMounted(() => {
           <label for="brand" class="block text-sm font-medium text-gray-300"
             >Brand</label
           >
-          <div class="relative">
-            <select
-              v-model="temp.brand"
-              id="brand"
-              class="itbms-brand w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white appearance-none"
-              required
-            >
-              <option :value="{ id: null, name: null }" disabled>
-                Select a brand
-              </option>
-              <option v-for="brand in brands" :key="brand.id" :value="brand">
-                {{ brand.name }}
-              </option>
-            </select>
-            <div
-              class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
-            >
-              <svg
-                class="h-5 w-5 text-gray-400"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </div>
-          </div>
+          <BrandSelector
+            @blur="trimField('brand')"
+            v-model="temp.brand"
+            :brands="brands"
+            :multiple="false"
+            :dark="true"
+          />
+          <p v-if="errors.brand" class="itbms-message text-sm text-red-500 mt-1">
+            {{ errors.brand }}
+          </p>
         </div>
 
         <BaseInput
+          :error="errors.model"
           @trim="trimField('model')"
           :maxInput="60"
           v-model="temp.model"
           cypress="itbms-model"
           placeholder="IPhone 15"
           label="Model"
-          required
         />
 
         <BaseInput
+          :error="errors.price"
+          @trim="trimField('price')"
           v-model="temp.price"
           cypress="itbms-price"
           placeholder="0.00"
@@ -228,7 +283,6 @@ onMounted(() => {
           step="0.01"
           label="Price (Baht)"
           prefix="฿"
-          required
         />
 
         <div class="space-y-3">
@@ -242,10 +296,16 @@ onMounted(() => {
             v-model="temp.description"
             id="description"
             rows="4"
-            class="itbms-description w-full px-4 py-3.5 rounded-xl border border-neutral-700 focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white"
+            :class="[
+              'itbms-description w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white',
+              errors.description ? 'border-red-700' : 'border-neutral-700',
+            ]"
             placeholder="Enter product description"
             required
           ></textarea>
+          <p v-if="errors.description" class="itbms-message text-sm text-red-500 mt-1">
+            {{ errors.description }}
+          </p>
         </div>
 
         <div class="pt-2">
@@ -255,13 +315,17 @@ onMounted(() => {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <BaseInput
               cypress="itbms-ramGb"
+              @trim="trimField('ramGb')"
               v-model="temp.ramGb"
               label="RAM (GB)"
               type="number"
               placeholder="6"
+              :error="errors.ramGb"
               id="ram"
             />
             <BaseInput
+              :error="errors.screenSizeInch"
+              @trim="trimField('screenSizeInch')"
               cypress="itbms-screenSizeInch"
               v-model="temp.screenSizeInch"
               label="Screen Size (Inches)"
@@ -272,10 +336,12 @@ onMounted(() => {
             />
             <BaseInput
               cypress="itbms-storageGb"
+              @trim="trimField('storageGb')"
               v-model="temp.storageGb"
               label="Storage (GB)"
               placeholder="128"
               type="number"
+              :error="errors.storageGb"
               id="storage"
             />
             <BaseInput
@@ -284,6 +350,7 @@ onMounted(() => {
               v-model="temp.color"
               label="Color"
               placeholder="Black"
+              :error="errors.color"
               id="color"
             />
           </div>
@@ -292,6 +359,7 @@ onMounted(() => {
         <div class="space-y-3 pt-6 border-t border-neutral-800">
           <h3 class="text-lg font-medium text-white mb-4">Inventory</h3>
           <BaseInput
+            :error="errors.quantity"
             cypress="itbms-quantity"
             @trim="trimField('quantity')"
             v-model="temp.quantity"
@@ -306,10 +374,10 @@ onMounted(() => {
           <button
             type="button"
             @click="submit"
-            :disabled="btnNotAvailable"
+            :disabled="notPass || btnNotAvailable"
             class="itbms-save-button"
             :class="
-              btnNotAvailable
+              notPass || btnNotAvailable
                 ? 'flex-1 bg-red-400/20 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium'
                 : 'flex-1 bg-white text-black py-4 px-6 rounded-full hover:bg-gray-200 transition-colors duration-300 font-medium'
             "
@@ -332,5 +400,3 @@ onMounted(() => {
     <div v-else class="text-center text-gray-400">Loading product data...</div>
   </div>
 </template>
-
-<style scoped></style>

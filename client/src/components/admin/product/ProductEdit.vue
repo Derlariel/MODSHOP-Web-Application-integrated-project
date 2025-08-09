@@ -35,11 +35,19 @@ const title = computed(() => {
 });
 
 onMounted(async () => {
-  brandStore.loadBrands();
-  product.value = await productStore.fetchProductDetail(params.productId);
+
+  try {
+    await productStore.loadProducts();
+
+    product.value = await productStore.fetchProductDetail(params.productId);
+  } catch (e) {
+    router.push("/sale-items")
+    sessionStorage.setItem("error-message", "true")
+  }
+
 });
 </script>
-
+  
 <template>
   <div class="min-h-screen bg-black text-white">
     <div class="pt-24 pb-20">

@@ -48,8 +48,7 @@ public class SaleItem {
     @Column(name = "storage_gb")
     private Integer storageGb;
 
-    @Size(max = 30)
-    @Column(name = "color", length = 30)
+    @Column(name = "color")
     private String color;
 
     @ColumnDefault("1")
