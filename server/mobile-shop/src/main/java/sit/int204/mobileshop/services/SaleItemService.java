@@ -46,6 +46,9 @@ public class SaleItemService {
             Integer page,
             Integer size,
             List<String> filterBrands,
+            Integer storageSize,
+            Integer lowerPrice,
+            Integer upperPrice,
             String sortField,
             String sortDirection) {
                 
@@ -60,7 +63,6 @@ public class SaleItemService {
             direction = Sort.Direction.ASC;
         }
 
-        // page และ size validation
         if (page == null || page < 0)
             page = 0;
         if (size == null || size <= 0)
@@ -71,19 +73,37 @@ public class SaleItemService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<SaleItem> saleItemPage;
-        if (filterBrands == null || filterBrands.isEmpty()) {
-            saleItemPage = saleItemRepository.findAll(pageable);
-        } else {
-            List<String> cleanedBrands = filterBrands.stream()
-                    .filter(brand -> brand != null && !brand.trim().isEmpty() && !brand.equals("[]"))
-                    .collect(Collectors.toList());
 
-            if (cleanedBrands.isEmpty()) {
-                saleItemPage = saleItemRepository.findAll(pageable);
-            } else {
-                saleItemPage = saleItemRepository.findAllFilter(pageable, cleanedBrands);
+        System.out.println("filterBrands = " + filterBrands);
+        System.out.println("filterStorageSize = " + storageSize);
+        System.out.println("filterPriceRange = " + lowerPrice);
+        System.out.println("filterPriceRange = " + upperPrice);
+
+        if (filterBrands != null) {
+            filterBrands = filterBrands.stream()
+                    .filter(b -> b != null && !b.trim().isEmpty() && !b.equals("[]"))
+                    .collect(Collectors.toList());
+            if (filterBrands.isEmpty()) {
+                filterBrands = null;
             }
         }
+
+        saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands, storageSize, lowerPrice, upperPrice);
+
+//
+//        if (filterBrands == null || filterBrands.isEmpty()) {
+//            saleItemPage = saleItemRepository.findAll(pageable);
+//        } else {
+//            List<String> cleanedBrands = filterBrands.stream()
+//                    .filter(brand -> brand != null && !brand.trim().isEmpty() && !brand.equals("[]"))
+//                    .collect(Collectors.toList());
+//
+//            if (cleanedBrands.isEmpty()) {
+//                saleItemPage = saleItemRepository.findAll(pageable);
+//            } else {
+//                saleItemPage = saleItemRepository.findAllFilter(pageable, cleanedBrands, filterStorageSize);
+//            }
+//        }
 
         return listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
     }

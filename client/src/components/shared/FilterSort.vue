@@ -1,18 +1,29 @@
 <script setup>
 import { Menu, SortAsc, SortDesc } from "lucide-vue-next";
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted,computed } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
     
 import BrandSelector from "@/components/shared/BrandSelector.vue";
 import PriceRangeSelector from "@/components/shared/PriceRangeSelector.vue";
 import StorageSizeSelector from "@/components/shared/StorageSizeSelector.vue";
    
+const priceRange = computed({
+  get() {
+    return { min: lowerPrice.value, max: upperPrice.value };
+  },
+  set(value) {
+    lowerPrice.value = value.min;
+    upperPrice.value = value.max;
+    onPriceSelected();
+  },
+});
 
 const emit = defineEmits(["update:filters"]);
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 const selectedBrands = ref([]);
 const allBrands = ref([]);
-const priceRange = ref({ min: null, max: null });
+const lowerPrice = ref(null);
+const upperPrice = ref(null);
 const selectedStorageSizes = ref([]);
 const size = ref(10);
 const sortField = ref("createdOn");
@@ -36,7 +47,8 @@ if (stored) {
   try {
     const parsed = JSON.parse(stored);
     selectedBrands.value = parsed.filterBrands || [];
-    priceRange.value = parsed.priceRange || { min: null, max: null };
+    lowerPrice.value = parsed.lowerPrice || null;
+    upperPrice.value = parsed.upperPrice || null;
     selectedStorageSizes.value = parsed.storageSize || [];
     size.value = parsed.size || 10;
     sortField.value = parsed.sortField || "createdOn";
@@ -68,7 +80,8 @@ const onPriceSelected = () => {
 };
 
 const onPriceCleared = () => {
-  priceRange.value = { min: null, max: null };
+  lowerPrice.value = null;
+upperPrice.value = null;
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };
@@ -91,7 +104,8 @@ const onStorageClear = () => {
 
 const clearAllFilters = () => {
   selectedBrands.value = [];
-  priceRange.value = { min: null, max: null };
+  lowerPrice.value = null;
+upperPrice.value = null;
   selectedStorageSizes.value = [];
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
@@ -119,13 +133,14 @@ const sortByBrandDesc = () => {
 };
 
 watch(
-  [selectedBrands, priceRange, selectedStorageSizes, size, sortField, sortDirection, () => productStore.activePage],
+  [selectedBrands, lowerPrice, upperPrice,selectedStorageSizes, size, sortField, sortDirection, () => productStore.activePage],
   () => {
     sessionStorage.setItem(
       "filterAndSort",
       JSON.stringify({
         filterBrands: selectedBrands.value,
-        priceRange: priceRange.value,
+        lowerPrice: lowerPrice.value,
+        upperPrice: upperPrice.value,
         storageSize: selectedStorageSizes.value,
         size: size.value,
         sortField: sortField.value,
@@ -135,7 +150,8 @@ watch(
     );
     emit("update:filters", {
       filterBrands: selectedBrands.value,
-      priceRange: priceRange.value,
+        lowerPrice: lowerPrice.value,
+  upperPrice: upperPrice.value,
       storageSize: selectedStorageSizes.value,
       size: size.value,
       sortField: sortField.value,
@@ -154,7 +170,8 @@ onMounted(() => {
   // Check if this is a fresh session (simulating browser close)
   if (!sessionStorage.getItem("filterAndSort")) {
     selectedBrands.value = [];
-    priceRange.value = { min: null, max: null };
+      lowerPrice.value = null;
+  upperPrice.value = null;
     selectedStorageSizes.value = [];
     sortField.value = "createdOn";
     sortDirection.value = "asc";

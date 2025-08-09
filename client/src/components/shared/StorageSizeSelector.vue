@@ -70,12 +70,12 @@ const formatStorageSize = (size) => {
   return `${size}GB`;
 };
 
-// Fetch available storage sizes from database
+
 const fetchStorageSizes = async () => {
   try {
     const BASE_URL = import.meta.env.VITE_BASE_URL;
     // First try to get distinct storage sizes from the view
-    const res = await fetch(`${BASE_URL}/v1/distinct-storage-size`);
+    const res = await fetch(`${BASE_URL}/v1/sale-items/distinct-storage-size`);
     if (res.ok) {
       const data = await res.json();
       // Assuming the view returns an array of objects with storage_gb property

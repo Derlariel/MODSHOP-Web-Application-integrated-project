@@ -73,6 +73,8 @@ export const useProductStore = defineStore("product", {
       }
     },
 
+    
+
     async loadProductsPage(params) {
       try {
         const data = await getProductsPage(`${BASE_URL}/v2/sale-items`, params);

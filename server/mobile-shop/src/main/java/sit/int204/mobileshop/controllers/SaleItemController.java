@@ -36,6 +36,7 @@ public class SaleItemController {
     @Autowired
     private ListMapper listMapper;
 
+
     @Operation(summary = "Get all products", description = "Retrieve all products")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Successfully retrieved products", 
