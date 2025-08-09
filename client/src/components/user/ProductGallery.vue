@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useProductStore } from "@/stores/useProductStore";
 
 import ListModel from "@/components/shared/ListModel.vue";
@@ -12,12 +12,13 @@ import DEFAULT_IMAGE from "@/assets/default.jpg";
 import SkeletonLoader from "@/components/shared/SkeletonLoader.vue";
 
 const router = useRouter();
+const route = useRoute();
 
 const productStore = useProductStore();
 
 const product = computed(() => productStore.allProducts);
-const totalPages = ref(0)
-
+const totalPages = ref(0);
+const filterSortRef = ref(null);
 
 const isLoading = ref(true);
 const isModalOpen = ref(false);
@@ -28,6 +29,9 @@ const adminMode = ref(false);
 const filters = ref({
   page: 0,
   filterBrands: [],
+  lowerPrice: null,
+  upperPrice: null,
+  storageSize: [],
   size: 10,
   sortField: "createdOn",
   sortDirection: "asc",
@@ -51,16 +55,34 @@ const detail = (productId) => {
 };
 
 async function initProducts() {
-  await productStore.loadAllPages(filters.value);
+  isLoading.value = true;
   try {
+    await productStore.loadAllPages(filters.value);
     await productStore.loadProductsPage(filters.value);
-    totalPages.value = productStore.allPages
+    totalPages.value = productStore.allPages;
     console.log(totalPages.value);
+    
+    // Check if no products found and filters are applied
     if (product.value.length === 0) {
-      router.push({ name: "error-page", query: { code: "NODATA" } });
+      const hasFilters = filters.value.filterBrands.length > 0 || 
+                        filters.value.lowerPrice !== null || 
+                        filters.value.upperPrice !== null || 
+                        filters.value.storageSize.length > 0;
+      
+      if (hasFilters) {
+        // If filters are applied and no results, redirect to NODATA error
+        router.push({ name: "error-page", query: { code: "NODATA" } });
+        return;
+      } else {
+        // If no filters and no results, show general error
+        router.push({ name: "error-page", query: { code: "500" } });
+        return;
+      }
     }
   } catch (err) {
     console.error("Load products failed:", err);
+    // On API error, redirect to error page
+    router.push({ name: "error-page", query: { code: "500" } });
   } finally {
     isLoading.value = false;
   }
@@ -95,6 +117,14 @@ const salItemList = () => {
 }
 
 onMounted(async () => {
+  // Check if filters were cleared due to NODATA error
+  const filtersCleared = sessionStorage.getItem("filters-cleared-from-error");
+  if (filtersCleared) {
+    sessionStorage.removeItem("filters-cleared-from-error");
+    // Don't load products yet, let the cleared filters trigger reload
+    return;
+  }
+
   await initProducts();
   const savedPage = sessionStorage.getItem("activePage");
   if (savedPage) {
@@ -151,20 +181,21 @@ watch(trigger, async () => {
 
         <SuccessModal :message="alertMessage" :visible="showSuccess" />
 
-        <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
-          <div class="flex gap-3 w-full sm:w-auto justify-center sm:justify-end">
-            <button @click="add"
-              class="itbms-sale-item-add text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
-              Add Product
-            </button>
-            <button @click="salItemList"
-              class="itbms-item-list text-sm bg-white text-black font-medium py-2 px-6 rounded-md transition-colors duration-300 hover:bg-gray-200">
-              Sale Item List
-            </button>
-          </div>
-          <div class=" min-w-[300px] sm:w-auto">
-            <FilterSort @update:filters="updateFilters" />
-          </div>   
+        <!-- Buttons Row -->
+        <div class="mt-6 flex flex-row gap-2 xs:gap-3 w-full justify-center lg:justify-start">
+          <button @click="add"
+            class="itbms-sale-item-add text-xs xs:text-sm md:text-sm bg-white text-black font-medium py-2 xs:py-2.5 md:py-2 px-4 xs:px-6 md:px-5 rounded-lg transition-colors duration-300 hover:bg-gray-200 whitespace-nowrap">
+            Add Product
+          </button>
+          <button @click="salItemList"
+            class="itbms-item-list text-xs xs:text-sm md:text-sm bg-white text-black font-medium py-2 xs:py-2.5 md:py-2 px-4 xs:px-6 md:px-5 rounded-lg transition-colors duration-300 hover:bg-gray-200 whitespace-nowrap">
+            Sale Item List
+          </button>
+        </div>
+
+        <!-- Filter and Sort Section -->
+        <div class="mt-4 w-full">
+          <FilterSort @update:filters="updateFilters" />
         </div>
 
       </div>
