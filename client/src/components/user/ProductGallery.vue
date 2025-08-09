@@ -29,7 +29,8 @@ const adminMode = ref(false);
 const filters = ref({
   page: 0,
   filterBrands: [],
-  priceRange: { min: null, max: null },
+  lowerPrice: null,
+  upperPrice: null,
   storageSize: [],
   size: 10,
   sortField: "createdOn",
@@ -64,8 +65,8 @@ async function initProducts() {
     // Check if no products found and filters are applied
     if (product.value.length === 0) {
       const hasFilters = filters.value.filterBrands.length > 0 || 
-                        filters.value.priceRange.min !== null || 
-                        filters.value.priceRange.max !== null || 
+                        filters.value.lowerPrice !== null || 
+                        filters.value.upperPrice !== null || 
                         filters.value.storageSize.length > 0;
       
       if (hasFilters) {

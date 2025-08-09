@@ -1,23 +1,29 @@
 <script setup>
 import { ref, defineProps, defineEmits, computed, watch } from "vue";
+import BaseInput from "./BaseInput.vue";
 import { X } from "lucide-vue-next";
 
 const props = defineProps({
-  modelValue: {
-    type: Object,
-    default: () => ({ min: null, max: null })
+  lowerPrice: {
+    type: [Number, null],
+    default: null
+  },
+  upperPrice: {
+    type: [Number, null],
+    default: null
   }
 });
 
 const emit = defineEmits([
-  "update:modelValue",
+  "update:lowerPrice",
+  "update:upperPrice",
   "price-selected",
   "price-cleared"
 ]);
 
 const showDropdown = ref(false);
-const minPrice = ref(props.modelValue?.min || null);
-const maxPrice = ref(props.modelValue?.max || null);
+const minPrice = ref(props.lowerPrice || null);
+const maxPrice = ref(props.upperPrice || null);
 
 const customMinPrice = ref("");
 const customMaxPrice = ref("");
@@ -71,10 +77,8 @@ const clearPriceRange = () => {
 };
 
 const updateModelValue = () => {
-  emit("update:modelValue", {
-    min: minPrice.value,
-    max: maxPrice.value
-  });
+  emit("update:lowerPrice", minPrice.value);
+  emit("update:upperPrice", maxPrice.value);
 };
 
 const handleCustomPriceInput = () => {
@@ -96,20 +100,25 @@ const handleCustomPriceInput = () => {
 
 // Watch for custom input changes and apply filter immediately
 watch([customMinPrice, customMaxPrice], () => {
-  handleCustomPriceInput();
+    const min = parseInt(customMinPrice.value);
+  const max = parseInt(customMaxPrice.value);
+
+  if (!isNaN(min) && !isNaN(max) && max >= min) {
+    handleCustomPriceInput();
+  }
 }, { deep: true });
 
 // Initialize from props
-watch(() => props.modelValue, (newValue) => {
-  minPrice.value = newValue?.min || null;
-  maxPrice.value = newValue?.max || null;
+watch(() => [props.lowerPrice, props.upperPrice], ([newLower, newUpper]) => {
+  minPrice.value = newLower || null;
+  maxPrice.value = newUpper || null;
   
   // Update custom input fields
-  customMinPrice.value = newValue?.min ? newValue.min.toString() : "";
-  customMaxPrice.value = newValue?.max ? newValue.max.toString() : "";
+  customMinPrice.value = newLower ? newLower.toString() : "";
+  customMaxPrice.value = newUpper ? newUpper.toString() : "";
 }, { immediate: true });
 </script>
- 
+
 <template>
   <div class="flex flex-col w-full">
     <!-- Selected price display area -->
@@ -142,8 +151,6 @@ watch(() => props.modelValue, (newValue) => {
     <div class="relative w-full">
       <div v-if="showDropdown" class="absolute left-0 top-full mt-1 w-full z-50">
         <div class="bg-white border border-gray-300 rounded-md shadow-lg p-4 md:w-[36vh]">
-          
-          
           <!-- Pre-defined ranges -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2 text-center">Price Options</label>
@@ -168,20 +175,24 @@ watch(() => props.modelValue, (newValue) => {
           </div>
           <div class="mt-2">
             <div class="flex items-center gap-2">
-              <input
+             <BaseInput
                 v-model="customMinPrice"
                 type="number"
-                placeholder="Min "
-                class=" itbms-price-item-min flex-1 px-3 py-2 text-sm md:w-[4rem] border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Min"
+                cypress="itbms-price-item-min "
+                :class="['text-black  bg-white  flex-1 text-sm md:w-[4rem]', customMinPrice ? '' : 'border-gray-300']"
                 min="0"
+                prefix="฿"
               />
-              - 
-              <input
+              <span>-</span>
+              <BaseInput
                 v-model="customMaxPrice"
                 type="number"
-                placeholder="Max "
-                class="itbms-price-item-max flex-1 px-3 py-2  text-sm border md:w-[4rem] border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Max"
+                cypress="itbms-price-item-max "
+                :class="['text-black flex-1 text-sm md:w-[4rem]', customMaxPrice ? '' : 'border-gray-300']"
                 min="0"
+                prefix="฿"
               />
               <span class="text-sm text-gray-600">Baht</span>
             </div>
@@ -191,7 +202,7 @@ watch(() => props.modelValue, (newValue) => {
     </div>
   </div>
 </template>
- 
+
 <style scoped>
 /* Hide scrollbars */
 .overflow-y-auto::-webkit-scrollbar {
