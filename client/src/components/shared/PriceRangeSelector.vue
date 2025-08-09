@@ -1,5 +1,6 @@
 <script setup>
 import { ref, defineProps, defineEmits, computed, watch } from "vue";
+import BaseInput from "./BaseInput.vue";
 import { X } from "lucide-vue-next";
 
 const props = defineProps({
@@ -99,7 +100,12 @@ const handleCustomPriceInput = () => {
 
 // Watch for custom input changes and apply filter immediately
 watch([customMinPrice, customMaxPrice], () => {
-  handleCustomPriceInput();
+    const min = parseInt(customMinPrice.value);
+  const max = parseInt(customMaxPrice.value);
+
+  if (!isNaN(min) && !isNaN(max) && max >= min) {
+    handleCustomPriceInput();
+  }
 }, { deep: true });
 
 // Initialize from props
@@ -169,20 +175,24 @@ watch(() => [props.lowerPrice, props.upperPrice], ([newLower, newUpper]) => {
           </div>
           <div class="mt-2">
             <div class="flex items-center gap-2">
-              <input
+             <BaseInput
                 v-model="customMinPrice"
                 type="number"
-                placeholder="Min "
-                class=" itbms-price-item-min flex-1 px-3 py-2 text-sm md:w-[4rem] border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Min"
+                cypress="itbms-price-item-min "
+                :class="['text-black  bg-white  flex-1 text-sm md:w-[4rem]', customMinPrice ? '' : 'border-gray-300']"
                 min="0"
+                prefix="฿"
               />
-              - 
-              <input
+              <span>-</span>
+              <BaseInput
                 v-model="customMaxPrice"
                 type="number"
-                placeholder="Max "
-                class="itbms-price-item-max flex-1 px-3 py-2  text-sm border md:w-[4rem] border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Max"
+                cypress="itbms-price-item-max "
+                :class="['text-black flex-1 text-sm md:w-[4rem]', customMaxPrice ? '' : 'border-gray-300']"
                 min="0"
+                prefix="฿"
               />
               <span class="text-sm text-gray-600">Baht</span>
             </div>
