@@ -1,16 +1,19 @@
 <script setup>
-import { ref } from 'vue'
-import { useProductStore } from '@/stores/useProductStore';
-import defaultImage from '@/assets/default.jpg';
+import { ref } from "vue";
+import { useProductStore } from "@/stores/useProductStore";
+import defaultImage from "@/assets/default.jpg";
+import UploadPicture from "./modal/UploadPicture.vue";
 const productStore = useProductStore();
 const selectedImage = ref(1);
+const uploadModalRef  = ref(null)
 
 const setSelectedImage = (index) => {
   selectedImage.value = index;
 };
 
-
-
+function openUploadModal() {
+  uploadModalRef.value?.openModal();
+}
 </script>
 
 <template>
@@ -42,7 +45,7 @@ const setSelectedImage = (index) => {
             <img
               :src="productStore.productImages[i] || defaultImage"
               class="h-20 w-20 object-contain bg-neutral-800 rounded-xl shadow-sm transition-all duration-300 group-hover:shadow-lg"
-              :class="{ 'ring-2 ring-white': selectedImage === i }"
+              :class="[{ 'ring-2 ring-white': selectedImage === i }, `itbms-picture-file${i}`]"
               alt="thumbnail"
             />
           </div>
@@ -76,6 +79,16 @@ const setSelectedImage = (index) => {
           <span>View in AR</span>
         </button>
       </div>
+       <div class="mt-8 flex justify-center">
+        <button
+          @click="openUploadModal"
+          class="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transform transition duration-200 hover:scale-105"
+        >
+          Upload Pictures
+        </button>
+      </div>
+
+      <UploadPicture ref="uploadModalRef" />
     </div>
   </div>
 </template>
