@@ -104,8 +104,11 @@ onMounted(() => {
       <div 
         class="flex-1 rounded-md rounded-r-none bg-white min-h-[32px] md:min-h-[36px] max-h-[36px] md:max-h-[36px] overflow-y-auto border border-gray-300"
       >
-        <div class="grid grid-cols-1 gap-1 p-1 md:p-1.5">
-          <div v-if="selectedSizes.length === 0" class="col-span-1 text-gray-500 text-xs md:text-sm py-0.5">
+        <div 
+          class="grid gap-1 p-1 md:p-1.5"
+          :class="selectedSizes.length === 1 ? 'grid-cols-1' : 'grid-cols-2'"
+        >
+          <div v-if="selectedSizes.length === 0" class="col-span-2 text-gray-500 text-xs md:text-sm py-0.5">
             Storage Size
           </div>
           <div

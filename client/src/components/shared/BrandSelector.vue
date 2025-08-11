@@ -105,10 +105,13 @@ const handleSelect = (event) => {
       <div
         class="flex-1 rounded-md rounded-r-none bg-white min-h-[32px] md:min-h-[36px] max-h-[36px] md:max-h-[36px] overflow-y-auto border border-gray-300"
       >
-        <div class="grid grid-cols-1 gap-1 p-1 md:p-1.5">
+        <div 
+          class="grid gap-1 p-1 md:p-1.5"
+          :class="modelValue.length === 1 ? 'grid-cols-1' : 'grid-cols-2'"
+        >
           <div
             v-if="modelValue.length === 0"
-            class="text-gray-500 text-xs md:text-sm py-0.5"
+            class="col-span-2 text-gray-500 text-xs md:text-sm py-0.5"
           >
             Brands
           </div>
@@ -117,7 +120,7 @@ const handleSelect = (event) => {
             :key="brand"
             class="bg-blue-100 text-blue-800 text-xs rounded-full px-1.5 py-0.5 flex items-center shadow-sm border border-blue-200 transition-colors hover:bg-blue-200 min-w-0"
           >
-            <span class="truncate flex-1">{{ brand }}</span>
+            <span class="truncate flex-1">{{ brand}}</span>
             <button
               @click="removeBrand(brand)"
               class="itbms-filter-item-clear ml-1 text-blue-600 hover:text-red-600 transition-colors flex-shrink-0"
@@ -210,6 +213,15 @@ const handleSelect = (event) => {
 }
 
 .overflow-y-auto {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  display: none;
+}
+
+.overflow-x-auto {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
