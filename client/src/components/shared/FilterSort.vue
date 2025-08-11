@@ -174,14 +174,14 @@ defineExpose({
 </script>
 
 <template>
-  <div class="w-full text-gray-700">
+  <div class="w-full text-gray-700 flex justify-center">
     <!-- Container for lg+ screens: side-by-side layout -->
-    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 w-full">
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 w-full max-w-7xl">
       
       <!-- Filter Section -->
-      <div class="flex flex-col gap-2 lg:flex-1 lg:max-w-xl">
+      <div class="flex flex-col gap-2 lg:flex-1 lg:max-w-xl lg:justify-center">
         <!-- Main Filter Row: Brand, Price, Storage + Clear Button -->
-        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-1.5 md:gap-2  w-full  px-2 md:px-3 py-1.5 md:py-2 rounded-xl md:rounded-2xl border bg-gray-200  lg:w-[38rem] xl:w-[48rem]">
+        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-1.5 md:gap-2 w-full max-w-sm sm:max-w-md md:max-w-none mx-auto px-2 md:px-3 py-1.5 md:py-2 rounded-xl md:rounded-2xl border bg-gray-200 lg:w-[38rem] xl:w-[48rem]">
           <!-- LEFT: Brand Filter -->
           <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[160px] xl:w-[200px]">
             <BrandSelector
@@ -227,7 +227,7 @@ defineExpose({
       </div>
 
       <!-- Sort Controls Section -->
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-end gap-2 sm:gap-3 w-full lg:w-auto lg:flex-shrink-0">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-end gap-2 sm:gap-3 w-full max-w-sm sm:max-w-md md:max-w-none mx-auto lg:mx-0 lg:w-auto lg:flex-shrink-0">
         <!-- Page Size -->
         <div class="flex items-center justify-center sm:justify-start gap-1.5 border rounded-xl md:rounded-2xl px-2 md:px-3 py-1.5 md:py-2 bg-gray-200">
           <div class="flex items-center gap-1.5">
