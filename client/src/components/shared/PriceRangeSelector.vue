@@ -94,18 +94,15 @@ const handleCustomPriceInput = () => {
   
   minPrice.value = min;
   maxPrice.value = max;
-  updateModelValue();
-  emit("price-selected");
+  if(maxPrice.value > minPrice.value) {
+    updateModelValue();
+    emit("price-selected");
+  }
 };
 
 // Watch for custom input changes and apply filter immediately
 watch([customMinPrice, customMaxPrice], () => {
-    const min = parseInt(customMinPrice.value);
-  const max = parseInt(customMaxPrice.value);
-
-  if (!isNaN(min) && !isNaN(max) && max >= min) {
-    handleCustomPriceInput();
-  }
+  handleCustomPriceInput();
 }, { deep: true });
 
 // Initialize from props
@@ -180,7 +177,7 @@ watch(() => [props.lowerPrice, props.upperPrice], ([newLower, newUpper]) => {
                 type="number"
                 placeholder="Min"
                 cypress="itbms-price-item-min "
-                :class="['text-black  bg-white  flex-1 text-sm md:w-[4rem]', customMinPrice ? '' : 'border-gray-300']"
+                :class="['text-black flex-1 text-sm md:w-[4rem]', customMinPrice ? '' : 'border-gray-300']"
                 min="0"
                 prefix="฿"
               />

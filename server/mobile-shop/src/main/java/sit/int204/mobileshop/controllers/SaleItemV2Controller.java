@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
+import sit.int204.mobileshop.config.FileStorageProperties;
 import sit.int204.mobileshop.dtos.SaleItemDto;
 import sit.int204.mobileshop.services.SaleItemService;
 import sit.int204.mobileshop.dtos.PageDto;
@@ -24,6 +25,14 @@ import java.util.List;
 public class SaleItemV2Controller {
     @Autowired
     private SaleItemService saleItemService;
+
+    @Autowired
+    FileStorageProperties fileStorageProperties;
+
+    @GetMapping("/upload")
+    public String getUpload() {
+        return  fileStorageProperties.getUploadDir();
+    }
 
     @Operation(summary = "Get paginated products", description = "Retrieve products with pagination, filtering, and sorting options")
     @ApiResponses({

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Schema(description = "Request object for creating or updating a sale item")
 @Getter
@@ -16,6 +17,8 @@ public class SaleItemRequestDto {
     @Schema(description = "Model name of the product", example = "iPhone 15", required = true)
     @NotBlank
     private String model;
+
+    private List<SaleItemImageDto> images;
 
     @Schema(description = "Brand information", required = true)
     @NotNull
