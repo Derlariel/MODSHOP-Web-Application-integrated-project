@@ -181,7 +181,7 @@ defineExpose({
       <!-- Filter Section -->
       <div class="flex flex-col gap-2 lg:flex-1 lg:max-w-xl">
         <!-- Main Filter Row: Brand, Price, Storage + Clear Button -->
-        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-1.5 md:gap-2 w-full px-2 md:px-3 py-1.5 md:py-2 rounded-xl md:rounded-2xl border bg-gray-200 lg:w-[38rem] xl:w-[48rem]">
+        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-1.5 md:gap-2  w-full  px-2 md:px-3 py-1.5 md:py-2 rounded-xl md:rounded-2xl border bg-gray-200  lg:w-[38rem] xl:w-[48rem]">
           <!-- LEFT: Brand Filter -->
           <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[160px] xl:w-[200px]">
             <BrandSelector

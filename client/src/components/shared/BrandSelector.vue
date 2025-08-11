@@ -51,8 +51,7 @@ const selectBrand = (brand) => {
       emit("update:modelValue", updatedBrands);
       emit("brand-removed", brand);
     } else {
-      // Add new brand
-      const updatedBrands = [...props.modelValue, brand];
+      const updatedBrands = [brand, ...props.modelValue];
       emit("update:modelValue", updatedBrands);
       emit("brand-selected", brand);
     }

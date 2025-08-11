@@ -19,9 +19,7 @@ const emit = defineEmits([
 const showDropdown = ref(false);
 const availableStorageSizes = ref([]);
 
-// Available storage sizes from database (include special values)
-const defaultStorageSizes = [32, 64, 128, 256, 512, 1024, "Not specified"]; // 1TB = 1024GB
-
+const defaultStorageSizes = [32, 64, 128, 256, 512, 1024, "Not specified"];
 const selectedSizes = computed({
   get() {
     return props.modelValue;
@@ -42,8 +40,7 @@ const selectStorageSize = (size) => {
     emit("update:modelValue", newSelection);
     emit("storage-removed", size);
   } else {
-    // Add new storage size
-    const newSelection = [...selectedSizes.value, size];
+    const newSelection = [size, ...selectedSizes.value];
     emit("update:modelValue", newSelection);
     emit("storage-selected", size);
   }
