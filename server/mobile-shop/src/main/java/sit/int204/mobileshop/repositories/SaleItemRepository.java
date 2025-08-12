@@ -13,14 +13,18 @@ public interface SaleItemRepository extends JpaRepository<SaleItem, Integer> {
 
     List<SaleItem> findAllByOrderByCreatedOnAsc();
 
-    @Query("SELECT s FROM SaleItem s WHERE (:filterBrands IS NULL OR s.brand.name IN :filterBrands) AND (:storageGb IS NULL OR s.storageGb IN :storageGb ) AND " +
-           "(:lowerPrice IS NULL OR " +
-           "  (:upperPrice = -1 AND s.price = :lowerPrice) OR " +
-           "  (:upperPrice != -1 AND :upperPrice IS NOT NULL AND s.price >= :lowerPrice) OR " +
-           "  (:upperPrice IS NULL AND s.price >= :lowerPrice)" +
-           ") AND " +
-           "(:upperPrice IS NULL OR :upperPrice = -1 OR s.price <= :upperPrice)")
-    Page<SaleItem> findAllFilter(Pageable page, @Param("filterBrands") List<String> filterBrands, @Param("storageGb")List<String> storageGb, @Param("lowerPrice") Integer lowerPrice, @Param("upperPrice") Integer upperPrice);
-
+    @Query("SELECT s FROM SaleItem s WHERE " +
+            "(:filterBrands IS NULL OR s.brand.name IN :filterBrands) AND " +
+            "(:storageGb IS NULL OR s.storageGb IN :storageGb) AND (" +
+            "  (:lowerPrice IS NULL AND :upperPrice IS NULL) OR " +
+            "  (:lowerPrice IS NOT NULL AND :upperPrice IS NULL AND s.price = :lowerPrice) OR " +
+            "  (:lowerPrice IS NOT NULL AND :upperPrice IS NOT NULL AND s.price BETWEEN :lowerPrice AND :upperPrice)" +
+            ")")
+    Page<SaleItem> findAllFilter(
+            Pageable page,
+            @Param("filterBrands") List<String> filterBrands,
+            @Param("storageGb") List<String> storageGb,
+            @Param("lowerPrice") Integer lowerPrice,
+            @Param("upperPrice") Integer upperPrice);
 
 }
