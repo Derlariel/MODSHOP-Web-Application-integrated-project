@@ -151,10 +151,8 @@ watch(
   { deep: true, immediate: true }
 );
 
-// Simulate browser close by clearing sessionStorage for TC-4 Step 6
 onMounted(() => {
   fetchBrands();
-  // Check if this is a fresh session (simulating browser close)
   if (!sessionStorage.getItem("filterAndSort")) {
     selectedBrands.value = [];
     lowerPrice.value = null;
@@ -167,7 +165,6 @@ onMounted(() => {
   }
 });
 
-// Expose clearAllFilters function for parent components
 defineExpose({
   clearAllFilters
 });
