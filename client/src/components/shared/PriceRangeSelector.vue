@@ -24,11 +24,11 @@ const emit = defineEmits([
 const showDropdown = ref(false);
 const minPrice = ref(props.lowerPrice || null);
 const maxPrice = ref(props.upperPrice || null);
+const isCustomInput = ref(false); 
 
 const customMinPrice = ref("");
 const customMaxPrice = ref("");
 
-// Pre-defined price ranges
 const priceRanges = [
   { label: "0 - 5,000 Baht", min: 0, max: 5000 },
   { label: "5,001-10,000 Baht", min: 5001, max: 10000 },
@@ -43,8 +43,13 @@ const selectedRange = computed(() => {
   if (minPrice.value !== null || maxPrice.value !== null) {
     if (minPrice.value !== null && maxPrice.value !== null) {
       return `${minPrice.value.toLocaleString()} - ${maxPrice.value.toLocaleString()}`;
-    } else if (minPrice.value !== null) {
-      return `${minPrice.value.toLocaleString()} +`;
+    } else if (minPrice.value !== null && maxPrice.value === null) {
+      // Check if it's from custom input (exact match) or predefined range (greater than or equal)
+      if (isCustomInput.value) {
+        return `Exactly ${minPrice.value.toLocaleString()}`;
+      } else {
+        return `${minPrice.value.toLocaleString()} +`;
+      }
     } else if (maxPrice.value !== null) {
       return `Up to ${maxPrice.value.toLocaleString()}`;
     }
@@ -57,12 +62,12 @@ const toggleDropdown = () => {
 };
 
 const selectPriceRange = (range) => {
-  // Toggle functionality - if the same range is selected, clear it
   if (minPrice.value === range.min && maxPrice.value === range.max) {
     clearPriceRange();
   } else {
     minPrice.value = range.min;
     maxPrice.value = range.max;
+    isCustomInput.value = false; 
     updateModelValue();
     emit("price-selected");
   }
@@ -72,6 +77,7 @@ const selectPriceRange = (range) => {
 const clearPriceRange = () => {
   minPrice.value = null;
   maxPrice.value = null;
+  isCustomInput.value = false;
   updateModelValue();
   emit("price-cleared");
 };
@@ -85,7 +91,7 @@ const handleCustomPriceInput = () => {
   let min = customMinPrice.value ? parseInt(customMinPrice.value) : null;
   let max = customMaxPrice.value ? parseInt(customMaxPrice.value) : null;
   
-  // Auto-swap if min > max
+  // Auto-swap if min > max (only when both values are provided)
   if (min !== null && max !== null && min > max) {
     [min, max] = [max, min];
     customMinPrice.value = min.toString();
@@ -94,16 +100,41 @@ const handleCustomPriceInput = () => {
   
   minPrice.value = min;
   maxPrice.value = max;
-  if(maxPrice.value > minPrice.value) {
+  isCustomInput.value = true; // This is from custom input
+  
+  // Apply filter when:
+  // 1. Both min and max are provided and max >= min
+  // 2. Only min is provided (exact price match for custom input)
+  // 3. Only max is provided (up to that price)
+  if ((min !== null && max !== null && max >= min) || 
+      (min !== null && max === null) || 
+      (min === null && max !== null)) {
     updateModelValue();
     emit("price-selected");
   }
 };
 
-// Watch for custom input changes and apply filter immediately
-watch([customMinPrice, customMaxPrice], () => {
+const handleMinPriceBlur = () => {
   handleCustomPriceInput();
-}, { deep: true });
+};
+
+const handleMaxPriceBlur = () => {
+  handleCustomPriceInput();
+};
+
+const handleMinPriceKeydown = (event) => {
+  if (event.key === 'Enter') {
+    event.target.blur();
+    handleCustomPriceInput();
+  }
+};
+
+const handleMaxPriceKeydown = (event) => {
+  if (event.key === 'Enter') {
+    event.target.blur();
+    handleCustomPriceInput();
+  }
+};
 
 // Initialize from props
 watch(() => [props.lowerPrice, props.upperPrice], ([newLower, newUpper]) => {
@@ -180,6 +211,8 @@ watch(() => [props.lowerPrice, props.upperPrice], ([newLower, newUpper]) => {
                 :class="['text-black flex-1 text-sm md:w-[4rem]', customMinPrice ? '' : 'border-gray-300']"
                 min="0"
                 prefix="฿"
+                @blur="handleMinPriceBlur"
+                @keydown="handleMinPriceKeydown"
               />
               <span>-</span>
               <BaseInput
@@ -190,6 +223,8 @@ watch(() => [props.lowerPrice, props.upperPrice], ([newLower, newUpper]) => {
                 :class="['text-black flex-1 text-sm md:w-[4rem]', customMaxPrice ? '' : 'border-gray-300']"
                 min="0"
                 prefix="฿"
+                @blur="handleMaxPriceBlur"
+                @keydown="handleMaxPriceKeydown"
               />
               <span class="text-sm text-gray-600">Baht</span>
             </div>
