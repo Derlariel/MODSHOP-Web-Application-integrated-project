@@ -17,7 +17,7 @@ const emit = defineEmits([
 ]);
 
 const showDropdown = ref(false);
-const availableStorageSizes = ref([32, 64, 128, 256, 512, 1024, "Not specified"]);
+const availableStorageSizes = ref(["Not specified", 32, 64, 128, 256, 512, 1024]);
 
 const selectedSizes = computed({
   get() {

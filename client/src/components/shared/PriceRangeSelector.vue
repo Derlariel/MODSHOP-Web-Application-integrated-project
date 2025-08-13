@@ -49,14 +49,13 @@ const selectedRange = computed(() => {
     if (minPrice.value !== null && maxPrice.value !== null) {
       return `${minPrice.value.toLocaleString()} - ${maxPrice.value.toLocaleString()}`;
     } else if (minPrice.value !== null && maxPrice.value === null) {
-      // Check if it's from custom input (exact match) or predefined range (greater than or equal)
       if (isCustomInput.value) {
         return `Exactly ${minPrice.value.toLocaleString()}`;
       } else {
         return `${minPrice.value.toLocaleString()} +`;
       }
     } else if (maxPrice.value !== null) {
-      return `Up to ${maxPrice.value.toLocaleString()}`;
+      return `0 - ${maxPrice.value.toLocaleString()}`;
     }
   }
   return null;
@@ -97,6 +96,11 @@ const handleCustomPriceInput = () => {
   let min = customMinPrice.value ? parseInt(customMinPrice.value) : null;
   let max = customMaxPrice.value ? parseInt(customMaxPrice.value) : null;
   
+  // If only max price is provided, set min to 0 (like predefined ranges)
+  if (min === null && max !== null) {
+    min = 0;
+  }
+  
   // Auto-swap if min > max (only when both values are provided)
   if (min !== null && max !== null && min > max) {
     [min, max] = [max, min];
@@ -106,12 +110,12 @@ const handleCustomPriceInput = () => {
   
   minPrice.value = min;
   maxPrice.value = max;
-  isCustomInput.value = true; // This is from custom input
+  isCustomInput.value = true;
   
   // Apply filter when:
   // 1. Both min and max are provided and max >= min
   // 2. Only min is provided (exact price match for custom input)
-  // 3. Only max is provided (up to that price)
+  // 3. Only max is provided (up to that price, with min set to 0)
   if ((min !== null && max !== null && max >= min) || 
       (min !== null && max === null) || 
       (min === null && max !== null)) {
@@ -183,31 +187,31 @@ watch(() => [props.lowerPrice, props.upperPrice, props.isExactPrice], ([newLower
     </div>
 
     <!-- Dropdown menu -->
-    <div class="relative w-full">
+    <div class="relative w-full ">
       <div v-if="showDropdown" class="absolute left-0 top-full mt-1 w-full z-50">
-        <div class="bg-white border border-gray-300 rounded-md shadow-lg p-4 md:w-[36vh]">
+        <div class="bg-white border border-gray-300 rounded-md shadow-lg p-4 md:w-[36vh]  ">
           <!-- Pre-defined ranges -->
-          <div>
+            <div >
             <label class="block text-sm font-medium text-gray-700 mb-2 text-center">Price Options</label>
             <div class="space-y-1">
               <button
-                v-for="range in priceRanges"
-                :key="range.label"
-                @click="selectPriceRange(range)"
-                :class="[
-                  'w-full text-left px-3 py-2 text-sm rounded-md transition-colors border-b-1 border-gray-200',
-                  minPrice === range.min && maxPrice === range.max 
-                    ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                    : 'hover:bg-gray-100'
-                ]"
+              v-for="range in priceRanges"
+              :key="range.label"
+              @click="selectPriceRange(range)"
+              :class="[
+                'w-full text-left px-3 py-2 text-sm rounded-md transition-colors border-b-1 border-gray-200 cursor-pointer',
+                minPrice === range.min && maxPrice === range.max 
+                ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                : 'hover:bg-gray-100'
+              ]"
               >
-                <span class="flex items-center justify-start ">
-                  {{ range.label }}
-                  <span v-if="minPrice === range.min && maxPrice === range.max" class="text-blue-600">✓</span>
-                </span>
+              <span class="flex items-center justify-start ">
+                {{ range.label }}
+                <span v-if="minPrice === range.min && maxPrice === range.max" class="text-blue-600">✓</span>
+              </span>
               </button>
             </div>
-          </div>
+            </div>
           <div class="mt-2">
             <div class="flex items-center gap-2">
              <BaseInput
