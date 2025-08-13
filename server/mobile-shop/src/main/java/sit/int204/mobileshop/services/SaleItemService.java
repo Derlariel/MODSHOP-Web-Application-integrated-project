@@ -83,6 +83,7 @@ public class SaleItemService {
      * @param storageSize   list of storage sizes to filter
      * @param lowerPrice    minimum price filter
      * @param upperPrice    maximum price filter
+     * @param isExactPrice  whether to use exact price matching for single price filter
      * @param sortField     field to sort by
      * @param sortDirection sort direction (ASC/DESC)
      * @return paginated list of SaleItem DTOs
@@ -94,6 +95,7 @@ public class SaleItemService {
             List<String> storageSize,
             Integer lowerPrice,
             Integer upperPrice,
+            Boolean isExactPrice,
             String sortField,
             String sortDirection) {
 
@@ -137,7 +139,7 @@ public class SaleItemService {
             }
         }
 
-        Page<SaleItem> saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands, storageSize, lowerPrice, upperPrice);
+        Page<SaleItem> saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands, storageSize, lowerPrice, upperPrice, isExactPrice);
         return listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
     }
 

@@ -13,6 +13,7 @@ const selectedBrands = ref([]);
 const allBrands = ref([]);
 const lowerPrice = ref(null);
 const upperPrice = ref(null);
+const isExactPrice = ref(false);
 const selectedStorageSizes = ref([]);
 const size = ref(10);
 const sortField = ref("createdOn");
@@ -38,6 +39,7 @@ if (stored) {
     selectedBrands.value = parsed.filterBrands || [];
     lowerPrice.value = parsed.lowerPrice || null;
     upperPrice.value = parsed.upperPrice || null;
+    isExactPrice.value = parsed.isExactPrice || false;
     selectedStorageSizes.value = parsed.storageSize || [];
     size.value = parsed.size || 10;
     sortField.value = parsed.sortField || "createdOn";
@@ -71,6 +73,7 @@ const onPriceSelected = () => {
 const onPriceCleared = () => {
   lowerPrice.value = null;
   upperPrice.value = null;
+  isExactPrice.value = false;
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };
@@ -95,6 +98,7 @@ const clearAllFilters = () => {
   selectedBrands.value = [];
   lowerPrice.value = null;
   upperPrice.value = null;
+  isExactPrice.value = false;
   selectedStorageSizes.value = [];
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
@@ -122,7 +126,7 @@ const sortByBrandDesc = () => {
 };
 
 watch(
-  [selectedBrands, lowerPrice, upperPrice, selectedStorageSizes, size, sortField, sortDirection, () => productStore.activePage],
+  [selectedBrands, lowerPrice, upperPrice, isExactPrice, selectedStorageSizes, size, sortField, sortDirection, () => productStore.activePage],
   () => {
     sessionStorage.setItem(
       "filterAndSort",
@@ -130,6 +134,7 @@ watch(
         filterBrands: selectedBrands.value,
         lowerPrice: lowerPrice.value,
         upperPrice: upperPrice.value,
+        isExactPrice: isExactPrice.value,
         storageSize: selectedStorageSizes.value,
         size: size.value,
         sortField: sortField.value,
@@ -141,6 +146,7 @@ watch(
       filterBrands: selectedBrands.value,
       lowerPrice: lowerPrice.value,
       upperPrice: upperPrice.value,
+      isExactPrice: isExactPrice.value,
       storageSize: selectedStorageSizes.value,
       size: size.value,
       sortField: sortField.value,
@@ -157,6 +163,7 @@ onMounted(() => {
     selectedBrands.value = [];
     lowerPrice.value = null;
     upperPrice.value = null;
+    isExactPrice.value = false;
     selectedStorageSizes.value = [];
     sortField.value = "createdOn";
     sortDirection.value = "asc";
@@ -196,6 +203,7 @@ defineExpose({
             <PriceRangeSelector
               v-model:lowerPrice="lowerPrice"
               v-model:upperPrice="upperPrice"
+              v-model:isExactPrice="isExactPrice"
               @price-selected="onPriceSelected"
               @price-cleared="onPriceCleared"
             />

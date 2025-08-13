@@ -31,6 +31,7 @@ const filters = ref({
   filterBrands: [],
   lowerPrice: null,
   upperPrice: null,
+  isExactPrice: false,
   storageSize: [],
   size: 10,
   sortField: "createdOn",

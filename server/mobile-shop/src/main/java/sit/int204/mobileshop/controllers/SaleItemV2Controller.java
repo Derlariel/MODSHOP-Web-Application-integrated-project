@@ -64,6 +64,8 @@ public class SaleItemV2Controller {
             @Parameter(description = "Price range")
             @RequestParam(required = false) String upperPrice,
 
+            @Parameter(description = "Whether to use exact price matching for single price filter")
+            @RequestParam(defaultValue = "false") Boolean isExactPrice,
 
             @Parameter(description = "Sort direction (asc or desc)")
             @RequestParam(defaultValue = "asc") String sortDirection) throws MissingServletRequestParameterException {
@@ -75,7 +77,7 @@ public class SaleItemV2Controller {
         Integer lower = (lowerPrice == null || lowerPrice.equals("null")) ? null : Integer.valueOf(lowerPrice);
         Integer upper = (upperPrice == null || upperPrice.equals("null")) ? null : Integer.valueOf(upperPrice);
 
-        PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(page, size, filterBrands, storageSize, lower, upper, sortField,
+        PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(page, size, filterBrands, storageSize, lower, upper, isExactPrice, sortField,
                 sortDirection);
         return ResponseEntity.ok(pagedResult);
     }

@@ -17,7 +17,8 @@ public interface SaleItemRepository extends JpaRepository<SaleItem, Integer> {
             "(:filterBrands IS NULL OR s.brand.name IN :filterBrands) AND " +
             "(:storageGb IS NULL OR s.storageGb IN :storageGb) AND (" +
             "  (:lowerPrice IS NULL AND :upperPrice IS NULL) OR " +
-            "  (:lowerPrice IS NOT NULL AND :upperPrice IS NULL AND s.price = :lowerPrice) OR " +
+            "  (:lowerPrice IS NOT NULL AND :upperPrice IS NULL AND :isExactPrice = true AND s.price = :lowerPrice) OR " +
+            "  (:lowerPrice IS NOT NULL AND :upperPrice IS NULL AND :isExactPrice = false AND s.price >= :lowerPrice) OR " +
             "  (:lowerPrice IS NOT NULL AND :upperPrice IS NOT NULL AND s.price BETWEEN :lowerPrice AND :upperPrice)" +
             ")")
     Page<SaleItem> findAllFilter(
@@ -25,6 +26,7 @@ public interface SaleItemRepository extends JpaRepository<SaleItem, Integer> {
             @Param("filterBrands") List<String> filterBrands,
             @Param("storageGb") List<String> storageGb,
             @Param("lowerPrice") Integer lowerPrice,
-            @Param("upperPrice") Integer upperPrice);
+            @Param("upperPrice") Integer upperPrice,
+            @Param("isExactPrice") Boolean isExactPrice);
 
 }

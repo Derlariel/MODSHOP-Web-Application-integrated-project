@@ -11,12 +11,17 @@ const props = defineProps({
   upperPrice: {
     type: [Number, null],
     default: null
+  },
+  isExactPrice: {
+    type: Boolean,
+    default: false
   }
 });
 
 const emit = defineEmits([
   "update:lowerPrice",
   "update:upperPrice",
+  "update:isExactPrice",
   "price-selected",
   "price-cleared"
 ]);
@@ -85,6 +90,7 @@ const clearPriceRange = () => {
 const updateModelValue = () => {
   emit("update:lowerPrice", minPrice.value);
   emit("update:upperPrice", maxPrice.value);
+  emit("update:isExactPrice", isCustomInput.value);
 };
 
 const handleCustomPriceInput = () => {
@@ -137,9 +143,10 @@ const handleMaxPriceKeydown = (event) => {
 };
 
 // Initialize from props
-watch(() => [props.lowerPrice, props.upperPrice], ([newLower, newUpper]) => {
+watch(() => [props.lowerPrice, props.upperPrice, props.isExactPrice], ([newLower, newUpper, newIsExact]) => {
   minPrice.value = newLower || null;
   maxPrice.value = newUpper || null;
+  isCustomInput.value = newIsExact || false;
   
   // Update custom input fields
   customMinPrice.value = newLower ? newLower.toString() : "";
