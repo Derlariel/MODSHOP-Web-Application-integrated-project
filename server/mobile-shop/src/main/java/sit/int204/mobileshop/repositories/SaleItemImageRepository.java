@@ -13,7 +13,7 @@ import java.util.List;
 public interface SaleItemImageRepository extends JpaRepository<SaleItemImage, Integer> {
     List<SaleItemImage> findAllBySaleItemId(Integer saleItemId);
 
-    @Modifying
-    @Query("UPDATE SaleItemImage i SET i.isPrimary = 0 WHERE i.saleItem.id = :saleItemId AND i.isPrimary = 1")
-    void updateAllNonPrimaryBySaleItemId(@Param("saleItemId") Integer saleItemId);
+//    @Modifying
+//    @Query("UPDATE SaleItemImage i SET i.isPrimary = 0 WHERE i.saleItem.id = :saleItemId AND i.isPrimary = 1")
+//    void updateAllNonPrimaryBySaleItemId(@Param("saleItemId") Integer saleItemId);
 }

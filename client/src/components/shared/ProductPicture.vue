@@ -111,7 +111,7 @@ const displayImages = computed(() => {
         </button>
       </div>
 
-      <UploadPicture ref="uploadModalRef" />
+      <UploadPicture :images="images" ref="uploadModalRef" />
     </div>
   </div>
 </template>
