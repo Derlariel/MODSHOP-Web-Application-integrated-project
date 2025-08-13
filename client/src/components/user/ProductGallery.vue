@@ -186,11 +186,11 @@ watch(trigger, async () => {
         <div class="mt-6 flex flex-row gap-2 xs:gap-3 w-full justify-center lg:justify-start">
           <button @click="add"
             class="itbms-sale-item-add text-xs xs:text-sm md:text-sm bg-white text-black font-medium py-2 xs:py-2.5 md:py-2 px-4 xs:px-6 md:px-5 rounded-lg transition-colors duration-300 hover:bg-gray-200 whitespace-nowrap">
-            Add Product
+            Add Sale Item
           </button>
           <button @click="salItemList"
             class="itbms-item-list text-xs xs:text-sm md:text-sm bg-white text-black font-medium py-2 xs:py-2.5 md:py-2 px-4 xs:px-6 md:px-5 rounded-lg transition-colors duration-300 hover:bg-gray-200 whitespace-nowrap">
-            Sale Item List
+            Sale Items List
           </button>
         </div>
 
