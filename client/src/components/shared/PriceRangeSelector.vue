@@ -40,8 +40,7 @@ const priceRanges = [
   { label: "10,001-20,000 Baht", min: 10001, max: 20000 },
   { label: "20,001-30,000 Baht", min: 20001, max: 30000 },
   { label: "30,001-40,000 Baht", min: 30001, max: 40000 },
-  { label: "40,001-50,000 Baht", min: 40001, max: 50000 },
-  { label: "50,001 + Baht", min: 50001, max: null }
+  { label: "40,001-50,000 Baht", min: 40001, max: 50000 }
 ];
 
 const selectedRange = computed(() => {
@@ -49,11 +48,7 @@ const selectedRange = computed(() => {
     if (minPrice.value !== null && maxPrice.value !== null) {
       return `${minPrice.value.toLocaleString()} - ${maxPrice.value.toLocaleString()}`;
     } else if (minPrice.value !== null && maxPrice.value === null) {
-      if (isCustomInput.value) {
-        return `Exactly ${minPrice.value.toLocaleString()}`;
-      } else {
-        return `${minPrice.value.toLocaleString()} +`;
-      }
+      return `Exactly ${minPrice.value.toLocaleString()}`;
     } else if (maxPrice.value !== null) {
       return `0 - ${maxPrice.value.toLocaleString()}`;
     }

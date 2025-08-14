@@ -320,8 +320,8 @@ watch(trigger, async () => {
         <div class="min-h-[500px] flex flex-col items-center justify-center text-center px-2 animate-fadeInUp">
           <div class="space-y-6 max-w-lg mx-auto mb-8">
             <p
-              class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent leading-tight animate-gradient">
-              NO SALE ITEM AVAILABLE
+              class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent leading-tight animate-gradient uppercase">
+              No Sale Item
           </p>
 
           </div>

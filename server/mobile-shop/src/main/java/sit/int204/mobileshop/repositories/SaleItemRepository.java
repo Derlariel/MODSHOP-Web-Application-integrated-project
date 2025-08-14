@@ -18,7 +18,6 @@ public interface SaleItemRepository extends JpaRepository<SaleItem, Integer> {
             "(:storageGb IS NULL OR s.storageGb IN :storageGb) AND (" +
             "  (:lowerPrice IS NULL AND :upperPrice IS NULL) OR " +
             "  (:lowerPrice IS NOT NULL AND :upperPrice IS NULL AND :isExactPrice = true AND s.price = :lowerPrice) OR " +
-            "  (:lowerPrice IS NOT NULL AND :upperPrice IS NULL AND :isExactPrice = false AND s.price >= :lowerPrice) OR " +
             "  (:lowerPrice IS NOT NULL AND :upperPrice IS NOT NULL AND s.price BETWEEN :lowerPrice AND :upperPrice)" +
             ")")
     Page<SaleItem> findAllFilter(
