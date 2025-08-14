@@ -30,4 +30,4 @@ dist-ssr
 # Security 
 secrets/
 
-server/mobile-shop/src/main/resources/application-dev.properties
+/server/mobile-shop/src/main/resources/application-dev.properties

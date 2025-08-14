@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps, defineEmits, computed, onMounted } from "vue";
+import { ref, defineProps, defineEmits, computed } from "vue";
 import { X, HardDrive } from "lucide-vue-next";
 
 const props = defineProps({
@@ -17,42 +17,72 @@ const emit = defineEmits([
 ]);
 
 const showDropdown = ref(false);
-const availableStorageSizes = ref([]);
-
-// Available storage sizes from database (include special values)
-const defaultStorageSizes = [32, 64, 128, 256, 512, 1024, "Not specified"]; // 1TB = 1024GB
+const availableStorageSizes = ref(["Not specified", 32, 64, 128, 256, 512, 1024]);
 
 const selectedSizes = computed({
   get() {
-    return props.modelValue;
+    // Convert API values (with null) to display values (with "Not specified")
+    return props.modelValue.map(toDisplayValue);
   },
   set(value) {
     emit("update:modelValue", value);
   }
 });
 
+// Helper function to convert display value to API value
+const toApiValue = (displayValue) => {
+  return displayValue === "Not specified" ? null : displayValue;
+};
+
+// Helper function to convert API value to display value
+const toDisplayValue = (apiValue) => {
+  return apiValue === null ? "Not specified" : apiValue;
+};
+
 const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value;
 };
 
 const selectStorageSize = (size) => {
-  // Toggle functionality - if storage size is already selected, remove it
+  // If "Not specified" is selected, clear all other selections and only keep "Not specified"
+  if (size === "Not specified") {
+    if (selectedSizes.value.includes("Not specified")) {
+      // If "Not specified" is already selected, remove it (toggle off)
+      emit("update:modelValue", []);
+      emit("storage-removed", null);
+    } else {
+      // Clear all and select only "Not specified"
+      emit("update:modelValue", [null]);
+      emit("storage-selected", null);
+    }
+    return;
+  }
+
+  // If any specific storage size is selected, remove "Not specified" first
+  let newSelection;
   if (selectedSizes.value.includes(size)) {
-    const newSelection = selectedSizes.value.filter(s => s !== size);
-    emit("update:modelValue", newSelection);
-    emit("storage-removed", size);
+    // Remove the selected size
+    newSelection = selectedSizes.value.filter(s => s !== size);
   } else {
-    // Add new storage size
-    const newSelection = [...selectedSizes.value, size];
-    emit("update:modelValue", newSelection);
-    emit("storage-selected", size);
+    // Add the new size and remove "Not specified" if it exists
+    newSelection = [size, ...selectedSizes.value.filter(s => s !== "Not specified")];
+  }
+  
+  const apiValues = newSelection.map(toApiValue);
+  emit("update:modelValue", apiValues);
+  
+  if (selectedSizes.value.includes(size)) {
+    emit("storage-removed", toApiValue(size));
+  } else {
+    emit("storage-selected", toApiValue(size));
   }
 };
 
 const removeStorageSize = (size) => {
   const newSelection = selectedSizes.value.filter(s => s !== size);
-  emit("update:modelValue", newSelection);
-  emit("storage-removed", size);
+  const apiValues = newSelection.map(toApiValue);
+  emit("update:modelValue", apiValues);
+  emit("storage-removed", toApiValue(size));
 };
 
 const clearAllStorageSizes = () => {
@@ -69,32 +99,6 @@ const formatStorageSize = (size) => {
   }
   return `${size}GB`;
 };
-
-// Fetch available storage sizes from database
-const fetchStorageSizes = async () => {
-  try {
-    const BASE_URL = import.meta.env.VITE_BASE_URL;
-    // First try to get distinct storage sizes from the view
-    const res = await fetch(`${BASE_URL}/v1/distinct-storage-size`);
-    if (res.ok) {
-      const data = await res.json();
-      // Assuming the view returns an array of objects with storage_gb property
-      const dbSizes = data.map(item => item.storage_gb || item.storageGb).sort((a, b) => a - b);
-      // Add "Not specified" option
-      availableStorageSizes.value = [...dbSizes, "Not specified"];
-    } else {
-      // Fallback to default sizes if API fails
-      availableStorageSizes.value = defaultStorageSizes;
-    }
-  } catch (err) {
-    console.error("Error fetching storage sizes:", err);
-    availableStorageSizes.value = defaultStorageSizes;
-  }
-};
-
-onMounted(() => {
-  fetchStorageSizes();
-});
 </script>
  
 <template>
@@ -104,8 +108,11 @@ onMounted(() => {
       <div 
         class="flex-1 rounded-md rounded-r-none bg-white min-h-[32px] md:min-h-[36px] max-h-[36px] md:max-h-[36px] overflow-y-auto border border-gray-300"
       >
-        <div class="grid grid-cols-1 gap-1 p-1 md:p-1.5">
-          <div v-if="selectedSizes.length === 0" class="col-span-1 text-gray-500 text-xs md:text-sm py-0.5">
+        <div 
+          class="grid gap-1 p-1 md:p-1.5"
+          :class="selectedSizes.length === 1 ? 'grid-cols-1' : 'grid-cols-2'"
+        >
+          <div v-if="selectedSizes.length === 0" class="col-span-2 text-gray-500 text-xs md:text-sm py-0.5">
             Storage Size
           </div>
           <div

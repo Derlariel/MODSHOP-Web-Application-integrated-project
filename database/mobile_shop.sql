@@ -172,3 +172,16 @@ INSERT INTO sale_item (id, brand_id, model, description, quantity, price, screen
 
 create or replace view distinct_storage_size as
 select distinct storage_gb from sale_item where storage_gb is not null order by storage_gb asc;
+
+
+CREATE TABLE product_image (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sale_item_id INT NOT NULL,
+    image_url VARCHAR(255) NOT NULL,
+    is_primary TINYINT DEFAULT 0, 
+    created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (sale_item_id) REFERENCES sale_item(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_product_image_sale_item_id ON product_image(sale_item_id);

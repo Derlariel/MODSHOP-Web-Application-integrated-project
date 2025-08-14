@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
+import sit.int204.mobileshop.config.FileStorageProperties;
 import sit.int204.mobileshop.dtos.SaleItemDto;
 import sit.int204.mobileshop.services.SaleItemService;
 import sit.int204.mobileshop.dtos.PageDto;
@@ -24,6 +25,14 @@ import java.util.List;
 public class SaleItemV2Controller {
     @Autowired
     private SaleItemService saleItemService;
+
+    @Autowired
+    FileStorageProperties fileStorageProperties;
+
+    @GetMapping("/upload")
+    public String getUpload() {
+        return  fileStorageProperties.getUploadDir();
+    }
 
     @Operation(summary = "Get paginated products", description = "Retrieve products with pagination, filtering, and sorting options")
     @ApiResponses({
@@ -55,6 +64,8 @@ public class SaleItemV2Controller {
             @Parameter(description = "Price range")
             @RequestParam(required = false) String upperPrice,
 
+            @Parameter(description = "Whether to use exact price matching for single price filter")
+            @RequestParam(defaultValue = "false") Boolean isExactPrice,
 
             @Parameter(description = "Sort direction (asc or desc)")
             @RequestParam(defaultValue = "asc") String sortDirection) throws MissingServletRequestParameterException {
@@ -66,7 +77,7 @@ public class SaleItemV2Controller {
         Integer lower = (lowerPrice == null || lowerPrice.equals("null")) ? null : Integer.valueOf(lowerPrice);
         Integer upper = (upperPrice == null || upperPrice.equals("null")) ? null : Integer.valueOf(upperPrice);
 
-        PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(page, size, filterBrands, storageSize, lower, upper, sortField,
+        PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(page, size, filterBrands, storageSize, lower, upper, isExactPrice, sortField,
                 sortDirection);
         return ResponseEntity.ok(pagedResult);
     }

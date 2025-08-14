@@ -13,6 +13,7 @@ const selectedBrands = ref([]);
 const allBrands = ref([]);
 const lowerPrice = ref(null);
 const upperPrice = ref(null);
+const isExactPrice = ref(false);
 const selectedStorageSizes = ref([]);
 const size = ref(10);
 const sortField = ref("createdOn");
@@ -38,6 +39,7 @@ if (stored) {
     selectedBrands.value = parsed.filterBrands || [];
     lowerPrice.value = parsed.lowerPrice || null;
     upperPrice.value = parsed.upperPrice || null;
+    isExactPrice.value = parsed.isExactPrice || false;
     selectedStorageSizes.value = parsed.storageSize || [];
     size.value = parsed.size || 10;
     sortField.value = parsed.sortField || "createdOn";
@@ -71,6 +73,7 @@ const onPriceSelected = () => {
 const onPriceCleared = () => {
   lowerPrice.value = null;
   upperPrice.value = null;
+  isExactPrice.value = false;
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };
@@ -95,6 +98,7 @@ const clearAllFilters = () => {
   selectedBrands.value = [];
   lowerPrice.value = null;
   upperPrice.value = null;
+  isExactPrice.value = false;
   selectedStorageSizes.value = [];
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
@@ -122,7 +126,7 @@ const sortByBrandDesc = () => {
 };
 
 watch(
-  [selectedBrands, lowerPrice, upperPrice, selectedStorageSizes, size, sortField, sortDirection, () => productStore.activePage],
+  [selectedBrands, lowerPrice, upperPrice, isExactPrice, selectedStorageSizes, size, sortField, sortDirection, () => productStore.activePage],
   () => {
     sessionStorage.setItem(
       "filterAndSort",
@@ -130,6 +134,7 @@ watch(
         filterBrands: selectedBrands.value,
         lowerPrice: lowerPrice.value,
         upperPrice: upperPrice.value,
+        isExactPrice: isExactPrice.value,
         storageSize: selectedStorageSizes.value,
         size: size.value,
         sortField: sortField.value,
@@ -141,6 +146,7 @@ watch(
       filterBrands: selectedBrands.value,
       lowerPrice: lowerPrice.value,
       upperPrice: upperPrice.value,
+      isExactPrice: isExactPrice.value,
       storageSize: selectedStorageSizes.value,
       size: size.value,
       sortField: sortField.value,
@@ -151,14 +157,13 @@ watch(
   { deep: true, immediate: true }
 );
 
-// Simulate browser close by clearing sessionStorage for TC-4 Step 6
 onMounted(() => {
   fetchBrands();
-  // Check if this is a fresh session (simulating browser close)
   if (!sessionStorage.getItem("filterAndSort")) {
     selectedBrands.value = [];
     lowerPrice.value = null;
     upperPrice.value = null;
+    isExactPrice.value = false;
     selectedStorageSizes.value = [];
     sortField.value = "createdOn";
     sortDirection.value = "asc";
@@ -167,23 +172,22 @@ onMounted(() => {
   }
 });
 
-// Expose clearAllFilters function for parent components
 defineExpose({
   clearAllFilters
 });
 </script>
 
 <template>
-  <div class="w-full text-gray-700">
+  <div class="w-full text-gray-700 flex justify-center">
     <!-- Container for lg+ screens: side-by-side layout -->
-    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 w-full">
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 w-full max-w-7xl">
       
       <!-- Filter Section -->
-      <div class="flex flex-col gap-2 lg:flex-1 lg:max-w-xl">
+      <div class="flex flex-col gap-2 lg:flex-1 lg:max-w-xl lg:justify-center">
         <!-- Main Filter Row: Brand, Price, Storage + Clear Button -->
-        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-1.5 md:gap-2 w-full px-2 md:px-3 py-1.5 md:py-2 rounded-xl md:rounded-2xl border bg-gray-200">
+        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-1.5 md:gap-2 w-full max-w-sm sm:max-w-md md:max-w-none mx-auto px-2 md:px-3 py-1.5 md:py-2 rounded-xl md:rounded-2xl border bg-gray-200 lg:w-[38rem] xl:w-[48rem]">
           <!-- LEFT: Brand Filter -->
-          <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[150px] xl:w-[170px]">
+          <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[160px] xl:w-[200px]">
             <BrandSelector
               v-model="selectedBrands"
               :brands="allBrands"
@@ -195,17 +199,18 @@ defineExpose({
           </div>
 
           <!-- CENTER: Price Filter -->
-          <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[140px] xl:w-[150px]">
+          <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[160px] xl:w-[200px]">
             <PriceRangeSelector
               v-model:lowerPrice="lowerPrice"
               v-model:upperPrice="upperPrice"
+              v-model:isExactPrice="isExactPrice"
               @price-selected="onPriceSelected"
               @price-cleared="onPriceCleared"
             />
           </div>
 
           <!-- RIGHT: Storage Size Filter -->
-          <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[140px] xl:w-[150px]">
+          <div class="w-full md:w-auto md:flex-1 lg:flex-none lg:w-[160px] xl:w-[200px]">
             <StorageSizeSelector
               v-model="selectedStorageSizes"
               @storage-selected="onStorageSelected"
@@ -227,7 +232,7 @@ defineExpose({
       </div>
 
       <!-- Sort Controls Section -->
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-end gap-2 sm:gap-3 w-full lg:w-auto lg:flex-shrink-0">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-end gap-2 sm:gap-3 w-full max-w-sm sm:max-w-md md:max-w-none mx-auto lg:mx-0 lg:w-auto lg:flex-shrink-0">
         <!-- Page Size -->
         <div class="flex items-center justify-center sm:justify-start gap-1.5 border rounded-xl md:rounded-2xl px-2 md:px-3 py-1.5 md:py-2 bg-gray-200">
           <div class="flex items-center gap-1.5">

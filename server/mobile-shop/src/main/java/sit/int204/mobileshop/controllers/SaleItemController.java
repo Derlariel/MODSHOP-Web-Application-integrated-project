@@ -1,5 +1,24 @@
 package sit.int204.mobileshop.controllers;
 
+import java.io.IOException;
+import java.util.List;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -7,20 +26,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import sit.int204.mobileshop.config.FileStorageProperties;
 import sit.int204.mobileshop.dtos.SaleItemDetailDto;
 import sit.int204.mobileshop.dtos.SaleItemDto;
 import sit.int204.mobileshop.dtos.SaleItemRequestDto;
 import sit.int204.mobileshop.entities.SaleItem;
+import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.services.SaleItemService;
 import sit.int204.mobileshop.utils.ListMapper;
-
-import java.util.List;
 
 @CrossOrigin(origins = "${app.origins}")
 @RestController
@@ -35,6 +48,11 @@ public class SaleItemController {
 
     @Autowired
     private ListMapper listMapper;
+    @Autowired
+    private FileStorageProperties fileStorageProperties;
+
+    @Autowired
+    private SaleItemImageRepository saleItemImageRepository;
 
 
     @Operation(summary = "Get all products", description = "Retrieve all products")
@@ -64,9 +82,12 @@ public class SaleItemController {
     public ResponseEntity<SaleItemDetailDto> getProductById(
             @Parameter(description = "ID of the product to search", required = true)
             @PathVariable Integer id) {
-        SaleItem item = saleItemService.getSaleItemById(id);
-        SaleItemDetailDto dto = modelMapper.map(item, SaleItemDetailDto.class);
-        dto.setBrandName(item.getBrand().getName());
+//        SaleItem item = saleItemService.getSaleItemById(id);
+
+//        SaleItemDetailDto dto = modelMapper.map(item, SaleItemDetailDto.class);
+        SaleItem saleItem = modelMapper.map(saleItemService.getSaleItemById(id), SaleItem.class);
+        SaleItemDetailDto dto =  saleItemService.getSaleItemById(id);
+        dto.setBrandName(saleItem.getBrand().getName());
         return ResponseEntity.ok(dto);
     }
 
@@ -77,32 +98,43 @@ public class SaleItemController {
         @ApiResponse(responseCode = "400", description = "Invalid input data", 
                     content = @Content)
     })
+
     @PostMapping("")
     public ResponseEntity<SaleItemDetailDto> createSaleItem(
-            @Parameter(description = "Product data to create", required = true)
-            @Valid @RequestBody SaleItemRequestDto dtoItem) {
-        SaleItemDetailDto createdItem = saleItemService.createSaleItem(dtoItem);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdItem);
+            @RequestPart("data") String dtoItem,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    ) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        SaleItemRequestDto data = objectMapper.readValue(dtoItem, SaleItemRequestDto.class);
+
+        SaleItem saleItem = modelMapper.map(data, SaleItem.class);
+
+        saleItemService.createSaleItem(data, images);
+
+        SaleItemDetailDto responseDto = modelMapper.map(saleItem, SaleItemDetailDto.class);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
-    @Operation(summary = "Update product", description = "Update existing product information")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Product updated successfully", 
-                    content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid input data", 
-                    content = @Content),
-        @ApiResponse(responseCode = "404", description = "Product not found", 
-                    content = @Content)
-    })
-    @PutMapping("/{id}")
-    public ResponseEntity<SaleItemDetailDto> updateSaleItemById(
-            @Parameter(description = "ID of the product to update", required = true)
-            @PathVariable Integer id,
-            @Parameter(description = "Updated product data", required = true)
-            @Valid @RequestBody SaleItemRequestDto dtoItem) {
-        SaleItemDetailDto updatedItem = saleItemService.updateSaleItemById(id, dtoItem);
-        return ResponseEntity.ok(updatedItem);
-    }
+
+//    @Operation(summary = "Update product", description = "Update existing product information")
+//    @ApiResponses({
+//        @ApiResponse(responseCode = "200", description = "Product updated successfully",
+//                    content = @Content(schema = @Schema(implementation = SaleItemDetailDto.class))),
+//        @ApiResponse(responseCode = "400", description = "Invalid input data",
+//                    content = @Content),
+//        @ApiResponse(responseCode = "404", description = "Product not found",
+//                    content = @Content)
+//    })
+//    @PutMapping("/{id}")
+//    public ResponseEntity<SaleItemDetailDto> updateSaleItemById(
+//            @Parameter(description = "ID of the product to update", required = true)
+//            @PathVariable Integer id,
+//            @Parameter(description = "Updated product data", required = true)
+//            @Valid @RequestBody SaleItemRequestDto dtoItem) {
+//        SaleItemDetailDto updatedItem = saleItemService.updateSaleItemById(id, dtoItem);
+//        return ResponseEntity.ok(updatedItem);
+//    }
 
     @Operation(summary = "Delete product", description = "Delete product by specified ID")
     @ApiResponses({

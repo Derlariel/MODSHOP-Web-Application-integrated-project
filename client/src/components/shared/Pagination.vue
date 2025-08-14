@@ -147,7 +147,7 @@ onMounted(() => {
 <template>
   <div 
     v-if="totalPages > 1"
-    class="pagination-wrapper w-full py-6 px-4 bg-gray-950 overflow-x-auto"
+    class="pagination-wrapper w-full py-6 px-4 bg-gray-950  overflow-x-auto"
   >
     <div class="pagination-container flex items-center space-x-2 min-w-max mx-auto">
       <!-- First Button -->
