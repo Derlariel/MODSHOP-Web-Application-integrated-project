@@ -218,7 +218,7 @@ watch(formData,() => {
         :class="[
           isFormValid && !isError 
             ? 'bg-white text-black hover:bg-gray-100' 
-            : 'bg-red-400 text-black hover:bg-rose-600 cursor-not-allowed'
+            : 'bg-white/60 text-black hover:text-white  hover:bg-red-500/80 cursor-not-allowed'
         ]"
       >
         {{
