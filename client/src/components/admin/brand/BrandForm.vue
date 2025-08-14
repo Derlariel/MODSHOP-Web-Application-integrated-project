@@ -142,11 +142,12 @@ watch(formData,() => {
     <BaseInput
       cypress="itbms-name"
       v-model="formData.name"
-      label="Brand Name *"
+      label="Brand Name"
       id="brand-name"
       placeholder="Enter brand name"
       inputClass="itbms-name"
       :error="errors.name"
+      :required="true"
       @trim="trimField('name')"
     />
 
@@ -157,6 +158,7 @@ watch(formData,() => {
       id="website-url"
       placeholder="https://www.example.com"
       inputClass="itbms-websiteUrl"
+      :required="false"
       @trim="trimField('websiteUrl')"
       :error="errors.websiteUrl"
     />
@@ -167,6 +169,7 @@ watch(formData,() => {
       id="country"
       placeholder="Enter country of origin"
       inputClass="itbms-countryOfOrigin"
+      :required="false"
       @trim="trimField('countryOfOrigin')"
       :error="errors.countryOfOrigin"
     />
