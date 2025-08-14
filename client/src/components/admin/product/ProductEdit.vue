@@ -35,8 +35,16 @@ const title = computed(() => {
 });
 
 onMounted(async () => {
-  brandStore.loadBrands();
-  product.value = await productStore.fetchProductDetail(params.productId);
+
+  try {
+    await productStore.loadProducts();
+
+    product.value = await productStore.fetchProductDetail(params.productId);
+  } catch (e) {
+    router.push("/sale-items")
+    sessionStorage.setItem("error-message", "true")
+  }
+
 });
 </script>
   
@@ -49,7 +57,8 @@ onMounted(async () => {
         </h1>
         <HistoryPath :name-path="title" :previous="2" :next="1" />
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-          <ProductPicture />
+          <ProductPicture v-if="product && product.imageUrls" :images="product.imageUrls" />
+
           <ProductForm @submit="edit" v-if="product" :init="product" />
         </div>
       </div>

@@ -2,14 +2,14 @@ package sit.int204.mobileshop.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
+
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import sit.int204.mobileshop.dtos.BrandInfoDto;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.exceptions.BrandAlreadyExistException;
-import sit.int204.mobileshop.exceptions.ItemNotFoundException;
+
 import sit.int204.mobileshop.repositories.BrandRepository;
 
 import java.util.List;

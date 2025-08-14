@@ -61,13 +61,21 @@ const confirm = async () => {
 const showSuccess = ref(false);
 
 onMounted(async () => {
-  await productStore.loadProducts();
-  const result = await productStore.fetchProductDetail(productId);
-  product.value = result;
+  isLoading.value = true;
 
-  if (checkUpToDate(result)) {
-    showSuccess.value = false;
-    router.push("/sale-items");
+  try {
+    await productStore.loadProducts();
+
+    product.value = await productStore.fetchProductDetail(productId);
+
+    if (product.value && checkUpToDate(product)) {
+      showSuccess.value = false;
+      router.push("/sale-items");
+      return;
+    }
+  } catch (e) {
+    router.push("/sale-items")
+    sessionStorage.setItem("error-message", "true")
   }
 
   if (sessionStorage.getItem("edit-success") === "true") {
@@ -77,6 +85,7 @@ onMounted(async () => {
       showSuccess.value = false;
     }, 3000);
   }
+
   isLoading.value = false;
 });
 
@@ -94,7 +103,7 @@ onMounted(async () => {
       <div class="max-w-[1200px] mx-auto px-6">
         <HistoryPath :previous="1" :name-path="title" /> 
         <div class="itbms-row grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-          <ProductPicture />
+          <ProductPicture :images="product.imageUrls" />
 
           <div class="flex flex-col gap-8">
             <div class="itbms-row space-y-1">

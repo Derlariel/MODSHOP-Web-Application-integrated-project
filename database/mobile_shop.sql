@@ -169,3 +169,19 @@ INSERT INTO sale_item (id, brand_id, model, description, quantity, price, screen
 (83, 10, 'Find X5 Lite', 'Previous gen lite', 8, 14850, 6.43, 8, 128, 'Starry Black', '2021-10-10 13:25:00', '2023-11-15 15:10:00', 3.8),
 (84, 10, 'A77', 'Budget friendly', 20, 8250, 6.56, 6, 128, 'Ocean Blue', '2021-10-15 09:50:00', '2023-10-30 10:45:00', 3.7),
 (85, 10, 'Reno6 Pro', 'Classic premium', 7, 16500, 6.55, 12, 256, 'Arctic Blue', '2021-10-20 14:15:00', '2023-10-20 13:30:00', 4.1);
+
+create or replace view distinct_storage_size as
+select distinct storage_gb from sale_item where storage_gb is not null order by storage_gb asc;
+
+
+CREATE TABLE product_image (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sale_item_id INT NOT NULL,
+    image_url VARCHAR(255) NOT NULL,
+    is_primary TINYINT DEFAULT 0, 
+    created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (sale_item_id) REFERENCES sale_item(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_product_image_sale_item_id ON product_image(sale_item_id);

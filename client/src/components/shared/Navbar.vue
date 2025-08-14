@@ -3,7 +3,6 @@ import {
   Heart,
   ShoppingCart,
   User,
-  UserCog,
   Menu,
 } from "lucide-vue-next";
 import { useRoute } from "vue-router";
@@ -20,8 +19,9 @@ const toggleMobileMenu = () => {
   <nav class="fixed top-0 inset-x-0 bg-black bg-opacity-80 backdrop-blur-lg z-50 border-b border-neutral-800">
     <div class="relative flex justify-between items-center h-14 w-full px-4 sm:px-6 lg:px-8">
       <!-- Logo -->
-      <router-link to="/">
-        <div class="text-xl font-light tracking-wide text-white">KK1</div>
+      <router-link to="/" class="flex items-center gap-2">
+        <img src="@/assets/icon.png" alt="logo" class="w-8 h-8 rounded-md">
+        <div class="text-xl  tracking-wide text-white font-bold">MODSHOP</div>
       </router-link>
 
       <!-- Desktop Nav -->
@@ -31,10 +31,10 @@ const toggleMobileMenu = () => {
             <router-link :to="{name : 'Main'}">Home</router-link>
           </li>
           <li :class="route.path.startsWith('/sale-items') ? 'text-white font-light' : 'hover:text-white'">
-            <router-link :to="{name : 'product-gallery'}">Product</router-link>
+            <router-link :to="{name : 'product-gallery'}">Products</router-link>
           </li>
           <li class="hover:text-white">
-            <router-link :to="{name : 'brands-list'}">Brand</router-link>
+            <router-link :to="{name : 'brands-list'}">Brands</router-link>
           </li>
           <li class="hover:text-white">
             <router-link to="/about">About</router-link>

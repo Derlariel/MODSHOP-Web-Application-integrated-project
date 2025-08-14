@@ -5,7 +5,6 @@ import ProductForm from "./ProductForm.vue";
 import { useProductStore } from "@/stores/useProductStore";
 import { useRouter } from "vue-router";
 import HistoryPath from "@/components/shared/HistoryPath.vue";
-import {validateRamSize , validateScreenSize , validateStorageSize , validateColor} from "@/utils/validate.js"
 
 const productStore = useProductStore();
 const router = useRouter();

@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, computed, watch, ref } from "vue"; // Added ref import
+import { reactive, computed, watch, ref } from "vue"; 
 import BaseInput from "@/components/shared/BaseInput.vue";
 import { validateBrandName , runValidation , validateBrandOrigin , validateBrandURL } from "@/utils/validate.js"; 
 const props = defineProps({
@@ -90,7 +90,7 @@ const errors = reactive({
 });
 
 const handleSubmit = () => {
-  if (isFormValid.value) {
+  if (isFormValid.value && !isError.value) { 
     emit("submit", {
       name: formData.name.trim(),
       websiteUrl: formData.websiteUrl.trim(),
@@ -213,9 +213,13 @@ watch(formData,() => {
       </button>
       <button
         type="submit"
-        class="itbms-save-button text-black px-6 py-2.5 rounded hover:bg-gray-200 transition-colors duration-200 font-medium"
-        :disabled="!isFormValid || isError"
-        :class=" isFormValid && !isError ? 'bg-white' : 'bg-red-600' "
+        class="itbms-save-button px-6 py-2.5 rounded transition-colors duration-200 font-medium"
+        :disabled="!isFormValid || isError" 
+        :class="[
+          isFormValid && !isError 
+            ? 'bg-white text-black hover:bg-gray-100' 
+            : 'bg-red-400 text-black hover:bg-rose-600 cursor-not-allowed'
+        ]"
       >
         {{
           isSubmitting

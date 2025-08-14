@@ -1,9 +1,9 @@
-name: Deploy kk1 test cypress PBI 11 -
+name: Deploy kk1 test cypress PBI 11 x
 
 on:
   push:
     branches:
-      - release-v1
+      - main
 
 jobs:
   deploy:
@@ -21,7 +21,7 @@ jobs:
           set -x  
           cd /home/sysadmin/2-2567_INT221_KK-1
 
-          git pull https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git release-v1
+          git pull https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git main
 
           rm -f ./secrets/db_password
           mkdir -p ./secrets
