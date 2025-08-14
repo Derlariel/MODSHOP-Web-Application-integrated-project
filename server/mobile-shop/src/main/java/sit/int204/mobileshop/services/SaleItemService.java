@@ -24,10 +24,10 @@ import sit.int204.mobileshop.config.FileStorageProperties;
 import sit.int204.mobileshop.dtos.PageDto;
 import sit.int204.mobileshop.dtos.SaleItemDetailDto;
 import sit.int204.mobileshop.dtos.SaleItemDto;
+import sit.int204.mobileshop.dtos.SaleItemImageDto;
 import sit.int204.mobileshop.dtos.SaleItemRequestDto;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.entities.SaleItem;
-import sit.int204.mobileshop.entities.SaleItemImage;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
@@ -156,7 +156,7 @@ public class SaleItemService {
 
         SaleItemDetailDto dto = modelMapper.map(item, SaleItemDetailDto.class);
         dto.setBrandName(item.getBrand().getName());
-        dto.setImageUrls(getImageUrls(id));
+//        dto.setImageUrls(getImageUrls(id));
 
         log.info("Retrieved SaleItem with ID: " + id + " with " + dto.getImageUrls().size() + " images");
         return dto;
@@ -184,35 +184,38 @@ public class SaleItemService {
         entityManager.refresh(savedItem);
 
         if (images != null && !images.isEmpty()) {
-            boolean isFirst = true;
+            Integer order = 1;
             for (MultipartFile file : images) {
                 if (!file.isEmpty()) {
-                    fileService.saveFile(file, savedItem.getId(), isFirst);
-                    isFirst = false; // Only the first image is primary
+                    fileService.saveFile(file, savedItem.getId(), order);
+                    order++;
                 }
             }
         }
 
-        SaleItemDetailDto result = modelMapper.map(savedItem, SaleItemDetailDto.class);
-        result.setBrandName(brand.getName());
-        result.setImageUrls(getImageUrls(savedItem.getId()));
+        SaleItemDetailDto saleItem = modelMapper.map(savedItem, SaleItemDetailDto.class);
+        saleItem.setSaleItemImages(listMapper.mapList(saleItemImageRepository.findAllBySaleItemId(saleItem.getId()), SaleItemImageDto.class, modelMapper));
+
         log.info("Created SaleItem with ID: " + savedItem.getId());
-        return result;
+        return saleItem;
     }
 
-    /**
-     * Deletes a SaleItem by ID.
-     *
-     * @param id the ID of the SaleItem to delete
-     */
+    @Transactional
     public void deleteSaleItemById(Integer id) {
-        SaleItem item = saleItemRepository.findById(id)
-                .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
-        saleItemImageRepository.findAllBySaleItemId(id).forEach(image ->
-                fileService.deleteImageById(image.getId()));
-        saleItemRepository.delete(item);
-        log.info("Deleted SaleItem with ID: " + id);
+        if(!saleItemRepository.findById(id).isPresent()) {
+            throw new ItemNotFoundException("SaleItem not found for this id :: " + id);
+        }
+        saleItemRepository.deleteById(id);
     }
+
+//    public void deleteSaleItemById(Integer id) {
+//        SaleItem item = saleItemRepository.findById(id)
+//                .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
+//        saleItemImageRepository.findAllBySaleItemId(id).forEach(image ->
+//                fileService.deleteImageById(image.getId()));
+//        saleItemRepository.delete(item);
+//        log.info("Deleted SaleItem with ID: " + id);
+//    }
 
     // ===== Helper Methods =====
 
@@ -246,9 +249,9 @@ public class SaleItemService {
         return item;
     }
 
-    private List<String> getImageUrls(Integer saleItemId) {
-        return saleItemImageRepository.findAllBySaleItemId(saleItemId).stream()
-                .map(SaleItemImage::getImageUrl)
-                .collect(Collectors.toList());
-    }
+//    private List<String> getImageUrls(Integer saleItemId) {
+//        return saleItemImageRepository.findAllBySaleItemId(saleItemId).stream()
+//                .map(SaleItemImage::getImageUrl)
+//                .collect(Collectors.toList());
+//    }
 }

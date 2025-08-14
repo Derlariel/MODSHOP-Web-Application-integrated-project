@@ -22,6 +22,7 @@ public class SaleItemDetailDto {
     @Min(value = 0)
     private Integer ramGb;
     private BigDecimal screenSizeInch;
+    private List<SaleItemImageDto> saleItemImages;
     @Min(value = 0)
     private Integer storageGb;
     private String color;

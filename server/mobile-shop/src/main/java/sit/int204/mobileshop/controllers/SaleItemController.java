@@ -26,6 +26,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import sit.int204.mobileshop.config.FileStorageProperties;
 import sit.int204.mobileshop.dtos.SaleItemDetailDto;
 import sit.int204.mobileshop.dtos.SaleItemDto;
@@ -34,6 +40,9 @@ import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.services.SaleItemService;
 import sit.int204.mobileshop.utils.ListMapper;
+
+import java.io.IOException;
+import java.util.List;
 
 @CrossOrigin(origins = "${app.origins}")
 @RestController
@@ -68,7 +77,7 @@ public class SaleItemController {
         if (products.isEmpty()) {
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.ok(listMapper.toListDto(products, SaleItemDto.class, modelMapper));
+        return ResponseEntity.ok(listMapper.mapList(products, SaleItemDto.class, modelMapper));
     }
 
     @Operation(summary = "Get product by ID", description = "Search and retrieve product using product ID")
@@ -136,19 +145,19 @@ public class SaleItemController {
 //        return ResponseEntity.ok(updatedItem);
 //    }
 
-    @Operation(summary = "Delete product", description = "Delete product by specified ID")
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Product deleted successfully", 
-                    content = @Content),
-        @ApiResponse(responseCode = "404", description = "Product not found", 
-                    content = @Content)
-    })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSaleItemById(
-            @Parameter(description = "ID of the product to delete", required = true)
-            @PathVariable Integer id) {
-        saleItemService.deleteSaleItemById(id);
-        return ResponseEntity.noContent().build();
-    }
+//    @Operation(summary = "Delete product", description = "Delete product by specified ID")
+//    @ApiResponses({
+//        @ApiResponse(responseCode = "204", description = "Product deleted successfully",
+//                    content = @Content),
+//        @ApiResponse(responseCode = "404", description = "Product not found",
+//                    content = @Content)
+//    })
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Void> deleteSaleItemById(
+//            @Parameter(description = "ID of the product to delete", required = true)
+//            @PathVariable Integer id) {
+//        saleItemService.deleteSaleItemById(id);
+//        return ResponseEntity.noContent().build();
+//    }
 
 }
