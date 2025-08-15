@@ -35,9 +35,9 @@ const message = errorMessages[code] || errorMessages.default;
 
 // Clear filters and reset page when NODATA error occurs
 const clearFiltersAndGoBack = () => {
-  // Clear all session storage filters
-  sessionStorage.removeItem("filterAndSort");
-  sessionStorage.removeItem("activePage");
+  // Clear all localStorage filters
+  localStorage.removeItem("filterAndSort");
+  localStorage.removeItem("activePage");
   
   // Reset product store page
   productStore.setActivePage(1);
@@ -53,8 +53,8 @@ const clearFiltersAndGoBack = () => {
 onMounted(() => {
   if (code === 'NODATA') {
     // Clear filters immediately when NODATA error page loads
-    sessionStorage.removeItem("filterAndSort");
-    sessionStorage.removeItem("activePage");
+    localStorage.removeItem("filterAndSort");
+    localStorage.removeItem("activePage");
     productStore.setActivePage(1);
     
     // Set a flag to indicate filters were cleared automatically
