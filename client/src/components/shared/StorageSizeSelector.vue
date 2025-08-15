@@ -17,72 +17,48 @@ const emit = defineEmits([
 ]);
 
 const showDropdown = ref(false);
-const availableStorageSizes = ref(["Not specified", 32, 64, 128, 256, 512, 1024]);
+const availableStorageSizes = ref([
+  { value: "64", label: "64GB" },
+  { value: "128", label: "128GB" },
+  { value: "256", label: "256GB" },
+  { value: "512", label: "512GB" },
+  { value: "null", label: "Not specified" }
+]);
 
 const selectedSizes = computed({
   get() {
-    // Convert API values (with null) to display values (with "Not specified")
-    return props.modelValue.map(toDisplayValue);
+    return props.modelValue;
   },
   set(value) {
     emit("update:modelValue", value);
   }
 });
 
-// Helper function to convert display value to API value
-const toApiValue = (displayValue) => {
-  return displayValue === "Not specified" ? null : displayValue;
-};
-
-// Helper function to convert API value to display value
-const toDisplayValue = (apiValue) => {
-  return apiValue === null ? "Not specified" : apiValue;
-};
-
 const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value;
 };
 
-const selectStorageSize = (size) => {
-  // If "Not specified" is selected, clear all other selections and only keep "Not specified"
-  if (size === "Not specified") {
-    if (selectedSizes.value.includes("Not specified")) {
-      // If "Not specified" is already selected, remove it (toggle off)
-      emit("update:modelValue", []);
-      emit("storage-removed", null);
-    } else {
-      // Clear all and select only "Not specified"
-      emit("update:modelValue", [null]);
-      emit("storage-selected", null);
-    }
-    return;
-  }
-
-  // If any specific storage size is selected, remove "Not specified" first
+const selectStorageSize = (storageOption) => {
   let newSelection;
-  if (selectedSizes.value.includes(size)) {
+  const storageValue = storageOption.value;
+  
+  if (selectedSizes.value.includes(storageValue)) {
     // Remove the selected size
-    newSelection = selectedSizes.value.filter(s => s !== size);
+    newSelection = selectedSizes.value.filter(s => s !== storageValue);
+    emit("storage-removed", storageValue);
   } else {
-    // Add the new size and remove "Not specified" if it exists
-    newSelection = [size, ...selectedSizes.value.filter(s => s !== "Not specified")];
+    // Add the new size
+    newSelection = [...selectedSizes.value, storageValue];
+    emit("storage-selected", storageValue);
   }
   
-  const apiValues = newSelection.map(toApiValue);
-  emit("update:modelValue", apiValues);
-  
-  if (selectedSizes.value.includes(size)) {
-    emit("storage-removed", toApiValue(size));
-  } else {
-    emit("storage-selected", toApiValue(size));
-  }
+  emit("update:modelValue", newSelection);
 };
 
 const removeStorageSize = (size) => {
   const newSelection = selectedSizes.value.filter(s => s !== size);
-  const apiValues = newSelection.map(toApiValue);
-  emit("update:modelValue", apiValues);
-  emit("storage-removed", toApiValue(size));
+  emit("update:modelValue", newSelection);
+  emit("storage-removed", size);
 };
 
 const clearAllStorageSizes = () => {
@@ -91,11 +67,8 @@ const clearAllStorageSizes = () => {
 };
 
 const formatStorageSize = (size) => {
-  if (size === "Not specified") {
+  if (size === "null") {
     return "Not specified";
-  }
-  if (size >= 1024) {
-    return `${size / 1024}TB`;
   }
   return `${size}GB`;
 };
@@ -150,15 +123,15 @@ const formatStorageSize = (size) => {
       <div v-if="showDropdown" class="absolute left-0 top-full mt-1 w-full z-50">
         <ul class="bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto w-full">
           <li
-            v-for="size in availableStorageSizes"
-            :key="size"
-            @click="selectStorageSize(size)"
+            v-for="storageOption in availableStorageSizes"
+            :key="storageOption.value"
+            @click="selectStorageSize(storageOption)"
             class="itbms-storage-size-option px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0 transition-colors"
-            :class="{ 'bg-blue-50 text-blue-700': selectedSizes.includes(size) }"
+            :class="{ 'bg-blue-50 text-blue-700': selectedSizes.includes(storageOption.value) }"
           >
             <span class="flex items-center justify-between">
-              {{ formatStorageSize(size) }}
-              <span v-if="selectedSizes.includes(size)" class="text-blue-600">✓</span>
+              {{ storageOption.label }}
+              <span v-if="selectedSizes.includes(storageOption.value)" class="text-blue-600">✓</span>
             </span>
           </li>
         </ul>

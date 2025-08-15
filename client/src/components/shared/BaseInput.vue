@@ -44,8 +44,8 @@ const onBlur = () => {
   <div class="space-y-1">
     <div class="flex justify-between items-center">
       <label :for="id || cypress" class="block text-sm font-medium text-gray-300">
-        {{ label }}<span class="text-red-500 ml-1">*</span>
-      </label>
+        {{ label }}<span v-if="required" class="text-red-500 ml-1">*</span>
+      </label> 
 
     </div>
     <div class="relative">

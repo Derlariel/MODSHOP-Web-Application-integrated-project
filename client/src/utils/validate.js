@@ -103,7 +103,6 @@ export const validateBrandName = data => {
 };
 
 export const validateBrandURL = data => {
-  console.log ('VALIDATING URL:', data);
   const valid = data === '' || /^https?:\/\/[^\s$.?#].[^\s]*$/.test (data);
   return {
     valid,
