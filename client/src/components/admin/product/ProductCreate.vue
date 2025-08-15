@@ -14,7 +14,7 @@ const add = async (data) => {
     await productStore.createProduct(data);
     sessionStorage.setItem("add-success", "true");
     router.push({ name: "product-gallery" });
-    sessionStorage.setItem("activePage", 1);
+    localStorage.setItem("activePage", 1);
     productStore.setActivePage(1)
     console.log("active page", productStore.getActivePage);
    console.log("test", sessionStorage.getItem("add-success"));

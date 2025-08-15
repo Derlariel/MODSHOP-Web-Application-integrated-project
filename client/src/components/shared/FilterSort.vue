@@ -32,7 +32,7 @@ const fetchBrands = async () => {
   }
 };
 
-const stored = sessionStorage.getItem("filterAndSort");
+const stored = localStorage.getItem("filterAndSort");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
@@ -45,29 +45,29 @@ if (stored) {
     sortField.value = parsed.sortField || "createdOn";
     sortDirection.value = parsed.sortDirection || "asc";
   } catch (e) {
-    console.error("Invalid session data", e);
+    console.error("Invalid localStorage data", e);
   }
 }
 
 const onBrandSelected = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onBrandRemoved = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onBrandsClear = () => {
   selectedBrands.value = [];
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onPriceSelected = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onPriceCleared = () => {
@@ -75,23 +75,23 @@ const onPriceCleared = () => {
   upperPrice.value = null;
   isExactPrice.value = false;
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onStorageSelected = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onStorageRemoved = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onStorageClear = () => {
   selectedStorageSizes.value = [];
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const clearAllFilters = () => {
@@ -101,34 +101,34 @@ const clearAllFilters = () => {
   isExactPrice.value = false;
   selectedStorageSizes.value = [];
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const resetSort = () => {
   sortField.value = "createdOn";
   sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const sortByBrandAsc = () => {
   sortField.value = "brand.name";
   sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const sortByBrandDesc = () => {
   sortField.value = "brand.name";
   sortDirection.value = "desc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 watch(
   [selectedBrands, lowerPrice, upperPrice, isExactPrice, selectedStorageSizes, size, sortField, sortDirection, () => productStore.activePage],
   () => {
-    sessionStorage.setItem(
+    localStorage.setItem(
       "filterAndSort",
       JSON.stringify({
         filterBrands: selectedBrands.value,
@@ -159,7 +159,7 @@ watch(
 
 onMounted(() => {
   fetchBrands();
-  if (!sessionStorage.getItem("filterAndSort")) {
+  if (!localStorage.getItem("filterAndSort")) {
     selectedBrands.value = [];
     lowerPrice.value = null;
     upperPrice.value = null;
@@ -168,7 +168,7 @@ onMounted(() => {
     sortField.value = "createdOn";
     sortDirection.value = "asc";
     productStore.setActivePage(1);
-    sessionStorage.setItem("activePage", 1);
+    localStorage.setItem("activePage", 1);
   }
 });
 
