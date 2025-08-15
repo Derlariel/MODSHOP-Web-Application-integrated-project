@@ -105,12 +105,10 @@ const handleCancel = () => {
 };
 
 const trimField = (field) => {
-  console.log(field);
   if (typeof formData[field] === "string") {
     formData[field] = formData[field].trim() || "";
   }
 
-  console.log(field);
 
   validateField(field);
 };
@@ -130,7 +128,9 @@ const validateField = (field) => {
 };
 
 watch(formData,() => {
-
+  validateField('name');
+  validateField('websiteUrl');
+  validateField('countryOfOrigin');
   isError.value = Object.values(errors).some(error => error !== null)
 
 }, {deep: true, immediate: true})
