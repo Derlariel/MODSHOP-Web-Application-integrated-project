@@ -139,7 +139,20 @@ public class SaleItemService {
             }
         }
 
-        Page<SaleItem> saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands, storageSize, lowerPrice, upperPrice, isExactPrice);
+        // Check if null storage should be included in the filter
+        Boolean includeNullStorage = false;
+        if (storageSize != null && storageSize.contains("null")) {
+            includeNullStorage = true;
+            // Remove "null" from the storage list as it's handled separately
+            storageSize = storageSize.stream()
+                    .filter(s -> !"null".equals(s))
+                    .collect(Collectors.toList());
+            if (storageSize.isEmpty()) {
+                storageSize = null;
+            }
+        }
+
+        Page<SaleItem> saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands, storageSize, includeNullStorage, lowerPrice, upperPrice, isExactPrice);
         return listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
     }
 
