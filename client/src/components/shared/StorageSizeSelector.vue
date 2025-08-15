@@ -18,13 +18,11 @@ const emit = defineEmits([
 
 const showDropdown = ref(false);
 const availableStorageSizes = ref([
-  { value: "null", label: "Not specified" },
-  { value: "32", label: "32GB" },
   { value: "64", label: "64GB" },
   { value: "128", label: "128GB" },
   { value: "256", label: "256GB" },
   { value: "512", label: "512GB" },
-  { value: "1024", label: "1024GB" }
+  { value: "null", label: "Not specified" }
 ]);
 
 const selectedSizes = computed({
@@ -72,11 +70,7 @@ const formatStorageSize = (size) => {
   if (size === "null") {
     return "Not specified";
   }
-  const numSize = parseInt(size);
-  if (numSize >= 1024) {
-    return `${numSize / 1024}TB`;
-  }
-  return `${numSize}GB`;
+  return `${size}GB`;
 };
 </script>
  
