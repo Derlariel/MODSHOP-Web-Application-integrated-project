@@ -1,4 +1,3 @@
-
 package sit.int204.mobileshop.services;
 
 import java.io.IOException;
@@ -71,7 +70,7 @@ public class SaleItemService {
      * @return list of all SaleItems
      */
     public List<SaleItem> getAllSaleItems() {
-        return saleItemRepository.findAllByOrderByCreatedOnAsc();
+        return saleItemRepository.findAll();
     }
 
     /**
@@ -117,8 +116,7 @@ public class SaleItemService {
             size = 10;
         }
 
-        Sort sort = Sort.by(new Sort.Order(direction, sortField))
-                .and(Sort.by(Sort.Direction.ASC, "createdOn"));
+        Sort sort = Sort.by(new Sort.Order(direction, sortField));
         Pageable pageable = PageRequest.of(page, size, sort);
 
         if (filterBrands != null) {
