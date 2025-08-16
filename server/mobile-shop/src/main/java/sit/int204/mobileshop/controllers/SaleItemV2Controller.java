@@ -35,6 +35,9 @@ import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.services.SaleItemImageService;
 import sit.int204.mobileshop.services.SaleItemService;
 import sit.int204.mobileshop.utils.ListMapper;
+import sit.int204.mobileshop.dtos.PageDto;
+
+import java.util.List;
 
 @CrossOrigin(origins = "${app.origins}")
 @RestController
@@ -135,8 +138,10 @@ public class SaleItemV2Controller {
             @Parameter(description = "Price range")
             @RequestParam(required = false) String upperPrice,
 
+
             @Parameter(description = "Whether to use exact price matching for single price filter")
             @RequestParam(defaultValue = "false") Boolean isExactPrice,
+
 
             @Parameter(description = "Sort direction (asc or desc)")
             @RequestParam(defaultValue = "asc") String sortDirection) throws MissingServletRequestParameterException {
@@ -148,7 +153,11 @@ public class SaleItemV2Controller {
         Integer lower = (lowerPrice == null || lowerPrice.equals("null")) ? null : Integer.valueOf(lowerPrice);
         Integer upper = (upperPrice == null || upperPrice.equals("null")) ? null : Integer.valueOf(upperPrice);
 
-        PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(page, size, filterBrands, storageSize, lower, upper, isExactPrice, sortField,
+// <<<<<<< pbi15-connect-fe-be-upload-pictures
+//         PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(page, size, filterBrands, storageSize, lower, upper, isExactPrice, sortField,
+// =======
+        PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(page, size, filterBrands, storageSize, lower, upper, sortField,
+
                 sortDirection);
         return ResponseEntity.ok(pagedResult);
     }

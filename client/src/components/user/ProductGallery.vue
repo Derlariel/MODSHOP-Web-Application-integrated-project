@@ -71,6 +71,11 @@ async function initProducts() {
         filters.value.upperPrice !== null ||
         filters.value.storageSize.length > 0;
 
+      const hasFilters = filters.value.filterBrands.length > 0 || 
+                        filters.value.lowerPrice !== null || 
+                        filters.value.upperPrice !== null || 
+                        filters.value.storageSize.length > 0;
+      
       if (hasFilters) {
         // If filters are applied and no results, show no products message
         noProductsFromFilter.value = true;
