@@ -30,6 +30,7 @@ const emit = defineEmits([
   "brand-selected",
   "brand-removed",
   "clear-brands",
+  "blur",
 ]);
 
 const showDropdown = ref(false);
@@ -91,6 +92,10 @@ const handleSelect = (event) => {
     emit("brand-selected", selectedBrand);
   }
 };
+
+function onBlur(e) {
+  emit('blur', e)         // ปล่อย event blur ออกไป
+}
 </script>
 
 <template>

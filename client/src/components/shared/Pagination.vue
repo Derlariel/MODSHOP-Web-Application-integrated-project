@@ -58,7 +58,7 @@ const setActivePage = (page) => {
   if (page < 1 || page > props.totalPages) return
   
   currentPage.value = page
-  emit('page-change', page)
+  emit('sendPages', page)
 
   localStorage.setItem('activePage', String(page))
   productStore.setActivePage(page)
