@@ -240,7 +240,7 @@ defineExpose({
           <div class="w-full md:w-auto md:flex-shrink-0">
             <button 
               @click="clearAllFilters"
-              class="itbms-brand-filter-clear w-full md:w-auto px-3 md:px-4 py-1.5 md:py-2 bg-gray-700 text-white rounded-full hover:bg-gray-500 transition-colors duration-200 font-medium text-xs md:text-sm h-[32px] md:h-[36px] whitespace-nowrap"
+              class="itbms-brand-filter-clear w-full md:w-auto px-3 md:px-4 py-1.5 md:py-2 bg-black/80  text-white rounded-full hover:bg-black/90 cursor-pointer transition-colors duration-200 font-medium text-xs md:text-sm h-[32px] md:h-[36px] whitespace-nowrap"
             >
               Clear
             </button>
@@ -255,7 +255,7 @@ defineExpose({
           <div class="flex items-center gap-1.5">
             <label for="page-size" class="text-xs md:text-sm font-medium whitespace-nowrap">Show</label>
             <select name="page-size" id="page-size" v-model="size"
-                    class="itbms-page-size bg-gray-400/70 text-black/70 border border-gray-300 rounded-md text-xs md:text-sm cursor-pointer focus:outline-none px-1.5 md:px-2 py-0.5 md:py-1">
+                    class="itbms-page-size bg-gray-400/70 text-black/70  border-black rounded-md text-xs md:text-sm cursor-pointer focus:outline-none px-1.5 md:px-2 py-0.5 md:py-1">
               <option value="5">5</option>
               <option value="10">10</option>
               <option value="20">20</option>

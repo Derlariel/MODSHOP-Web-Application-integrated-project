@@ -175,7 +175,7 @@ watch(() => [props.lowerPrice, props.upperPrice, props.isExactPrice], ([newLower
 
       <!-- Action buttons -->
       <div class="flex-shrink-0 flex">
-        <button @click="toggleDropdown" class="itbms-price-filter px-2 md:px-3 py-1.5 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md w-[42px] md:w-[48px] h-[32px] md:h-[36px] rounded-l-none flex items-center justify-center">
+        <button @click="toggleDropdown" class="itbms-price-filter px-2 md:px-3 py-1.5 bg-black/90  hover:bg-black/80 transition rounded-md w-[42px] md:w-[48px] h-[32px] md:h-[36px] rounded-l-none flex items-center justify-center">
           <span class="text-white text-sm md:text-base">₿</span>
         </button>
       </div>
@@ -184,7 +184,7 @@ watch(() => [props.lowerPrice, props.upperPrice, props.isExactPrice], ([newLower
     <!-- Dropdown menu -->
     <div class="relative w-full ">
       <div v-if="showDropdown" class="absolute left-0 top-full mt-1 w-full z-50">
-        <div class="bg-white border border-gray-300 rounded-md shadow-lg p-4 w-[100%%] md:w-[32vw] lg:w-[24vw] xl:w-[18vw]">  
+        <div class="bg-white border border-gray-300 rounded-md shadow-lg p-4 w-[100%] md:w-[32vw] lg:w-[24vw] xl:w-[18vw]">  
           <!-- Pre-defined ranges -->
             <div >
             <div class="space-y-1">
@@ -214,7 +214,7 @@ watch(() => [props.lowerPrice, props.upperPrice, props.isExactPrice], ([newLower
                 type="number"
                 placeholder="Min"
                 cypress="itbms-price-item-min "
-                :class="['text-black flex-1 text-[0.75rem] lg:max-w-[5.5rem] ', customMinPrice ? '' : 'border-gray-300']"
+                :class="['text-black flex-1 text-[0.75rem] lg:max-w-[6.5rem] ', customMinPrice ? '' : 'border-gray-300']"
                 min="0"
                 prefix="฿"
                 @blur="handleMinPriceBlur"
@@ -226,13 +226,13 @@ watch(() => [props.lowerPrice, props.upperPrice, props.isExactPrice], ([newLower
                 type="number"
                 placeholder="Max"
                 cypress="itbms-price-item-max "
-                :class="['text-black flex-1 text-[0.75rem] lg:max-w-[5.5rem] ', customMaxPrice ? '' : 'border-gray-300']"
+                :class="['text-black flex-1 text-[0.75rem] lg:max-w-[6.5rem] ', customMaxPrice ? '' : 'border-gray-300']"
                 min="0"
                 prefix="฿"
                 @blur="handleMaxPriceBlur"
                 @keydown="handleMaxPriceKeydown"
               />
-              <span class="text-sm text-gray-600">Baht</span>
+
             </div>
           </div>
         </div>
