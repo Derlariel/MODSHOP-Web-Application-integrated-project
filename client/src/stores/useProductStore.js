@@ -96,7 +96,7 @@ export const useProductStore = defineStore("product", {
     async loadAllPages(params) {
       try {
         const data = await getProductsPage(`${BASE_URL}/v2/sale-items`, params);
-        console.log("data.totalPages "+data.totalPages)
+        console.log("data.totalPages " + data.totalPages);
         this.totalPages = data.totalPages;
         return data;
       } catch (err) {
@@ -104,43 +104,46 @@ export const useProductStore = defineStore("product", {
       }
     },
 
-   async createProduct(product) {
-  try {
-    const formData = new FormData();
+    async createProduct(product) {
+      try {
+        const formData = new FormData();
 
-    const plainProduct = JSON.parse(JSON.stringify(product));
+        const plainProduct = JSON.parse(JSON.stringify(product));
 
-    formData.append("model", plainProduct.model);
-    formData.append("description", plainProduct.description);
-    formData.append("price", plainProduct.price);
-    formData.append("ramGb", plainProduct.ramGb);
-    formData.append("screenSizeInch", plainProduct.screenSizeInch);
-    formData.append("quantity", plainProduct.quantity);
-    formData.append("storageGb", plainProduct.storageGb);
-    formData.append("color", plainProduct.color);
-    formData.append("brand.id", plainProduct.brand.id);
-    formData.append("brand.name", plainProduct.brand.name);
+        formData.append("model", plainProduct.model);
+        formData.append("description", plainProduct.description);
+        formData.append("price", plainProduct.price);
+        formData.append("ramGb", plainProduct.ramGb);
+        formData.append("screenSizeInch", plainProduct.screenSizeInch);
+        formData.append("quantity", plainProduct.quantity);
+        formData.append("storageGb", plainProduct.storageGb);
+        formData.append("color", plainProduct.color);
+        formData.append("brand.id", plainProduct.brand.id);
+        formData.append("brand.name", plainProduct.brand.name);
 
-    if (product.images && Array.isArray(product.images)) {
-      product.images.forEach((file, index) => {
-        if (file instanceof File) {
-          formData.append("images", file);
-        } else {
-          console.warn(`Image at index ${index} is not a File, skipping:`, file);
+        if (product.images && Array.isArray(product.images)) {
+          product.images.forEach((file, index) => {
+            if (file instanceof File) {
+              formData.append("images", file);
+            } else {
+              console.warn(
+                `Image at index ${index} is not a File, skipping:`,
+                file
+              );
+            }
+          });
         }
-      });
-    }
 
-    const newProduct = await addProduct(`${BASE_URL}/v2/sale-items`, formData);
-    this.products.push(newProduct);
+        const newProduct = await addProduct(
+          `${BASE_URL}/v2/sale-items`,
+          formData
+        );
+        this.products.push(newProduct);
+      } catch (err) {
+        console.error("Failed to add product", err);
+      }
+    },
 
-  } catch (err) {
-    console.error("❌ Failed to add product", err);
-  }
-}
-
-
-,
     async updateProduct(product) {
       try {
         const updated = await updateProductById(
