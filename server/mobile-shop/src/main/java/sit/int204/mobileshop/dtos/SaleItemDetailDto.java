@@ -30,5 +30,4 @@ public class SaleItemDetailDto {
     private Instant createdOn;
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "Asia/Bangkok")
     private Instant updatedOn;
-    private List<String> imageUrls;
 }

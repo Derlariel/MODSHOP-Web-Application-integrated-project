@@ -1,5 +1,5 @@
 <script setup>
-import {} from "vue";
+import {ref} from "vue";
 import ProductPicture from "@/components/shared/ProductPicture.vue";
 import ProductForm from "./ProductForm.vue";
 import { useProductStore } from "@/stores/useProductStore";
@@ -9,17 +9,25 @@ import HistoryPath from "@/components/shared/HistoryPath.vue";
 const productStore = useProductStore();
 const router = useRouter();
 
+const picSelect = ref(null);
+
+const saleItemPic = (data) => {
+  console.log("📥 รับรูปจาก child", data);
+  picSelect.value = data;
+};
 const add = async (data) => {
   try {
+    
+    data.images = picSelect.value;
+
     await productStore.createProduct(data);
+
     sessionStorage.setItem("add-success", "true");
     router.push({ name: "product-gallery" });
     localStorage.setItem("activePage", 1);
     productStore.setActivePage(1)
     console.log("active page", productStore.getActivePage);
-   console.log("test", sessionStorage.getItem("add-success"));
-   
-    
+    console.log("test", sessionStorage.getItem("add-success"));
   } catch (error) {
     console.error("Error creating product:", error);
   }
@@ -36,7 +44,7 @@ const add = async (data) => {
         </h1>
         <HistoryPath :previous="1" name-path="New Sale Item" />
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-          <ProductPicture />
+          <ProductPicture @save-pic="saleItemPic" />
           <ProductForm @submit="add" />
         </div>
       </div>

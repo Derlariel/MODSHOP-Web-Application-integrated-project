@@ -71,6 +71,20 @@ public class SaleItemV2Controller {
 //        saleItemImageService
 //    }
 
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SaleItemDetailDto> getProductById(
+            @Parameter(description = "ID of the product to search", required = true)
+            @PathVariable Integer id) {
+//        SaleItem item = saleItemService.getSaleItemById(id);
+
+//        SaleItemDetailDto dto = modelMapper.map(item, SaleItemDetailDto.class);
+        SaleItem saleItem = modelMapper.map(saleItemService.getSaleItemById(id), SaleItem.class);
+        SaleItemDetailDto dto =  saleItemService.getSaleItemById(id);
+        dto.setBrandName(saleItem.getBrand().getName());
+        return ResponseEntity.ok(dto);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<SaleItemDetailDto> deleteSaleItemPictures(@PathVariable Integer id) {
         saleItemService.deleteSaleItemById(id);

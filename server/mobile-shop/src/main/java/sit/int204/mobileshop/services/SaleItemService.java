@@ -166,10 +166,11 @@ public class SaleItemService {
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
 
         SaleItemDetailDto dto = modelMapper.map(item, SaleItemDetailDto.class);
+        System.out.println("saleItemImageRepository.findAllBySaleItemId(id)" + saleItemImageRepository.findAllBySaleItemId(id));
+        dto.setSaleItemImages(listMapper.mapList(saleItemImageRepository.findAllBySaleItemId(id), SaleItemImageDto.class, modelMapper));
         dto.setBrandName(item.getBrand().getName());
 //        dto.setImageUrls(getImageUrls(id));
 
-        log.info("Retrieved SaleItem with ID: " + id + " with " + dto.getImageUrls().size() + " images");
         return dto;
     }
 

@@ -1,5 +1,7 @@
 <script setup>
-import { ref, defineExpose, defineProps, reactive } from "vue";
+import { ref, defineExpose, defineProps, reactive, defineEmits } from "vue";
+
+const emit = defineEmits(['sendSelectPictures'])
 
 const BASE_URL = "http://localhost:8080/itb-mshop/";
 
@@ -9,6 +11,12 @@ const props = defineProps({
     default: () => [],
   },
 });
+
+const sendPic = () => {
+  emit('sendSelectPictures', selectedFiles.slice());
+  console.log('selected', selectedFiles)
+  closeModal()
+}
 
 const showModal = ref(false);
 
@@ -131,10 +139,10 @@ const uploadFiles = async () => {
 
   // append ไฟล์ใหม่
   selectedFiles.forEach((file) => {
-    if (file) formData.append("files", file);
+    if (file) formData.append("images", file);
   });
 
-  // เตรียมส่งชื่อไฟล์รูปเดิมที่ยังไม่ถูกลบ
+  
   const existingFileNames = existingImages
     .filter((img) => img !== null)
     .map((img) => {
@@ -148,7 +156,6 @@ const uploadFiles = async () => {
     return;
   }
 
-  // จำลองข้อมูลที่ส่งไป backend
   console.log("=== Data to send to backend ===");
   console.log("Existing images filenames:", existingFileNames);
 
@@ -160,22 +167,21 @@ const uploadFiles = async () => {
     }
   }
 
-  // ตัวอย่างการส่งจริง (comment ไว้สำหรับ debug)
-  /*
-  try {
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
+ 
+  // try {
+  //   const res = await fetch("/api/upload", {
+  //     method: "POST",
+  //     body: formData,
+  //   });
 
-    if (!res.ok) throw new Error("Upload failed.");
+  //   if (!res.ok) throw new Error("Upload failed.");
 
-    alert("Upload successful.");
-    closeModal();
-  } catch (error) {
-    alert(error.message);
-  }
-  */
+  //   alert("Upload successful.");
+  //   closeModal();
+  // } catch (error) {
+  //   alert(error.message);
+  // }
+
 };
 
 
@@ -282,7 +288,8 @@ defineExpose({
             />
 
             <button
-              @click="uploadFiles"
+              
+              @click="sendPic"
               class="px-5 py-2 rounded bg-orange-500 text-white hover:bg-orange-700 transition"
             >
               Save
