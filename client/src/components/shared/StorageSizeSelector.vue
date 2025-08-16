@@ -74,30 +74,6 @@ const formatStorageSize = (size) => {
 };
 
 
-const fetchStorageSizes = async () => {
-  try {
-    const BASE_URL = import.meta.env.VITE_BASE_URL;
-    // First try to get distinct storage sizes from the view
-    const res = await fetch(`${BASE_URL}/v1/sale-items/distinct-storage-size`);
-    if (res.ok) {
-      const data = await res.json();
-      // Assuming the view returns an array of objects with storage_gb property
-      const dbSizes = data.map(item => item.storage_gb || item.storageGb).sort((a, b) => a - b);
-      // Add "Not specified" option
-      availableStorageSizes.value = [...dbSizes, "Not specified"];
-    } else {
-      // Fallback to default sizes if API fails
-      availableStorageSizes.value = defaultStorageSizes;
-    }
-  } catch (err) {
-    console.error("Error fetching storage sizes:", err);
-    availableStorageSizes.value = defaultStorageSizes;
-  }
-};
-
-onMounted(() => {
-  fetchStorageSizes();
-});
 
 </script>
  
