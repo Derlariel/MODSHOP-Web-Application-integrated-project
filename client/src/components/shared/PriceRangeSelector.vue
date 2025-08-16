@@ -184,10 +184,9 @@ watch(() => [props.lowerPrice, props.upperPrice, props.isExactPrice], ([newLower
     <!-- Dropdown menu -->
     <div class="relative w-full ">
       <div v-if="showDropdown" class="absolute left-0 top-full mt-1 w-full z-50">
-        <div class="bg-white border border-gray-300 rounded-md shadow-lg p-4 md:w-[36vh]  ">
+        <div class="bg-white border border-gray-300 rounded-md shadow-lg p-4 w-[100%%] md:w-[32vw] lg:w-[24vw] xl:w-[18vw]">  
           <!-- Pre-defined ranges -->
             <div >
-            <label class="block text-sm font-medium text-gray-700 mb-2 text-center">Price Options</label>
             <div class="space-y-1">
               <button
               v-for="range in priceRanges"
@@ -200,7 +199,7 @@ watch(() => [props.lowerPrice, props.upperPrice, props.isExactPrice], ([newLower
                 : 'hover:bg-gray-100'
               ]"
               >
-              <span class="flex items-center justify-start ">
+              <span class="flex items-center justify-center md:justify-start">
                 {{ range.label }}
                 <span v-if="minPrice === range.min && maxPrice === range.max" class="text-blue-600">✓</span>
               </span>
@@ -208,13 +207,14 @@ watch(() => [props.lowerPrice, props.upperPrice, props.isExactPrice], ([newLower
             </div>
             </div>
           <div class="mt-2">
-            <div class="flex items-center gap-2">
-             <BaseInput
+            <div class="flex items-center justify-center md:justify-start w-[95%] space-x-2  md:space-x-1 lg:space-x-2 xl:space-x-2">
+
+              <BaseInput
                 v-model="customMinPrice"
                 type="number"
                 placeholder="Min"
                 cypress="itbms-price-item-min "
-                :class="['text-black flex-1 text-sm md:w-[4rem]', customMinPrice ? '' : 'border-gray-300']"
+                :class="['text-black flex-1 text-[0.75rem] lg:max-w-[5.5rem] ', customMinPrice ? '' : 'border-gray-300']"
                 min="0"
                 prefix="฿"
                 @blur="handleMinPriceBlur"
@@ -226,7 +226,7 @@ watch(() => [props.lowerPrice, props.upperPrice, props.isExactPrice], ([newLower
                 type="number"
                 placeholder="Max"
                 cypress="itbms-price-item-max "
-                :class="['text-black flex-1 text-sm md:w-[4rem]', customMaxPrice ? '' : 'border-gray-300']"
+                :class="['text-black flex-1 text-[0.75rem] lg:max-w-[5.5rem] ', customMaxPrice ? '' : 'border-gray-300']"
                 min="0"
                 prefix="฿"
                 @blur="handleMaxPriceBlur"
