@@ -72,6 +72,9 @@ const formatStorageSize = (size) => {
   }
   return `${size}GB`;
 };
+
+
+
 </script>
  
 <template>

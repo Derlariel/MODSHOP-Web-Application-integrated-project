@@ -71,6 +71,7 @@ async function initProducts() {
         filters.value.upperPrice !== null ||
         filters.value.storageSize.length > 0;
 
+      
       if (hasFilters) {
         // If filters are applied and no results, show no products message
         noProductsFromFilter.value = true;

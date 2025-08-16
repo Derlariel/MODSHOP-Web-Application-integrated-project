@@ -174,14 +174,16 @@ create or replace view distinct_storage_size as
 select distinct storage_gb from sale_item where storage_gb is not null order by storage_gb asc;
 
 
-CREATE TABLE product_image (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    sale_item_id INT NOT NULL,
-    image_url VARCHAR(255) NOT NULL,
-    is_primary TINYINT DEFAULT 0, 
-    created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (sale_item_id) REFERENCES sale_item(id) ON DELETE CASCADE
-);
+CREATE TABLE sale_item_image (
+  id int NOT NULL AUTO_INCREMENT,
+  sale_item_id int NOT NULL,
+  fileName varchar(255) NOT NULL,
+  imageViewOrder int NOT NULL,
+  created_on timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_on timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_product_image_sale_item_id (sale_item_id),
+  CONSTRAINT sale_item_image_ibfk_1 FOREIGN KEY (sale_item_id) REFERENCES sale_item (id) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE INDEX idx_product_image_sale_item_id ON product_image(sale_item_id);
+

@@ -12,7 +12,7 @@ const router = useRouter();
 const picSelect = ref(null);
 
 const saleItemPic = (data) => {
-  console.log("📥 รับรูปจาก child", data);
+
   picSelect.value = data;
 };
 const add = async (data) => {

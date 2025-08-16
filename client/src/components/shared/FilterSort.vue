@@ -1,11 +1,23 @@
 <script setup>
 import { Menu, SortAsc, SortDesc } from "lucide-vue-next";
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted,computed } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
 
 import BrandSelector from "@/components/shared/BrandSelector.vue";
 import PriceRangeSelector from "@/components/shared/PriceRangeSelector.vue";
 import StorageSizeSelector from "@/components/shared/StorageSizeSelector.vue";
+
+   
+const priceRange = computed({
+  get() {
+    return { min: lowerPrice.value, max: upperPrice.value };
+  },
+  set(value) {
+    lowerPrice.value = value.min;
+    upperPrice.value = value.max;
+    onPriceSelected();
+  },
+});
 
 const emit = defineEmits(["update:filters"]);
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -14,6 +26,7 @@ const allBrands = ref([]);
 const lowerPrice = ref(null);
 const upperPrice = ref(null);
 const isExactPrice = ref(false);
+
 const selectedStorageSizes = ref([]);
 const size = ref(10);
 const sortField = ref("createdOn");
@@ -74,6 +87,7 @@ const onPriceCleared = () => {
   lowerPrice.value = null;
   upperPrice.value = null;
   isExactPrice.value = false;
+
   productStore.setActivePage(1);
   localStorage.setItem("activePage", 1);
 };
@@ -135,6 +149,7 @@ watch(
         lowerPrice: lowerPrice.value,
         upperPrice: upperPrice.value,
         isExactPrice: isExactPrice.value,
+
         storageSize: selectedStorageSizes.value,
         size: size.value,
         sortField: sortField.value,
@@ -144,6 +159,7 @@ watch(
     );
     emit("update:filters", {
       filterBrands: selectedBrands.value,
+
       lowerPrice: lowerPrice.value,
       upperPrice: upperPrice.value,
       isExactPrice: isExactPrice.value,
@@ -164,6 +180,7 @@ onMounted(() => {
     lowerPrice.value = null;
     upperPrice.value = null;
     isExactPrice.value = false;
+
     selectedStorageSizes.value = [];
     sortField.value = "createdOn";
     sortDirection.value = "asc";

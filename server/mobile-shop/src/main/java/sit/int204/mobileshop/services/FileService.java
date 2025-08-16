@@ -179,7 +179,7 @@ public class FileService {
         }
 
         String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-        validateFileName(originalFilename);
+        // validateFileName(originalFilename);
 
         String extension = getFileExtension(originalFilename).toLowerCase();
         if (!ALLOWED_EXTENSIONS.contains(extension)) {
@@ -192,15 +192,15 @@ public class FileService {
         }
     }
 
-    private void validateFileName(String filename) {
-        if (filename == null || filename.isBlank() ||
-                filename.contains("..") ||
-                filename.contains("/") ||
-                filename.contains("\\") ||
-                !filename.matches("^[a-zA-Z0-9._-]+$")) {
-            throw new FileStorageException("Invalid file name: " + filename);
-        }
-    }
+    // private void validateFileName(String filename) {
+    //     if (filename == null || filename.isBlank() ||
+    //             filename.contains("..") ||
+    //             filename.contains("/") ||
+    //             filename.contains("\\") ||
+    //             !filename.matches("^[a-zA-Z0-9._-]+$")) {
+    //         throw new FileStorageException("Invalid file name: " + filename);
+    //     }
+    // }
 
     private String getFileExtension(String filename) {
         int dotIndex = filename.lastIndexOf('.');
