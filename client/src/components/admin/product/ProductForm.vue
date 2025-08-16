@@ -249,7 +249,7 @@ onMounted(() => {
       <form @submit.prevent class="space-y-8">
         <div class="space-y-3">
           <label for="brand" class="block text-sm font-medium text-gray-300"
-            >Brand</label
+            >Brand<span class="text-red-500 ml-1">*</span></label
           >
           <BrandSelector
             @blur="trimField('brand')"
@@ -271,6 +271,7 @@ onMounted(() => {
           cypress="itbms-model"
           placeholder="IPhone 15"
           label="Model"
+          :required="true"
         />
 
         <BaseInput
@@ -283,13 +284,14 @@ onMounted(() => {
           step="0.01"
           label="Price (Baht)"
           prefix="฿"
+          :required="true"
         />
 
         <div class="space-y-3">
           <label
             for="description"
             class="block text-sm font-medium text-gray-300"
-            >Description</label
+            >Description<span class="text-red-500 ml-1">*</span></label
           >
           <textarea
             @blur="trimField('description')"
@@ -321,6 +323,7 @@ onMounted(() => {
               type="number"
               placeholder="6"
               :error="errors.ramGb"
+              :required="false"
               id="ram"
             />
             <BaseInput
@@ -332,6 +335,7 @@ onMounted(() => {
               placeholder="6.1"
               step="0.01"
               type="number"
+              :required="false"
               id="screenSize"
             />
             <BaseInput
@@ -342,6 +346,7 @@ onMounted(() => {
               placeholder="128"
               type="number"
               :error="errors.storageGb"
+              :required="false"
               id="storage"
             />
             <BaseInput
@@ -351,6 +356,7 @@ onMounted(() => {
               label="Color"
               placeholder="Black"
               :error="errors.color"
+              :required="false"
               id="color"
             />
           </div>
@@ -366,7 +372,7 @@ onMounted(() => {
             label="Quantity"
             placeholder="10"
             type="number"
-            required
+            :required="true"
           />
         </div>
 

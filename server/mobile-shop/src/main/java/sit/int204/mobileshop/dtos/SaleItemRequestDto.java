@@ -1,15 +1,13 @@
 package sit.int204.mobileshop.dtos;
 
+import java.math.BigDecimal;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 @Schema(description = "Request object for creating or updating a sale item")
 @Getter

@@ -52,7 +52,7 @@ public class BrandController {
         if (brands.isEmpty()) {
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.ok(listMapper.toListDto(brands, BrandDetailDto.class, modelMapper));
+        return ResponseEntity.ok(listMapper.mapList(brands, BrandDetailDto.class, modelMapper));
     }
 
     @Operation(summary = "Get brand by ID", description = "Search and retrieve brand using brand ID")

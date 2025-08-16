@@ -31,10 +31,10 @@ const toggleMobileMenu = () => {
             <router-link :to="{name : 'Main'}">Home</router-link>
           </li>
           <li :class="route.path.startsWith('/sale-items') ? 'text-white font-light' : 'hover:text-white'">
-            <router-link :to="{name : 'product-gallery'}">Product</router-link>
+            <router-link :to="{name : 'product-gallery'}">Products</router-link>
           </li>
           <li class="hover:text-white">
-            <router-link :to="{name : 'brands-list'}">Brand</router-link>
+            <router-link :to="{name : 'brands-list'}">Brands</router-link>
           </li>
           <li class="hover:text-white">
             <router-link to="/about">About</router-link>

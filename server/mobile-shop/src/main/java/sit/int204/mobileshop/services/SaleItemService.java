@@ -1,31 +1,36 @@
-
 package sit.int204.mobileshop.services;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
-import sit.int204.mobileshop.config.FileStorageProperties;
-import sit.int204.mobileshop.dtos.*;
-import sit.int204.mobileshop.entities.SaleItem;
-import sit.int204.mobileshop.entities.Brand;
-import sit.int204.mobileshop.entities.SaleItemImage;
-import sit.int204.mobileshop.exceptions.ItemNotFoundException;
-import sit.int204.mobileshop.repositories.SaleItemImageRepository;
-import sit.int204.mobileshop.repositories.SaleItemRepository;
-import sit.int204.mobileshop.utils.ListMapper;
-import org.springframework.data.domain.*;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
+import sit.int204.mobileshop.config.FileStorageProperties;
+import sit.int204.mobileshop.dtos.PageDto;
+import sit.int204.mobileshop.dtos.SaleItemDetailDto;
+import sit.int204.mobileshop.dtos.SaleItemDto;
+import sit.int204.mobileshop.dtos.SaleItemImageDto;
+import sit.int204.mobileshop.dtos.SaleItemRequestDto;
+import sit.int204.mobileshop.entities.Brand;
+import sit.int204.mobileshop.entities.SaleItem;
+import sit.int204.mobileshop.exceptions.ItemNotFoundException;
+import sit.int204.mobileshop.repositories.SaleItemImageRepository;
+import sit.int204.mobileshop.repositories.SaleItemRepository;
+import sit.int204.mobileshop.utils.ListMapper;
 
 /**
  * Service for managing SaleItem operations, including retrieval, creation, update, and deletion.
@@ -65,7 +70,7 @@ public class SaleItemService {
      * @return list of all SaleItems
      */
     public List<SaleItem> getAllSaleItems() {
-        return saleItemRepository.findAllByOrderByCreatedOnAsc();
+        return saleItemRepository.findAll();
     }
 
     /**
@@ -77,6 +82,7 @@ public class SaleItemService {
      * @param storageSize   list of storage sizes to filter
      * @param lowerPrice    minimum price filter
      * @param upperPrice    maximum price filter
+     * @param isExactPrice  whether to use exact price matching for single price filter
      * @param sortField     field to sort by
      * @param sortDirection sort direction (ASC/DESC)
      * @return paginated list of SaleItem DTOs
@@ -88,6 +94,7 @@ public class SaleItemService {
             List<String> storageSize,
             Integer lowerPrice,
             Integer upperPrice,
+            Boolean isExactPrice,
             String sortField,
             String sortDirection) {
 
@@ -109,8 +116,7 @@ public class SaleItemService {
             size = 10;
         }
 
-        Sort sort = Sort.by(new Sort.Order(direction, sortField))
-                .and(Sort.by(Sort.Direction.ASC, "createdOn"));
+        Sort sort = Sort.by(new Sort.Order(direction, sortField));
         Pageable pageable = PageRequest.of(page, size, sort);
 
         if (filterBrands != null) {
@@ -131,7 +137,20 @@ public class SaleItemService {
             }
         }
 
-        Page<SaleItem> saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands, storageSize, lowerPrice, upperPrice);
+        // Check if null storage should be included in the filter
+        Boolean includeNullStorage = false;
+        if (storageSize != null && storageSize.contains("null")) {
+            includeNullStorage = true;
+            // Remove "null" from the storage list as it's handled separately
+            storageSize = storageSize.stream()
+                    .filter(s -> !"null".equals(s))
+                    .collect(Collectors.toList());
+            if (storageSize.isEmpty()) {
+                storageSize = null;
+            }
+        }
+
+        Page<SaleItem> saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands, storageSize, includeNullStorage, lowerPrice, upperPrice, isExactPrice);
         return listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
     }
 

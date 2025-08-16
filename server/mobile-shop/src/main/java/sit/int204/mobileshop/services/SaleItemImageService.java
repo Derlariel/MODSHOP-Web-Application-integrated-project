@@ -1,13 +1,12 @@
 package sit.int204.mobileshop.services;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import sit.int204.mobileshop.dtos.SaleItemImageDto;
+
 import sit.int204.mobileshop.entities.SaleItemImage;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
-
-import java.util.List;
 
 
 @Service

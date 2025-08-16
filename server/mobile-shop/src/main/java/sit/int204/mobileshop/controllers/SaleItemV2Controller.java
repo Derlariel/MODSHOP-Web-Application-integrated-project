@@ -1,6 +1,24 @@
 package sit.int204.mobileshop.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.List;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -8,25 +26,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import sit.int204.mobileshop.config.FileStorageProperties;
+import sit.int204.mobileshop.dtos.PageDto;
 import sit.int204.mobileshop.dtos.SaleItemDetailDto;
 import sit.int204.mobileshop.dtos.SaleItemDto;
 import sit.int204.mobileshop.dtos.SaleItemRequestDto;
-import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.services.SaleItemImageService;
 import sit.int204.mobileshop.services.SaleItemService;
-import sit.int204.mobileshop.dtos.PageDto;
 import sit.int204.mobileshop.utils.ListMapper;
-
-import java.io.IOException;
-import java.util.List;
 
 @CrossOrigin(origins = "${app.origins}")
 @RestController
@@ -127,6 +134,8 @@ public class SaleItemV2Controller {
             @Parameter(description = "Price range")
             @RequestParam(required = false) String upperPrice,
 
+            @Parameter(description = "Whether to use exact price matching for single price filter")
+            @RequestParam(defaultValue = "false") Boolean isExactPrice,
 
             @Parameter(description = "Sort direction (asc or desc)")
             @RequestParam(defaultValue = "asc") String sortDirection) throws MissingServletRequestParameterException {
@@ -138,7 +147,7 @@ public class SaleItemV2Controller {
         Integer lower = (lowerPrice == null || lowerPrice.equals("null")) ? null : Integer.valueOf(lowerPrice);
         Integer upper = (upperPrice == null || upperPrice.equals("null")) ? null : Integer.valueOf(upperPrice);
 
-        PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(page, size, filterBrands, storageSize, lower, upper, sortField,
+        PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(page, size, filterBrands, storageSize, lower, upper, isExactPrice, sortField,
                 sortDirection);
         return ResponseEntity.ok(pagedResult);
     }

@@ -13,6 +13,7 @@ const selectedBrands = ref([]);
 const allBrands = ref([]);
 const lowerPrice = ref(null);
 const upperPrice = ref(null);
+const isExactPrice = ref(false);
 const selectedStorageSizes = ref([]);
 const size = ref(10);
 const sortField = ref("createdOn");
@@ -31,105 +32,109 @@ const fetchBrands = async () => {
   }
 };
 
-const stored = sessionStorage.getItem("filterAndSort");
+const stored = localStorage.getItem("filterAndSort");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
     selectedBrands.value = parsed.filterBrands || [];
     lowerPrice.value = parsed.lowerPrice || null;
     upperPrice.value = parsed.upperPrice || null;
+    isExactPrice.value = parsed.isExactPrice || false;
     selectedStorageSizes.value = parsed.storageSize || [];
     size.value = parsed.size || 10;
     sortField.value = parsed.sortField || "createdOn";
     sortDirection.value = parsed.sortDirection || "asc";
   } catch (e) {
-    console.error("Invalid session data", e);
+    console.error("Invalid localStorage data", e);
   }
 }
 
 const onBrandSelected = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onBrandRemoved = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onBrandsClear = () => {
   selectedBrands.value = [];
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onPriceSelected = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onPriceCleared = () => {
   lowerPrice.value = null;
   upperPrice.value = null;
+  isExactPrice.value = false;
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onStorageSelected = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onStorageRemoved = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onStorageClear = () => {
   selectedStorageSizes.value = [];
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const clearAllFilters = () => {
   selectedBrands.value = [];
   lowerPrice.value = null;
   upperPrice.value = null;
+  isExactPrice.value = false;
   selectedStorageSizes.value = [];
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const resetSort = () => {
   sortField.value = "createdOn";
   sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const sortByBrandAsc = () => {
   sortField.value = "brand.name";
   sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const sortByBrandDesc = () => {
   sortField.value = "brand.name";
   sortDirection.value = "desc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 watch(
-  [selectedBrands, lowerPrice, upperPrice, selectedStorageSizes, size, sortField, sortDirection, () => productStore.activePage],
+  [selectedBrands, lowerPrice, upperPrice, isExactPrice, selectedStorageSizes, size, sortField, sortDirection, () => productStore.activePage],
   () => {
-    sessionStorage.setItem(
+    localStorage.setItem(
       "filterAndSort",
       JSON.stringify({
         filterBrands: selectedBrands.value,
         lowerPrice: lowerPrice.value,
         upperPrice: upperPrice.value,
+        isExactPrice: isExactPrice.value,
         storageSize: selectedStorageSizes.value,
         size: size.value,
         sortField: sortField.value,
@@ -141,6 +146,7 @@ watch(
       filterBrands: selectedBrands.value,
       lowerPrice: lowerPrice.value,
       upperPrice: upperPrice.value,
+      isExactPrice: isExactPrice.value,
       storageSize: selectedStorageSizes.value,
       size: size.value,
       sortField: sortField.value,
@@ -151,23 +157,21 @@ watch(
   { deep: true, immediate: true }
 );
 
-// Simulate browser close by clearing sessionStorage for TC-4 Step 6
 onMounted(() => {
   fetchBrands();
-  // Check if this is a fresh session (simulating browser close)
-  if (!sessionStorage.getItem("filterAndSort")) {
+  if (!localStorage.getItem("filterAndSort")) {
     selectedBrands.value = [];
     lowerPrice.value = null;
     upperPrice.value = null;
+    isExactPrice.value = false;
     selectedStorageSizes.value = [];
     sortField.value = "createdOn";
     sortDirection.value = "asc";
     productStore.setActivePage(1);
-    sessionStorage.setItem("activePage", 1);
+    localStorage.setItem("activePage", 1);
   }
 });
 
-// Expose clearAllFilters function for parent components
 defineExpose({
   clearAllFilters
 });
@@ -199,6 +203,7 @@ defineExpose({
             <PriceRangeSelector
               v-model:lowerPrice="lowerPrice"
               v-model:upperPrice="upperPrice"
+              v-model:isExactPrice="isExactPrice"
               @price-selected="onPriceSelected"
               @price-cleared="onPriceCleared"
             />

@@ -1,5 +1,15 @@
 package sit.int204.mobileshop.services;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.Instant;
+import java.util.List;
+import java.util.logging.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -7,20 +17,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+
 import sit.int204.mobileshop.config.FileStorageProperties;
 import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.entities.SaleItemImage;
 import sit.int204.mobileshop.exceptions.FileStorageException;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.*;
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
-import java.util.logging.Logger;
 
 /**
  * Service for handling file uploads, deletions, and retrievals.
