@@ -1,16 +1,58 @@
+
 <script setup>
-import { ref } from 'vue'
-import { useProductStore } from '@/stores/useProductStore';
-import defaultImage from '@/assets/default.jpg';
+import { ref, defineProps, computed,onBeforeUnmount, defineEmits  } from "vue";
+import { useProductStore } from "@/stores/useProductStore";
+import defaultImage from "@/assets/default.jpg";
+import UploadPicture from "./modal/UploadPicture.vue";
 const productStore = useProductStore();
 const selectedImage = ref(1);
+const uploadModalRef = ref(null);
+const userSelectedImages = ref([]);
+
+const selectedFiles = ref([])
+
+onBeforeUnmount(() => {
+  userSelectedImages.value.forEach(url => URL.revokeObjectURL(url));
+});
+
+const emit = defineEmits(['savePic'])
+
+const props = defineProps({
+  images: Array,
+});
 
 const setSelectedImage = (index) => {
   selectedImage.value = index;
 };
 
+function openUploadModal() {
+  uploadModalRef.value?.openModal();
+}
 
+const receivePic = (data) => {
+  console.log("📦 Received images:", data); 
+  selectedFiles.value = data;
+  userSelectedImages.value = data.map(file => URL.createObjectURL(file)); 
+  emit('savePic', data);
+};
+const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
 
+console.log(props.images)
+
+const displayImages = computed(() => {
+  const sourceImages = userSelectedImages.value.length
+    ? userSelectedImages.value 
+    : props.images?.length
+      ? props.images.map(img => BASE_URL + img.fileName)
+      : productStore.productImages;
+
+  const filled = [...sourceImages];
+  while (filled.length < 4) {
+    filled.push(defaultImage);
+  }
+
+  return filled.slice(0, 4);
+});
 </script>
 
 <template>
@@ -21,7 +63,7 @@ const setSelectedImage = (index) => {
       >
         <img
           class="object-contain max-h-full w-auto transition-all duration-700 hover:scale-105 hover:translate-z-20"
-          :src="productStore.productImages[selectedImage] || defaultImage"
+          :src="displayImages[selectedImage] || defaultImage"
           alt="product"
         />
         <div
@@ -31,7 +73,7 @@ const setSelectedImage = (index) => {
 
       <div class="flex flex-wrap gap-4 justify-center">
         <div
-          v-for="i in 4"
+          v-for="(img, i) in displayImages"
           :key="i"
           @click="setSelectedImage(i)"
           class="relative cursor-pointer group perspective"
@@ -40,9 +82,12 @@ const setSelectedImage = (index) => {
             class="transform-style-3d hover:rotate-y-10 transition-transform duration-300"
           >
             <img
-              :src="productStore.productImages[i] || defaultImage"
+              :src="img"
               class="h-20 w-20 object-contain bg-neutral-800 rounded-xl shadow-sm transition-all duration-300 group-hover:shadow-lg"
-              :class="{ 'ring-2 ring-white': selectedImage === i }"
+              :class="[
+                { 'ring-2 ring-white': selectedImage === i },
+                `itbms-picture-file${i}`,
+              ]"
               alt="thumbnail"
             />
           </div>
@@ -76,6 +121,16 @@ const setSelectedImage = (index) => {
           <span>View in AR</span>
         </button>
       </div>
+      <div class="mt-8 flex justify-center">
+        <button
+          @click="openUploadModal"
+          class="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transform transition duration-200 hover:scale-105"
+        >
+          Upload Pictures
+        </button>
+      </div>
+
+      <UploadPicture @send-select-pictures="receivePic" :images="images" ref="uploadModalRef" />
     </div>
   </div>
 </template>

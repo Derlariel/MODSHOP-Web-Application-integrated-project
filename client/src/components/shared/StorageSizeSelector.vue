@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps, defineEmits, computed, onMounted } from "vue";
+import { ref, defineProps, defineEmits, computed } from "vue";
 import { X, HardDrive } from "lucide-vue-next";
 
 const props = defineProps({
@@ -17,10 +17,13 @@ const emit = defineEmits([
 ]);
 
 const showDropdown = ref(false);
-const availableStorageSizes = ref([]);
-
-// Available storage sizes from database (include special values)
-const defaultStorageSizes = [32, 64, 128, 256, 512, 1024, "Not specified"]; // 1TB = 1024GB
+const availableStorageSizes = ref([
+  { value: "64", label: "64GB" },
+  { value: "128", label: "128GB" },
+  { value: "256", label: "256GB" },
+  { value: "512", label: "512GB" },
+  { value: "null", label: "Not specified" }
+]);
 
 const selectedSizes = computed({
   get() {
@@ -35,18 +38,21 @@ const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value;
 };
 
-const selectStorageSize = (size) => {
-  // Toggle functionality - if storage size is already selected, remove it
-  if (selectedSizes.value.includes(size)) {
-    const newSelection = selectedSizes.value.filter(s => s !== size);
-    emit("update:modelValue", newSelection);
-    emit("storage-removed", size);
+const selectStorageSize = (storageOption) => {
+  let newSelection;
+  const storageValue = storageOption.value;
+  
+  if (selectedSizes.value.includes(storageValue)) {
+    // Remove the selected size
+    newSelection = selectedSizes.value.filter(s => s !== storageValue);
+    emit("storage-removed", storageValue);
   } else {
-    // Add new storage size
-    const newSelection = [...selectedSizes.value, size];
-    emit("update:modelValue", newSelection);
-    emit("storage-selected", size);
+    // Add the new size
+    newSelection = [...selectedSizes.value, storageValue];
+    emit("storage-selected", storageValue);
   }
+  
+  emit("update:modelValue", newSelection);
 };
 
 const removeStorageSize = (size) => {
@@ -61,11 +67,8 @@ const clearAllStorageSizes = () => {
 };
 
 const formatStorageSize = (size) => {
-  if (size === "Not specified") {
+  if (size === "null") {
     return "Not specified";
-  }
-  if (size >= 1024) {
-    return `${size / 1024}TB`;
   }
   return `${size}GB`;
 };
@@ -95,6 +98,7 @@ const fetchStorageSizes = async () => {
 onMounted(() => {
   fetchStorageSizes();
 });
+
 </script>
  
 <template>
@@ -104,8 +108,11 @@ onMounted(() => {
       <div 
         class="flex-1 rounded-md rounded-r-none bg-white min-h-[32px] md:min-h-[36px] max-h-[36px] md:max-h-[36px] overflow-y-auto border border-gray-300"
       >
-        <div class="grid grid-cols-1 gap-1 p-1 md:p-1.5">
-          <div v-if="selectedSizes.length === 0" class="col-span-1 text-gray-500 text-xs md:text-sm py-0.5">
+        <div 
+          class="grid gap-1 p-1 md:p-1.5"
+          :class="selectedSizes.length === 1 ? 'grid-cols-1' : 'grid-cols-2'"
+        >
+          <div v-if="selectedSizes.length === 0" class="col-span-2 text-gray-500 text-xs md:text-sm py-0.5">
             Storage Size
           </div>
           <div
@@ -143,15 +150,15 @@ onMounted(() => {
       <div v-if="showDropdown" class="absolute left-0 top-full mt-1 w-full z-50">
         <ul class="bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto w-full">
           <li
-            v-for="size in availableStorageSizes"
-            :key="size"
-            @click="selectStorageSize(size)"
+            v-for="storageOption in availableStorageSizes"
+            :key="storageOption.value"
+            @click="selectStorageSize(storageOption)"
             class="itbms-storage-size-option px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm border-b border-gray-100 last:border-b-0 transition-colors"
-            :class="{ 'bg-blue-50 text-blue-700': selectedSizes.includes(size) }"
+            :class="{ 'bg-blue-50 text-blue-700': selectedSizes.includes(storageOption.value) }"
           >
             <span class="flex items-center justify-between">
-              {{ formatStorageSize(size) }}
-              <span v-if="selectedSizes.includes(size)" class="text-blue-600">✓</span>
+              {{ storageOption.label }}
+              <span v-if="selectedSizes.includes(storageOption.value)" class="text-blue-600">✓</span>
             </span>
           </li>
         </ul>

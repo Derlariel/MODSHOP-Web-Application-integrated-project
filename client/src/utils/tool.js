@@ -52,17 +52,15 @@ const updateProductById = async (url, id, data) => {
   );
 };
 
+async function addProduct(url, data) {
+  const response = await fetch(url, {
+    method: 'POST',
+    body: data,
+   
+  });
 
-const addProduct = async (url,product) => {
-  return handleFetch(
-    url,
-    {
-      method:"POST",
-      headers: { "content-Type": "application/json" },
-      body: JSON.stringify(product),
-    },
-    "Error adding product"
-  )
+  if (!response.ok) throw new Error('Failed to add product');
+  return await response.json();
 }
 
 const deleteProductById = async (url, id) => {

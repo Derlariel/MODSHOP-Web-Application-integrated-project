@@ -57,7 +57,8 @@ onMounted(async () => {
         </h1>
         <HistoryPath :name-path="title" :previous="2" :next="1" />
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-          <ProductPicture />
+          <ProductPicture v-if="product && product.saleItemImages" :images="product.saleItemImages" />
+
           <ProductForm @submit="edit" v-if="product" :init="product" />
         </div>
       </div>

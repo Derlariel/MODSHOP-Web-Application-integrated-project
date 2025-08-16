@@ -1,13 +1,13 @@
 package sit.int204.mobileshop.dtos;
 
+import java.math.BigDecimal;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.math.BigDecimal;
 
 @Schema(description = "Request object for creating or updating a sale item")
 @Getter
@@ -16,6 +16,7 @@ public class SaleItemRequestDto {
     @Schema(description = "Model name of the product", example = "iPhone 15", required = true)
     @NotBlank
     private String model;
+
 
     @Schema(description = "Brand information", required = true)
     @NotNull
