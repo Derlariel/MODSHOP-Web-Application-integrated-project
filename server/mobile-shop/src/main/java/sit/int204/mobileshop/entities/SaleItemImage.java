@@ -29,12 +29,12 @@ public class SaleItemImage {
 
     @Size(max = 255)
     @NotNull
-    @Column(name = "image_url", nullable = false)
-    private String imageUrl;
+    @Column(name = "fileName", nullable = false)
+    private String fileName;
 
-    @ColumnDefault("0")
-    @Column(name = "is_primary")
-    private Byte isPrimary;
+    @NotNull
+    @Column(name = "imageViewOrder", nullable = false)
+    private Integer imageViewOrder;
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")

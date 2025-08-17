@@ -1,11 +1,23 @@
 <script setup>
 import { Menu, SortAsc, SortDesc } from "lucide-vue-next";
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted,computed } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
 
 import BrandSelector from "@/components/shared/BrandSelector.vue";
 import PriceRangeSelector from "@/components/shared/PriceRangeSelector.vue";
 import StorageSizeSelector from "@/components/shared/StorageSizeSelector.vue";
+
+   
+const priceRange = computed({
+  get() {
+    return { min: lowerPrice.value, max: upperPrice.value };
+  },
+  set(value) {
+    lowerPrice.value = value.min;
+    upperPrice.value = value.max;
+    onPriceSelected();
+  },
+});
 
 const emit = defineEmits(["update:filters"]);
 const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -14,6 +26,7 @@ const allBrands = ref([]);
 const lowerPrice = ref(null);
 const upperPrice = ref(null);
 const isExactPrice = ref(false);
+
 const selectedStorageSizes = ref([]);
 const size = ref(10);
 const sortField = ref("createdOn");
@@ -32,7 +45,7 @@ const fetchBrands = async () => {
   }
 };
 
-const stored = sessionStorage.getItem("filterAndSort");
+const stored = localStorage.getItem("filterAndSort");
 if (stored) {
   try {
     const parsed = JSON.parse(stored);
@@ -45,53 +58,54 @@ if (stored) {
     sortField.value = parsed.sortField || "createdOn";
     sortDirection.value = parsed.sortDirection || "asc";
   } catch (e) {
-    console.error("Invalid session data", e);
+    console.error("Invalid localStorage data", e);
   }
 }
 
 const onBrandSelected = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onBrandRemoved = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onBrandsClear = () => {
   selectedBrands.value = [];
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onPriceSelected = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onPriceCleared = () => {
   lowerPrice.value = null;
   upperPrice.value = null;
   isExactPrice.value = false;
+
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onStorageSelected = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onStorageRemoved = () => {
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const onStorageClear = () => {
   selectedStorageSizes.value = [];
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const clearAllFilters = () => {
@@ -101,40 +115,41 @@ const clearAllFilters = () => {
   isExactPrice.value = false;
   selectedStorageSizes.value = [];
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const resetSort = () => {
   sortField.value = "createdOn";
   sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const sortByBrandAsc = () => {
   sortField.value = "brand.name";
   sortDirection.value = "asc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 const sortByBrandDesc = () => {
   sortField.value = "brand.name";
   sortDirection.value = "desc";
   productStore.setActivePage(1);
-  sessionStorage.setItem("activePage", 1);
+  localStorage.setItem("activePage", 1);
 };
 
 watch(
   [selectedBrands, lowerPrice, upperPrice, isExactPrice, selectedStorageSizes, size, sortField, sortDirection, () => productStore.activePage],
   () => {
-    sessionStorage.setItem(
+    localStorage.setItem(
       "filterAndSort",
       JSON.stringify({
         filterBrands: selectedBrands.value,
         lowerPrice: lowerPrice.value,
         upperPrice: upperPrice.value,
         isExactPrice: isExactPrice.value,
+
         storageSize: selectedStorageSizes.value,
         size: size.value,
         sortField: sortField.value,
@@ -144,6 +159,7 @@ watch(
     );
     emit("update:filters", {
       filterBrands: selectedBrands.value,
+
       lowerPrice: lowerPrice.value,
       upperPrice: upperPrice.value,
       isExactPrice: isExactPrice.value,
@@ -159,16 +175,17 @@ watch(
 
 onMounted(() => {
   fetchBrands();
-  if (!sessionStorage.getItem("filterAndSort")) {
+  if (!localStorage.getItem("filterAndSort")) {
     selectedBrands.value = [];
     lowerPrice.value = null;
     upperPrice.value = null;
     isExactPrice.value = false;
+
     selectedStorageSizes.value = [];
     sortField.value = "createdOn";
     sortDirection.value = "asc";
     productStore.setActivePage(1);
-    sessionStorage.setItem("activePage", 1);
+    localStorage.setItem("activePage", 1);
   }
 });
 
@@ -223,7 +240,7 @@ defineExpose({
           <div class="w-full md:w-auto md:flex-shrink-0">
             <button 
               @click="clearAllFilters"
-              class="itbms-brand-filter-clear w-full md:w-auto px-3 md:px-4 py-1.5 md:py-2 bg-gray-700 text-white rounded-full hover:bg-gray-500 transition-colors duration-200 font-medium text-xs md:text-sm h-[32px] md:h-[36px] whitespace-nowrap"
+              class="itbms-brand-filter-clear w-full md:w-auto px-3 md:px-4 py-1.5 md:py-2 bg-black/80  text-white rounded-full hover:bg-black/90 cursor-pointer transition-colors duration-200 font-medium text-xs md:text-sm h-[32px] md:h-[36px] whitespace-nowrap"
             >
               Clear
             </button>
@@ -238,7 +255,7 @@ defineExpose({
           <div class="flex items-center gap-1.5">
             <label for="page-size" class="text-xs md:text-sm font-medium whitespace-nowrap">Show</label>
             <select name="page-size" id="page-size" v-model="size"
-                    class="itbms-page-size bg-gray-400/70 text-black/70 border border-gray-300 rounded-md text-xs md:text-sm cursor-pointer focus:outline-none px-1.5 md:px-2 py-0.5 md:py-1">
+                    class="itbms-page-size bg-gray-400/70 text-black/70  border-black rounded-md text-xs md:text-sm cursor-pointer focus:outline-none px-1.5 md:px-2 py-0.5 md:py-1">
               <option value="5">5</option>
               <option value="10">10</option>
               <option value="20">20</option>

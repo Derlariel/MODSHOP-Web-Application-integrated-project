@@ -30,6 +30,15 @@ const title = computed(() => {
   return `${brandName} ${model} ${ramGb}/${storageGb}GB ${color}`.trim();
 });
 
+const normalizedPictures = computed(() => {
+  const raw = product.value?.pictures ?? product.value?.saleItemImages ?? [];
+  return raw.map((img, idx) => ({
+    id: img.id ?? img.imageId ?? img.saleItemImageId ?? idx+1,
+    fileName: img.fileName ?? img.name ?? img.imageName ?? '',
+    position: Number(img.position ?? img.seq ?? (idx + 1)),
+  })).sort((a,b)=>a.position - b.position);
+});
+
 const deleteSaleItem = () => {
   showDelete.value = true;
 }
@@ -39,7 +48,7 @@ const confirm = async () => {
     await productStore.deleteProduct(productId);
     sessionStorage.setItem("delete-success", "true");
     router.push("/sale-items");
-    sessionStorage.setItem("activePage", 1);
+    localStorage.setItem("activePage", 1);
     productStore.setActivePage(1)
   } catch (error) {
     sessionStorage.setItem("error-message", "true");
@@ -48,14 +57,69 @@ const confirm = async () => {
 };
 
 const handlePicturesUpdate = (updatedPictures) => {
-  product.value.pictures = updatedPictures;
+  // updatedPictures is array from BE: replace product.pictures
+  if (product.value) product.value.pictures = updatedPictures;
+};
+function makePreviewEntries(files = []) {
+  return files.map((file, idx) => {
+    const objectUrl = URL.createObjectURL(file);
+    return {
+      id: `tmp-${Date.now()}-${idx}`,      // ชั่วคราว id แบบ string
+      fileName: objectUrl,                // ให้ component ใช้เป็น src preview
+      position: null,                     // จะรีคอมพิวต์ต่อไป
+      isNew: true,                        // flag ว่าไฟล์ยังไม่อัปโหลด
+      file: file                          // เก็บไฟล์ของจริง เพื่อใช้เมื่อจะอัปโหลดจริง
+    };
+  });
 }
+function handleNewUploads(files) {
+  if (!product.value) return;
+  // เอา existing visible pictures (ถ้ามี) และต่อด้วย preview ใหม่
+  const existing = (product.value.pictures ?? product.value.saleItemImages ?? [])
+    .map((p, idx) => ({
+      id: p.id ?? p.imageId ?? `exist-${idx}`,
+      fileName: p.fileName ?? p.name ?? p.imageName ?? '',
+      position: Number(p.position ?? p.seq ?? (idx + 1)),
+      isNew: false
+    }));
 
+  const previews = makePreviewEntries(files);
+
+  // รวมกัน และตั้ง position ชั่วคราวเป็น 1..N
+  const combined = [...existing, ...previews];
+  combined.sort((a,b) => (a.position || 9999) - (b.position || 9999));
+  combined.forEach((p, i) => p.position = i + 1);
+
+  // เขียนกลับไปที่ product (so RemoveSaleItemPicture จะเห็น)
+  product.value.pictures = combined;
+
+  // ถ้าต้องการให้ store.selectedProduct ก็ sync ด้วย
+  productStore.selectedProduct = product.value;
+}
+function handleSaved() {
+  // Ensure we always exit edit mode (finally-like)
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        sessionStorage.setItem('edit-success', 'true');
+      } catch (e) {
+        // Some browsers / privacy modes throw when setItem is blocked — log and continue
+        console.warn('sessionStorage.setItem failed (ignored):', e);
+      }
+    }
+  } finally {
+    // Always exit edit mode so UI doesn't hang
+    isEditMode.value = false;
+  }
+}
 onMounted(async () => {
   isLoading.value = true;
   try {
     await productStore.loadProducts();
-    product.value = await productStore.fetchProductDetail(productId);
+    const p = await productStore.fetchProductDetail(productId);
+    product.value = p;
+    // sync store's selectedProduct as well (useful)
+    productStore.selectedProduct = p;
 
     if (product.value && checkUpToDate(product)) {
       showSuccess.value = false;
@@ -70,9 +134,7 @@ onMounted(async () => {
   if (sessionStorage.getItem("edit-success") === "true") {
     showSuccess.value = true;
     sessionStorage.removeItem("edit-success");
-    setTimeout(() => {
-      showSuccess.value = false;
-    }, 3000);
+    setTimeout(() => { showSuccess.value = false; }, 3000);
   }
 
   isLoading.value = false;
@@ -87,18 +149,22 @@ onMounted(async () => {
 
       <div class="max-w-[1200px] mx-auto px-6">
         <HistoryPath :previous="1" :name-path="title" /> 
-
         <div class="itbms-row grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-          <!-- แสดง ProductPicture ปกติ ถ้าไม่แก้ไข -->
-          <ProductPicture v-if="!isEditMode" :images="product.imageUrls" />
+         <!-- in ProductDetail.vue template -->
+<ProductPicture
+  v-if="!isEditMode"
+  :images="product.saleItemImages"
+  @savePic="handleNewUploads"
+/>
 
-          <!-- แสดง RemoveSaleItemPicture ถ้าแก้ไข -->
-          <RemoveSaleItemPicture
-            v-else
-            :sale-item="product"
-            :initial-pictures="product.pictures"
-            @update="handlePicturesUpdate"
-          />
+<RemoveSaleItemPicture
+  v-else
+  :sale-item="product"
+  :initial-pictures="normalizedPictures"
+  @update="handlePicturesUpdate"
+  @saved="handleSaved"
+  @cancel="() => { isEditMode=false; }"
+/>
 
           <div class="flex flex-col gap-8">
             <!-- Product Info -->

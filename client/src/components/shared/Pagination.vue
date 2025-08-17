@@ -58,9 +58,9 @@ const setActivePage = (page) => {
   if (page < 1 || page > props.totalPages) return
   
   currentPage.value = page
-  emit('page-change', page)
+  emit('sendPages', page)
 
-  sessionStorage.setItem('activePage', String(page))
+  localStorage.setItem('activePage', String(page))
   productStore.setActivePage(page)
 }
 
@@ -68,7 +68,7 @@ const goToFirst = () => {
   currentPage.value = 1
   startPage.value = 1
   emit('sendPages', 1)
-  sessionStorage.setItem('activePage', '1')
+  localStorage.setItem('activePage', '1')
 }
 
 const goToLast = () => {
@@ -82,7 +82,7 @@ const goToLast = () => {
   }
   
   emit('sendPages', props.totalPages)
-  sessionStorage.setItem('activePage', String(props.totalPages))
+  localStorage.setItem('activePage', String(props.totalPages))
 }
 
 const goToNext = () => {
@@ -123,9 +123,9 @@ watch(() => props.totalPages, (newTotal) => {
   }
 })
 
-// Initialize from sessionStorage
+// Initialize from localStorage
 onMounted(() => {
-  const savedPage = sessionStorage.getItem('activePage')
+  const savedPage = localStorage.getItem('activePage')
   if (savedPage) {
     const page = parseInt(savedPage)
     if (page >= 1 && page <= props.totalPages) {

@@ -1,5 +1,15 @@
 package sit.int204.mobileshop.services;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.Instant;
+import java.util.List;
+import java.util.logging.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -7,20 +17,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+
 import sit.int204.mobileshop.config.FileStorageProperties;
 import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.entities.SaleItemImage;
 import sit.int204.mobileshop.exceptions.FileStorageException;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.*;
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
-import java.util.logging.Logger;
 
 /**
  * Service for handling file uploads, deletions, and retrievals.
@@ -69,11 +72,16 @@ public class FileService {
      * @return the saved SaleItemImage entity
      * @throws FileStorageException if file validation or storage fails
      */
+
+    public String formatFileName(Integer saleItemId, Integer order, String originalFileName) {
+        return  saleItemId + "." + order + "." + getFileExtension(originalFileName);
+    }
     @Transactional
-    public SaleItemImage saveFile(MultipartFile file, Integer saleItemId, boolean isPrimary) {
+    public SaleItemImage saveFile(MultipartFile file, Integer saleItemId, Integer order) {
         validateFile(file);
+
         String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-        String uniqueFilename = generateUniqueFilename(originalFilename);
+        String uniqueFilename = formatFileName(saleItemId, order, originalFilename);
         Path targetFile = baseStoragePath.resolve(uniqueFilename);
 
         log.info(String.format("Uploading file: %s for SaleItem ID: %d", originalFilename, saleItemId));
@@ -84,11 +92,8 @@ public class FileService {
             SaleItem saleItem = saleItemRepository.findById(saleItemId)
                     .orElseThrow(() -> new FileStorageException("SaleItem not found with ID: " + saleItemId));
 
-            if (isPrimary) {
-                updateNonPrimaryImages(saleItemId);
-            }
 
-            SaleItemImage image = createSaleItemImage(saleItem, uniqueFilename, isPrimary);
+            SaleItemImage image = createSaleItemImage(saleItem, uniqueFilename, order);
             return saleItemImageRepository.save(image);
 
         } catch (IOException e) {
@@ -104,18 +109,40 @@ public class FileService {
      * @throws FileStorageException if the image is not found or deletion fails
      */
     public void deleteImageById(Integer id) {
-        SaleItemImage image = saleItemImageRepository.findById(id)
-                .orElseThrow(() -> new FileStorageException("Image not found with ID: " + id));
-
-        Path filePath = baseStoragePath.resolve(image.getImageUrl()).normalize();
-        try {
-            Files.deleteIfExists(filePath);
-            saleItemImageRepository.delete(image);
-            log.info("Deleted image with ID: " + id);
-        } catch (IOException e) {
-            throw new FileStorageException("Could not delete file: " + image.getImageUrl(), e);
-        }
+        List<SaleItemImage> images = saleItemImageRepository.findAllBySaleItemId(id);
+        images.forEach(image -> {
+            Path filePath = baseStoragePath.resolve(image.getFileName()).normalize();
+            try {
+                Files.deleteIfExists(filePath);
+                saleItemImageRepository.delete(image);
+                log.info("Deleted image with ID: " + id);
+            } catch (IOException e) {
+                throw new FileStorageException("Could not delete file: " + image.getFileName(), e);
+            }
+        });
     }
+
+//    public void updateImagesByIdAndImgUrls(Integer id, List<MultipartFile> imagePart) {
+//
+//        List<SaleItemImage> images = saleItemImageRepository.findAllBySaleItemId(id);
+//
+//        images.forEach(image -> {
+//            Path filePath = baseStoragePath.resolve(image.getImageUrl()).normalize();
+//            try {
+//                System.out.println(image.getImageUrl() + "image.getImageUrl()");
+//                System.out.println(filePath.toString() + "filePath");
+//               if(!filePath.toString().equals(image.getImageUrl())) {
+//                   Files.deleteIfExists(filePath);
+//                   saleItemImageRepository.delete(image);
+//               }
+//            } catch (IOException e) {
+//                throw new FileStorageException("Could not delete file: " + image.getImageUrl(), e);
+//            }
+//        });
+//    }
+
+
+
 
     /**
      * Loads a file as a Resource.
@@ -152,7 +179,7 @@ public class FileService {
         }
 
         String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-        validateFileName(originalFilename);
+        // validateFileName(originalFilename);
 
         String extension = getFileExtension(originalFilename).toLowerCase();
         if (!ALLOWED_EXTENSIONS.contains(extension)) {
@@ -165,15 +192,15 @@ public class FileService {
         }
     }
 
-    private void validateFileName(String filename) {
-        if (filename == null || filename.isBlank() ||
-                filename.contains("..") ||
-                filename.contains("/") ||
-                filename.contains("\\") ||
-                !filename.matches("^[a-zA-Z0-9._-]+$")) {
-            throw new FileStorageException("Invalid file name: " + filename);
-        }
-    }
+    // private void validateFileName(String filename) {
+    //     if (filename == null || filename.isBlank() ||
+    //             filename.contains("..") ||
+    //             filename.contains("/") ||
+    //             filename.contains("\\") ||
+    //             !filename.matches("^[a-zA-Z0-9._-]+$")) {
+    //         throw new FileStorageException("Invalid file name: " + filename);
+    //     }
+    // }
 
     private String getFileExtension(String filename) {
         int dotIndex = filename.lastIndexOf('.');
@@ -183,25 +210,21 @@ public class FileService {
         return filename.substring(dotIndex + 1);
     }
 
-    private String generateUniqueFilename(String originalFilename) {
-        String ext = getFileExtension(originalFilename);
-        return UUID.randomUUID() + "." + ext;
-    }
 
     private void copyFileToStorage(MultipartFile file, Path targetFile, String originalFilename) throws IOException {
         Files.copy(file.getInputStream(), targetFile, StandardCopyOption.REPLACE_EXISTING);
         log.info("Successfully copied file: " + originalFilename + " to " + targetFile);
     }
 
-    private void updateNonPrimaryImages(Integer saleItemId) {
-        saleItemImageRepository.updateAllNonPrimaryBySaleItemId(saleItemId);
-    }
+//    private void updateNonPrimaryImages(Integer saleItemId) {
+//        saleItemImageRepository.updateAllNonPrimaryBySaleItemId(saleItemId);
+//    }
 
-    private SaleItemImage createSaleItemImage(SaleItem saleItem, String uniqueFilename, boolean isPrimary) {
+    private SaleItemImage createSaleItemImage(SaleItem saleItem, String uniqueFilename, Integer order) {
         SaleItemImage image = new SaleItemImage();
         image.setSaleItem(saleItem);
-        image.setImageUrl(fileStorageProperties.getUploadDir() + '/' + uniqueFilename);
-        image.setIsPrimary((byte) (isPrimary ? 1 : 0));
+        image.setFileName(uniqueFilename);
+        image.setImageViewOrder(order);
         image.setCreatedOn(Instant.now());
         image.setUpdatedOn(Instant.now());
         return image;

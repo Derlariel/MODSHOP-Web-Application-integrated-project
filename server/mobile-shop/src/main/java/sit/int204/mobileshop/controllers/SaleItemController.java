@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,6 +54,7 @@ public class SaleItemController {
     private SaleItemImageRepository saleItemImageRepository;
 
 
+
     @Operation(summary = "Get all products", description = "Retrieve all products")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Successfully retrieved products", 
@@ -68,7 +68,7 @@ public class SaleItemController {
         if (products.isEmpty()) {
             return ResponseEntity.ok().build();
         }
-        return ResponseEntity.ok(listMapper.toListDto(products, SaleItemDto.class, modelMapper));
+        return ResponseEntity.ok(listMapper.mapList(products, SaleItemDto.class, modelMapper));
     }
 
     @Operation(summary = "Get product by ID", description = "Search and retrieve product using product ID")
@@ -136,19 +136,19 @@ public class SaleItemController {
 //        return ResponseEntity.ok(updatedItem);
 //    }
 
-    @Operation(summary = "Delete product", description = "Delete product by specified ID")
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Product deleted successfully", 
-                    content = @Content),
-        @ApiResponse(responseCode = "404", description = "Product not found", 
-                    content = @Content)
-    })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSaleItemById(
-            @Parameter(description = "ID of the product to delete", required = true)
-            @PathVariable Integer id) {
-        saleItemService.deleteSaleItemById(id);
-        return ResponseEntity.noContent().build();
-    }
+//    @Operation(summary = "Delete product", description = "Delete product by specified ID")
+//    @ApiResponses({
+//        @ApiResponse(responseCode = "204", description = "Product deleted successfully",
+//                    content = @Content),
+//        @ApiResponse(responseCode = "404", description = "Product not found",
+//                    content = @Content)
+//    })
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Void> deleteSaleItemById(
+//            @Parameter(description = "ID of the product to delete", required = true)
+//            @PathVariable Integer id) {
+//        saleItemService.deleteSaleItemById(id);
+//        return ResponseEntity.noContent().build();
+//    }
 
 }

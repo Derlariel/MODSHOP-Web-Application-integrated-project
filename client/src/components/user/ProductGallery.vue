@@ -71,6 +71,7 @@ async function initProducts() {
         filters.value.upperPrice !== null ||
         filters.value.storageSize.length > 0;
 
+      
       if (hasFilters) {
         // If filters are applied and no results, show no products message
         noProductsFromFilter.value = true;
@@ -127,7 +128,7 @@ onMounted(async () => {
   }
 
   await initProducts();
-  const savedPage = sessionStorage.getItem("activePage");
+  const savedPage = localStorage.getItem("activePage");
   if (savedPage) {
     productStore.setActivePage(parseInt(savedPage));
   }
@@ -150,7 +151,7 @@ onMounted(async () => {
     showSuccess.value = true;
     sessionStorage.removeItem("delete-success");
     productStore.setActivePage(1)
-    sessionStorage.setItem("activePage", 1)
+    localStorage.setItem("activePage", 1)
     setTimeout(() => {
       showSuccess.value = false;
     }, 2000);
@@ -320,8 +321,8 @@ watch(trigger, async () => {
         <div class="min-h-[500px] flex flex-col items-center justify-center text-center px-2 animate-fadeInUp">
           <div class="space-y-6 max-w-lg mx-auto mb-8">
             <p
-              class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent leading-tight animate-gradient">
-              NO SALE ITEM AVAILABLE
+              class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent leading-tight animate-gradient uppercase">
+              No Sale Item
           </p>
 
           </div>

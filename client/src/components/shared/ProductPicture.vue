@@ -1,12 +1,21 @@
-2
+
 <script setup>
-import { ref, defineProps, computed } from "vue";
+import { ref, defineProps, computed,onBeforeUnmount, defineEmits  } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
 import defaultImage from "@/assets/default.jpg";
 import UploadPicture from "./modal/UploadPicture.vue";
 const productStore = useProductStore();
 const selectedImage = ref(1);
 const uploadModalRef = ref(null);
+const userSelectedImages = ref([]);
+
+const selectedFiles = ref([])
+
+onBeforeUnmount(() => {
+  userSelectedImages.value.forEach(url => URL.revokeObjectURL(url));
+});
+
+const emit = defineEmits(['savePic'])
 
 const props = defineProps({
   images: Array,
@@ -20,14 +29,24 @@ function openUploadModal() {
   uploadModalRef.value?.openModal();
 }
 
-const BASE_URL = "http://localhost:8080/itb-mshop/";
+const receivePic = (data) => {
+  console.log("📦 Received images:", data); 
+  selectedFiles.value = data;
+  userSelectedImages.value = data.map(file => URL.createObjectURL(file)); 
+  emit('savePic', data);
+};
+const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
+
+console.log(props.images)
 
 const displayImages = computed(() => {
-  const imgs = props.images?.length
-    ? props.images.map(img => BASE_URL + img)
-    : productStore.productImages;
+  const sourceImages = userSelectedImages.value.length
+    ? userSelectedImages.value 
+    : props.images?.length
+      ? props.images.map(img => BASE_URL + img.fileName)
+      : productStore.productImages;
 
-  const filled = [...imgs];
+  const filled = [...sourceImages];
   while (filled.length < 4) {
     filled.push(defaultImage);
   }
@@ -111,7 +130,7 @@ const displayImages = computed(() => {
         </button>
       </div>
 
-      <UploadPicture ref="uploadModalRef" />
+      <UploadPicture @send-select-pictures="receivePic" :images="images" ref="uploadModalRef" />
     </div>
   </div>
 </template>
