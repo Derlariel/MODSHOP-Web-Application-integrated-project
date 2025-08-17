@@ -1,9 +1,9 @@
 <script setup>
 import { ref, defineExpose, defineProps, reactive, defineEmits } from "vue";
 
-const emit = defineEmits(['sendSelectPictures'])
+const emit = defineEmits(["sendSelectPictures"]);
 
-const BASE_URL = "http://localhost:8080/itb-mshop/";
+const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
 
 const props = defineProps({
   images: {
@@ -13,10 +13,10 @@ const props = defineProps({
 });
 
 const sendPic = () => {
-  emit('sendSelectPictures', selectedFiles.slice());
-  console.log('selected', selectedFiles)
-  closeModal()
-}
+  emit("sendSelectPictures", selectedFiles.slice());
+  console.log("selected", selectedFiles);
+  closeModal();
+};
 
 const showModal = ref(false);
 
@@ -30,13 +30,46 @@ const existingImages = reactive(Array(4).fill(null));
 const selectedImage = ref(null);
 
 // โหลดรูปเดิมจาก props ลง previewImages และ existingImages ตอนเปิด modal
+// const openModal = () => {
+//   if (props.images?.length) {
+//     for (let i = 0; i < 4; i++) {
+//       if (props.images[i]) {
+//         const url = props.images[i].startsWith("http")
+//           ? props.images[i]
+//           : BASE_URL + props.images[i];
+//         previewImages[i] = url;
+//         existingImages[i] = url;
+//         selectedFiles[i] = null;
+//       } else {
+//         previewImages[i] = null;
+//         existingImages[i] = null;
+//         selectedFiles[i] = null;
+//       }
+//     }
+//   } else {
+//     for (let i = 0; i < 4; i++) {
+//       previewImages[i] = null;
+//       existingImages[i] = null;
+//       selectedFiles[i] = null;
+//     }
+//   }
+//   showModal.value = true;
+// };
+
 const openModal = () => {
   if (props.images?.length) {
     for (let i = 0; i < 4; i++) {
-      if (props.images[i]) {
-        const url = props.images[i].startsWith("http")
-          ? props.images[i]
-          : BASE_URL + props.images[i];
+      const item = props.images[i];
+
+      if (typeof item === "string") {
+        const url = item.startsWith("http") ? item : BASE_URL + item;
+        previewImages[i] = url;
+        existingImages[i] = url;
+        selectedFiles[i] = null;
+      } else if (item?.fileName) {
+        const url = item.fileName.startsWith("http")
+          ? item.fileName
+          : BASE_URL + item.fileName;
         previewImages[i] = url;
         existingImages[i] = url;
         selectedFiles[i] = null;
@@ -103,6 +136,25 @@ const removeImage = (i) => {
   existingImages[i] = null;
 };
 
+// ฟังก์ชันสำหรับสลับรูประหว่างสองช่อง
+const swapImages = (fromIndex, toIndex) => {
+  // สลับ previewImages
+  [previewImages[fromIndex], previewImages[toIndex]] = [
+    previewImages[toIndex],
+    previewImages[fromIndex],
+  ];
+  // สลับ selectedFiles
+  [selectedFiles[fromIndex], selectedFiles[toIndex]] = [
+    selectedFiles[toIndex],
+    selectedFiles[fromIndex],
+  ];
+  // สลับ existingImages
+  [existingImages[fromIndex], existingImages[toIndex]] = [
+    existingImages[toIndex],
+    existingImages[fromIndex],
+  ];
+};
+
 const selectImage = (index) => {
   selectedImage.value = index;
 };
@@ -142,7 +194,6 @@ const uploadFiles = async () => {
     if (file) formData.append("images", file);
   });
 
-  
   const existingFileNames = existingImages
     .filter((img) => img !== null)
     .map((img) => {
@@ -151,7 +202,7 @@ const uploadFiles = async () => {
 
   formData.append("existingImages", JSON.stringify(existingFileNames));
 
-  if (formData.has("files") === false && existingFileNames.length === 0) {
+  if (formData.has("images") === false && existingFileNames.length === 0) {
     alert("Please select or keep at least one image before uploading.");
     return;
   }
@@ -160,30 +211,13 @@ const uploadFiles = async () => {
   console.log("Existing images filenames:", existingFileNames);
 
   for (let pair of formData.entries()) {
-    if (pair[0] === "files") {
-      console.log(pair[0] + ":", pair[1].name); // แสดงชื่อไฟล์แต่ละไฟล์
+    if (pair[0] === "images") {
+      console.log(pair[0] + ":", pair[1].name);
     } else {
       console.log(pair[0] + ":", pair[1]);
     }
   }
-
- 
-  // try {
-  //   const res = await fetch("/api/upload", {
-  //     method: "POST",
-  //     body: formData,
-  //   });
-
-  //   if (!res.ok) throw new Error("Upload failed.");
-
-  //   alert("Upload successful.");
-  //   closeModal();
-  // } catch (error) {
-  //   alert(error.message);
-  // }
-
 };
-
 
 const getPictureClass = (index, isCleared = false) => {
   const baseClass = `itbms-picture-file${index + 1}`;
@@ -215,17 +249,23 @@ defineExpose({
             <div
               v-for="(img, i) in previewImages"
               :key="i"
-              class="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-300 cursor-pointer flex items-center justify-center bg-gray-200"
+              class="relative w-24 h-32 rounded-lg overflow-hidden border border-gray-300 cursor-pointer flex flex-col items-center justify-center bg-gray-200"
               @click="fileInputs[i].click()"
             >
               <img
                 v-if="img"
                 :src="img"
                 alt="preview"
-                class="w-full h-full object-cover"
+                class="w-full h-24 object-cover mb-1"
               />
-              <div v-else class="text-gray-500 select-none">+ Add</div>
+              <div
+                v-else
+                class="text-gray-500 select-none h-24 flex items-center justify-center w-full mb-1"
+              >
+                + Add
+              </div>
 
+              
               <button
                 v-if="img"
                 @click.stop="removeImage(i)"
@@ -238,6 +278,58 @@ defineExpose({
                 &times;
               </button>
 
+              <!-- ปุ่มสลับตำแหน่ง แม้ slot ว่าง -->
+              <div class="absolute bottom-1 left-1 flex space-x-1">
+                <button
+                  v-if="i === 0 && previewImages[1] !== undefined"
+                  @click.stop="swapImages(0, 1)"
+                  class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600 transition"
+                  aria-label="Move to slot 2"
+                >
+                  →
+                </button>
+                <button
+                  v-if="i === 1 && previewImages[0] !== undefined"
+                  @click.stop="swapImages(1, 0)"
+                  class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600 transition"
+                  aria-label="Move to slot 1"
+                >
+                  ←
+                </button>
+                <button
+                  v-if="i === 1 && previewImages[2] !== undefined"
+                  @click.stop="swapImages(1, 2)"
+                  class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600 transition"
+                  aria-label="Move to slot 3"
+                >
+                  →
+                </button>
+                <button
+                  v-if="i === 2 && previewImages[1] !== undefined"
+                  @click.stop="swapImages(2, 1)"
+                  class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600 transition"
+                  aria-label="Move to slot 2"
+                >
+                  ←
+                </button>
+                <button
+                  v-if="i === 2 && previewImages[3] !== undefined"
+                  @click.stop="swapImages(2, 3)"
+                  class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600 transition"
+                  aria-label="Move to slot 4"
+                >
+                  →
+                </button>
+                <button
+                  v-if="i === 3 && previewImages[2] !== undefined"
+                  @click.stop="swapImages(3, 2)"
+                  class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-blue-600 transition"
+                  aria-label="Move to slot 3"
+                >
+                  ←
+                </button>
+              </div>
+
               <!-- input file ซ่อน สำหรับแต่ละช่อง -->
               <input
                 type="file"
@@ -249,6 +341,19 @@ defineExpose({
             </div>
           </div>
 
+<div class="flex justify-center gap-4 mb-6">
+  <div
+    v-for="(img, i) in previewImages"
+    :key="'filename-' + i"
+    class="w-24 text-center text-xs text-gray-700 truncate"
+  >
+    {{
+      selectedFiles[i]?.name ||
+      existingImages[i]?.split("/").pop() ||
+      ""
+    }}
+  </div>
+</div>
           <div class="mb-4 p-3 bg-gray-100 rounded text-sm">
             <p class="font-semibold mb-2">Class names ที่จะใช้:</p>
             <div class="grid grid-cols-2 gap-2">
@@ -288,7 +393,6 @@ defineExpose({
             />
 
             <button
-              
               @click="sendPic"
               class="px-5 py-2 rounded bg-orange-500 text-white hover:bg-orange-700 transition"
             >
