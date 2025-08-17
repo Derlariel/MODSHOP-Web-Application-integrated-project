@@ -7,11 +7,10 @@ import {
   deleteProductById,
 } from "@/utils/tool";
 import defaultImage from "@/assets/default.jpg";
-import { getProductsPage } from "../utils/tool";
-import { LucideProjector } from "lucide-vue-next";
-
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
+import { getProductsPage } from "../utils/tool";
+import { LucideProjector } from "lucide-vue-next";
 export const useProductStore = defineStore("product", {
   state: () => ({
     activePage: 1,
@@ -23,7 +22,6 @@ export const useProductStore = defineStore("product", {
         image: defaultImage,
       },
     ],
-    selectedProduct: null,
   }),
   getters: {
     allProducts: (state) => state.products,
@@ -75,6 +73,9 @@ export const useProductStore = defineStore("product", {
         console.error("Failed to load all products", err);
       }
     },
+
+    
+
     async loadProductsPage(params) {
       try {
         const data = await getProductsPage(`${BASE_URL}/v2/sale-items`, params);
@@ -156,42 +157,6 @@ export const useProductStore = defineStore("product", {
         if (index !== -1) this.products[index] = updated;
       } catch (err) {
         console.error("Failed to update product", err);
-      }
-    },
-    async removeSaleItemPictures(
-      saleItemId,
-      payload /* { deleteIds:[], order:[] } */
-    ) {
-      try {
-        const res = await fetch(
-          `${BASE_URL}/v2/sale-items/${saleItemId}/pictures`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          }
-        );
-        if (!res.ok) {
-          const text = await res.text().catch(() => null);
-          throw new Error(
-            `Failed to update images: ${res.status} ${text ?? ""}`
-          );
-        }
-        const data = await res.json(); // expect Array<{id, fileName, position}>
-
-        // Update local cache minimal-change: replace pictures only
-        const idx = this.products.findIndex((p) => p.id === saleItemId);
-        if (idx !== -1) {
-          // shallow clone product and replace pictures ref
-          this.products[idx] = { ...this.products[idx], pictures: data };
-        }
-        if (this.selectedProduct?.id === saleItemId) {
-          this.selectedProduct = { ...this.selectedProduct, pictures: data };
-        }
-        return data;
-      } catch (err) {
-        console.error("removeSaleItemPictures error", err);
-        throw err;
       }
     },
     async deleteProduct(id) {

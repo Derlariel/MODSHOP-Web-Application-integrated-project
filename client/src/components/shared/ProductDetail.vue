@@ -3,7 +3,6 @@ import { useRoute, useRouter } from "vue-router";
 import { useProductStore } from "@/stores/useProductStore";
 import { onMounted, ref, computed } from "vue";
 import ProductPicture from "@/components/shared/ProductPicture.vue";
-import RemoveSaleItemPicture from "@/components/shared/RemoveSaleItemPicture.vue";
 import HistoryPath from "@/components/shared/HistoryPath.vue";
 import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
@@ -16,33 +15,36 @@ const productStore = useProductStore();
 const isLoading = ref(true);
 const product = ref(null);
 const isData = ref(true);
-const isEditMode = ref(false);
-const showDelete = ref(false);
-const showSuccess = ref(false);
+
+console.log('detail', productStore.getActivePage);
 
 const submit = () => {
-  isEditMode.value = true; // เปิด edit mode แสดง RemoveSaleItemPicture
+  router.push({
+    name: 'sale-items-edit',
+    params: {
+      productId: productId
+    }
+  })
 }
 
 const title = computed(() => {
   if (!product.value) return '';
-  const { brandName = '', model = '', ramGb = '', storageGb = '', color = '' } = product.value;
+
+  const {
+    brandName = '',
+    model = '',
+    ramGb = '',
+    storageGb = '',
+    color = ''
+  } = product.value;
+
   return `${brandName} ${model} ${ramGb}/${storageGb}GB ${color}`.trim();
 });
 
-const normalizedPictures = computed(() => {
-  const raw = product.value?.pictures ?? product.value?.saleItemImages ?? [];
-  return raw.map((img, idx) => ({
-    id: img.id ?? img.imageId ?? img.saleItemImageId ?? idx+1,
-    fileName: img.fileName ?? img.name ?? img.imageName ?? '',
-    position: Number(img.position ?? img.seq ?? (idx + 1)),
-  })).sort((a,b)=>a.position - b.position);
-});
-
+const showDelete = ref(false)
 const deleteSaleItem = () => {
-  showDelete.value = true;
+  showDelete.value = true
 }
-
 const confirm = async () => {
   try {
     await productStore.deleteProduct(productId);
@@ -52,74 +54,19 @@ const confirm = async () => {
     productStore.setActivePage(1)
   } catch (error) {
     sessionStorage.setItem("error-message", "true");
+    console.log(sessionStorage.getItem("error-message"));
     router.push("/sale-items");
   }
 };
+const showSuccess = ref(false);
 
-const handlePicturesUpdate = (updatedPictures) => {
-  // updatedPictures is array from BE: replace product.pictures
-  if (product.value) product.value.pictures = updatedPictures;
-};
-function makePreviewEntries(files = []) {
-  return files.map((file, idx) => {
-    const objectUrl = URL.createObjectURL(file);
-    return {
-      id: `tmp-${Date.now()}-${idx}`,      // ชั่วคราว id แบบ string
-      fileName: objectUrl,                // ให้ component ใช้เป็น src preview
-      position: null,                     // จะรีคอมพิวต์ต่อไป
-      isNew: true,                        // flag ว่าไฟล์ยังไม่อัปโหลด
-      file: file                          // เก็บไฟล์ของจริง เพื่อใช้เมื่อจะอัปโหลดจริง
-    };
-  });
-}
-function handleNewUploads(files) {
-  if (!product.value) return;
-  // เอา existing visible pictures (ถ้ามี) และต่อด้วย preview ใหม่
-  const existing = (product.value.pictures ?? product.value.saleItemImages ?? [])
-    .map((p, idx) => ({
-      id: p.id ?? p.imageId ?? `exist-${idx}`,
-      fileName: p.fileName ?? p.name ?? p.imageName ?? '',
-      position: Number(p.position ?? p.seq ?? (idx + 1)),
-      isNew: false
-    }));
-
-  const previews = makePreviewEntries(files);
-
-  // รวมกัน และตั้ง position ชั่วคราวเป็น 1..N
-  const combined = [...existing, ...previews];
-  combined.sort((a,b) => (a.position || 9999) - (b.position || 9999));
-  combined.forEach((p, i) => p.position = i + 1);
-
-  // เขียนกลับไปที่ product (so RemoveSaleItemPicture จะเห็น)
-  product.value.pictures = combined;
-
-  // ถ้าต้องการให้ store.selectedProduct ก็ sync ด้วย
-  productStore.selectedProduct = product.value;
-}
-function handleSaved() {
-  // Ensure we always exit edit mode (finally-like)
-  try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      try {
-        sessionStorage.setItem('edit-success', 'true');
-      } catch (e) {
-        // Some browsers / privacy modes throw when setItem is blocked — log and continue
-        console.warn('sessionStorage.setItem failed (ignored):', e);
-      }
-    }
-  } finally {
-    // Always exit edit mode so UI doesn't hang
-    isEditMode.value = false;
-  }
-}
 onMounted(async () => {
   isLoading.value = true;
+
   try {
     await productStore.loadProducts();
-    const p = await productStore.fetchProductDetail(productId);
-    product.value = p;
-    // sync store's selectedProduct as well (useful)
-    productStore.selectedProduct = p;
+
+    product.value = await productStore.fetchProductDetail(productId);
 
     if (product.value && checkUpToDate(product)) {
       showSuccess.value = false;
@@ -134,40 +81,31 @@ onMounted(async () => {
   if (sessionStorage.getItem("edit-success") === "true") {
     showSuccess.value = true;
     sessionStorage.removeItem("edit-success");
-    setTimeout(() => { showSuccess.value = false; }, 3000);
+    setTimeout(() => {
+      showSuccess.value = false;
+    }, 3000);
   }
 
   isLoading.value = false;
 });
+
+
 </script>
 
 <template>
   <div class="min-h-screen bg-black text-white">
     <div v-if="!isLoading && product && isData" class="pt-24 pb-20">
-      <SuccessModal :visible="showSuccess" message="The sale item has been updated." />
+      <SuccessModal
+        :visible="showSuccess"
+        message="The sale item has been updated."
+      />
       <ConfirmModal @confirm="confirm" :visible="showDelete" />
-
       <div class="max-w-[1200px] mx-auto px-6">
         <HistoryPath :previous="1" :name-path="title" /> 
         <div class="itbms-row grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-         <!-- in ProductDetail.vue template -->
-<ProductPicture
-  v-if="!isEditMode"
-  :images="product.saleItemImages"
-  @savePic="handleNewUploads"
-/>
-
-<RemoveSaleItemPicture
-  v-else
-  :sale-item="product"
-  :initial-pictures="normalizedPictures"
-  @update="handlePicturesUpdate"
-  @saved="handleSaved"
-  @cancel="() => { isEditMode=false; }"
-/>
+          <ProductPicture :images="product.saleItemImages" />
 
           <div class="flex flex-col gap-8">
-            <!-- Product Info -->
             <div class="itbms-row space-y-1">
               <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <h1 class="itbms-brand text-3xl font-semibold tracking-tight">
@@ -179,10 +117,14 @@ onMounted(async () => {
               </div>
 
               <div class="flex items-center text-xl text-gray-400">
-                <span class="itbms-storageGb">{{ product.storageGb === null ? "-" : product.storageGb }}</span>
+                <span class="itbms-storageGb">{{
+                  product.storageGb === null ? "-" : product.storageGb
+                }}</span>
                 <span class="itbms-storageGb-unit ml-1">GB</span>
                 <span class="mx-2">•</span>
-                <span class="itbms-color">{{ product.color === null ? "-" : product.color }}</span>
+                <span class="itbms-color">{{
+                  product.color === null ? "-" : product.color
+                }}</span>
               </div>
             </div>
 
@@ -191,26 +133,160 @@ onMounted(async () => {
             </div>
 
             <div class="space-y-4">
-              <button class="w-full bg-white text-black rounded-full py-3.5 font-medium text-sm hover:bg-gray-200 transition-colors">
+              <button
+                class="w-full bg-white text-black rounded-full py-3.5 font-medium text-sm hover:bg-gray-200 transition-colors"
+              >
                 Buy
               </button>
-              <button class="w-full bg-neutral-800 text-white rounded-full py-3.5 font-medium text-sm hover:bg-neutral-700 transition-colors">
+              <button
+                class="w-full bg-neutral-800 text-white rounded-full py-3.5 font-medium text-sm hover:bg-neutral-700 transition-colors"
+              >
                 Add to Bag
               </button>
             </div>
 
-            <!-- Overview, Specs ฯลฯ เหมือนเดิม -->
             <div class="border-t border-neutral-800 pt-6">
               <h2 class="text-xl font-medium mb-4">Overview</h2>
-              <p class="itbms-description text-gray-400 leading-relaxed">{{ product.description }}</p>
+              <p class="itbms-description text-gray-400 leading-relaxed">
+                {{ product.description }}
+              </p>
             </div>
 
-            <!-- Edit / Delete Buttons -->
+            <div class="border-t border-neutral-800 pt-6">
+              <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-medium">Specifications</h2>
+              </div>
+
+              <div class="text-gray-400 space-y-4 animate-fadeIn">
+                <div class="grid grid-cols-3 gap-4">
+                  <div class="bg-neutral-800/50 rounded-xl p-4 text-center">
+                    <p class="text-xs text-gray-400 mb-1">RAM</p>
+                    <p class="itbms-ramGb font-medium">
+                      {{
+                        product.ramGb === null || product.ramGb === ""
+                          ? "-"
+                          : product.ramGb
+                      }}GB
+                    </p>
+                  </div>
+
+                  <div class="bg-neutral-800/50 rounded-xl p-4 text-center">
+                    <p class="text-xs text-gray-400 mb-1">Storage</p>
+                    <p class="itbms-storageGb font-medium">
+                      {{
+                        product.storageGb === null || product.storageGb === ""
+                          ? "-"
+                          : product.storageGb
+                      }}GB
+                    </p>
+                  </div>
+
+                  <div class="bg-neutral-800/50 rounded-xl p-4 text-center">
+                    <p class="text-xs text-gray-400 mb-1">Screen</p>
+                    <p class="itbms-screenSizeInch font-medium">
+                      {{
+                        product.screenSizeInch === null ||
+                        product.screenSizeInch === ""
+                          ? "-"
+                          : product.screenSizeInch
+                      }}"
+                    </p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 class="text-white text-sm font-medium mb-1">Display</h3>
+                    <p class="itbms-screenSizeInch text-sm">
+                      {{
+                        product.screenSizeInch === null
+                          ? "-"
+                          : product.screenSizeInch
+                      }}
+                      <span class="itbms-screenSizeInch-unit">Inches</span>
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 class="text-white text-sm font-medium mb-1">Memory</h3>
+                    <p class="itbms-ramGb text-sm">
+                      {{ product.ramGb === null ? "-" : product.ramGb }}
+                      <span class="itbms-ramGb-unit">GB RAM</span>
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 class="text-white text-sm font-medium mb-1">Storage</h3>
+                    <p class="text-sm">
+                      {{
+                        product.storageGb === null || product.storageGb === ""
+                          ? "-"
+                          : product.storageGb
+                      }}
+                      GB
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 class="text-white text-sm font-medium mb-1">Color</h3>
+                    <p class="itbms-color text-sm">
+                      {{
+                        product.color === null || product.color === ""
+                          ? "-"
+                          : product.color
+                      }}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 class="text-white text-sm font-medium mb-1">
+                    Availability
+                  </h3>
+                  <p class="itbms-quantity text-sm">
+                    {{ product.quantity > 0 ? "In Stock" : "Out of Stock" }}
+                    <span class="text-xs"
+                      >({{ product.quantity }} units available)</span
+                    >
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t border-neutral-800 pt-6">
+              <a
+                href="#"
+                class="flex items-center text-blue-400 hover:underline"
+              >
+                <span>Compare all models</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 ml-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </a>
+            </div>
+
             <div class="pt-8 flex flex-col sm:flex-row gap-4">
-              <button type="submit" @click="submit" class="itbms-edit-button flex-1 bg-white text-black py-4 px-6 rounded-full hover:bg-gray-200 transition-colors duration-300 font-medium">
+              <button
+                type="submit"
+                @click="submit"
+                class="itbms-edit-button flex-1 bg-white text-black py-4 px-6 rounded-full hover:bg-gray-200 transition-colors duration-300 font-medium"
+              >
                 Edit
               </button>
-              <button @click="deleteSaleItem" type="button" class="itbms-delete-button flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-red-500 transition-colors duration-300 font-medium">
+              <button
+                @click="deleteSaleItem"
+                type="button"
+                class="itbms-delete-button flex-1 bg-neutral-800 text-white py-4 px-6 rounded-full hover:bg-red-500 transition-colors duration-300 font-medium"
+              >
                 Delete
               </button>
             </div>
@@ -222,11 +298,36 @@ onMounted(async () => {
 </template>
 
 <style>
+.perspective {
+  perspective: 1000px;
+}
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+.rotate-y-5 {
+  transform: rotateY(5deg);
+}
+.rotate-y-10 {
+  transform: rotateY(10deg);
+}
+.rotate-x-3 {
+  transform: rotateX(3deg);
+}
+.translate-z-20 {
+  transform: translateZ(20px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out forwards;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 </style>
