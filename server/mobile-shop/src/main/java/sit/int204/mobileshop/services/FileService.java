@@ -2,18 +2,24 @@ package sit.int204.mobileshop.services;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -26,9 +32,7 @@ import sit.int204.mobileshop.exceptions.FileStorageException;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
 
-/**
- * Service for handling file uploads, deletions, and retrievals.
- */
+
 @Service
 public class FileService {
     private static final Logger log = Logger.getLogger(FileService.class.getName());
@@ -64,12 +68,20 @@ public class FileService {
         }
     }
 
+    /**
+     * Saves an uploaded image file and associates it with a SaleItem.
+     *
+     * @param originalFileName       the uploaded image file
+     * @param saleItemId the ID of the SaleItem
+     * @param order  whether the image is primary
+     * @return the saved SaleItemImage entity
+     * @throws FileStorageException if file validation or storage fails
+     */
 
     public String formatFileName(Integer saleItemId, Integer order, String originalFileName) {
         System.out.println("getFileExtension(originalFileName)" +getFileExtension(originalFileName));
         return  saleItemId + "." + order + "." + getFileExtension(originalFileName);
     }
-
     @Transactional
     public String updateFile(MultipartFile file, Integer saleItemId, Integer order) {
         validateFile(file);
@@ -88,7 +100,7 @@ public class FileService {
         }
     }
     @Transactional
-    public String saveFile(MultipartFile file, Integer saleItemId, Integer order) {
+    public SaleItemImage saveFile(MultipartFile file, Integer saleItemId, Integer order) {
         validateFile(file);
 
         String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
@@ -105,8 +117,7 @@ public class FileService {
 
 
             SaleItemImage image = createSaleItemImage(saleItem, uniqueFilename, order);
-            saleItemImageRepository.save(image);
-            return uniqueFilename;
+            return saleItemImageRepository.save(image);
 
         } catch (IOException e) {
             cleanupFile(targetFile, uniqueFilename);
@@ -158,26 +169,183 @@ public class FileService {
         });
     }
 
-//    public void updateImagesByIdAndImgUrls(Integer id, List<MultipartFile> imagePart) {
-//
-//        List<SaleItemImage> images = saleItemImageRepository.findAllBySaleItemId(id);
-//
-//        images.forEach(image -> {
-//            Path filePath = baseStoragePath.resolve(image.getImageUrl()).normalize();
-//            try {
-//                System.out.println(image.getImageUrl() + "image.getImageUrl()");
-//                System.out.println(filePath.toString() + "filePath");
-//               if(!filePath.toString().equals(image.getImageUrl())) {
-//                   Files.deleteIfExists(filePath);
-//                   saleItemImageRepository.delete(image);
-//               }
-//            } catch (IOException e) {
-//                throw new FileStorageException("Could not delete file: " + image.getImageUrl(), e);
-//            }
-//        });
-//    }
 
 
+    /**
+     * ✅ Checks if a file exists in storage
+     *
+     * @param filename the filename to check
+     * @return true if file exists
+     */
+    public boolean fileExists(String filename) {
+        if (filename == null || filename.trim().isEmpty()) {
+            return false;
+        }
+
+        try {
+            Path filePath = baseStoragePath.resolve(filename).normalize();
+
+            // Security check - prevent directory traversal
+            if (!filePath.startsWith(baseStoragePath)) {
+                log.warning("Invalid file path attempted: " + filename);
+                return false;
+            }
+
+            return Files.exists(filePath) && Files.isRegularFile(filePath);
+        } catch (Exception e) {
+            log.warning("Error checking file existence: " + filename + " - " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     *  Deletes a specific image file from storage
+     *
+     * @param filename the filename of the image to delete
+     * @throws FileStorageException if deletion fails
+     */
+    public void deleteSpecificImageFile(String filename) {
+        if (filename == null || filename.trim().isEmpty()) {
+            log.warning("Cannot delete file: filename is null or empty");
+            return;
+        }
+
+        Path filePath = baseStoragePath.resolve(filename).normalize();
+
+        // Security check
+        if (!filePath.startsWith(baseStoragePath)) {
+            throw new FileStorageException("Invalid file path: " + filename);
+        }
+
+        try {
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+                log.info("Deleted image file: " + filename);
+            } else {
+                log.warning("Image file not found for deletion: " + filename);
+            }
+        } catch (IOException e) {
+            throw new FileStorageException("Could not delete file: " + filename, e);
+        }
+    }
+
+    public void deleteMultipleFiles(List<String> filenames) {
+        if (filenames == null || filenames.isEmpty()) {
+            return;
+        }
+
+        // ใช้ parallel stream สำหรับ I/O operations
+        List<String> failedDeletes = filenames.parallelStream()
+                .filter(filename -> {
+                    try {
+                        Path filePath = baseStoragePath.resolve(filename).normalize();
+                        if (Files.exists(filePath)) {
+                            Files.delete(filePath);
+                            log.info("Deleted image file: " + filename);
+                            return false; // สำเร็จ
+                        }
+                        return false;
+                    } catch (IOException e) {
+                        log.warning("Failed to delete file: " + filename + " - " + e.getMessage());
+                        return true; // ล้มเหลว
+                    }
+                })
+                .collect(Collectors.toList());
+
+        if (!failedDeletes.isEmpty()) {
+            throw new FileStorageException("Failed to delete some files: " + failedDeletes);
+        }
+    }
+
+//    file validation เอาไว้ลด overhaed
+    public void validateMultipleFiles(List<MultipartFile> files) {
+        if(files == null || files.isEmpty()) {
+            return ;
+        }
+
+        List<String> validationErrors = new ArrayList<>();
+        long totalSize = 0;
+
+        for (MultipartFile file : files) {
+            if(file == null || file.isEmpty()){
+                validationErrors.add("Empty file detected");
+                continue;
+            }
+            totalSize += file.getSize();
+            if(file.getSize() > MAX_FILE_SIZE) {
+                validationErrors.add("File" + file.getOriginalFilename() + " exceeds size limit");
+            }
+
+            String extension = getFileExtension(file.getOriginalFilename()).toLowerCase();
+            if(!ALLOWED_EXTENSIONS.contains(extension)){
+                validationErrors.add("Invalid file type : " + extension);
+            }
+
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                validationErrors.add("Non-image file detected: " + file.getOriginalFilename());
+            }
+        }
+
+        if(totalSize > MAX_FILE_SIZE * 10) {
+            validationErrors.add("Total upload size too large"); //เช่นห้ามเกิน 50MB
+        }
+
+        if(!validationErrors.isEmpty()) {
+            throw new FileStorageException("Validation errors: " + String.join(", ", validationErrors));
+        }
+
+    }
+    
+    // สำหรับไฟล์ที่โคตรใหญ่
+    @Async("fileTaskExecutor")
+    public CompletableFuture<Void> deleteFileAsync(List<String> filenames) {
+        return CompletableFuture.runAsync(() -> deleteMultipleFiles(filenames));
+    }
+
+
+    private void validateFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new FileStorageException("File must not be empty");
+        }
+
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new FileStorageException("File size exceeds limit of 5MB");
+        }
+
+        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+        // validateFileName(originalFilename);
+
+        String extension = getFileExtension(originalFilename).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new FileStorageException("Invalid file type: ." + extension + " is not supported.");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new FileStorageException("Only image files are allowed.");
+        }
+    }
+
+    /**
+     */
+    private void copyFileToStorageOptimized(MultipartFile file, Path targetFile, String originalFilename) throws IOException {
+        // ใช้ transferTo() ซึ่งมี performance ดีกว่า
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, targetFile, StandardCopyOption.REPLACE_EXISTING);
+            log.info("Successfully copied file: " + originalFilename + " to " + targetFile);
+        }
+    }
+
+    /**
+     */
+    public Map<String, Boolean> checkMultipleFilesExist(List<String> filenames) {
+        return filenames.parallelStream()
+                .collect(Collectors.toMap(
+                        filename -> filename,
+                        this::fileExists
+                ));
+    }
 
 
     /**
@@ -205,38 +373,7 @@ public class FileService {
         }
     }
 
-    private void validateFile(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new FileStorageException("File must not be empty");
-        }
 
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new FileStorageException("File size exceeds limit of 5MB");
-        }
-
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-        // validateFileName(originalFilename);
-
-        String extension = getFileExtension(originalFilename).toLowerCase();
-        if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw new FileStorageException("Invalid file type: ." + extension + " is not supported.");
-        }
-
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new FileStorageException("Only image files are allowed.");
-        }
-    }
-
-    // private void validateFileName(String filename) {
-    //     if (filename == null || filename.isBlank() ||
-    //             filename.contains("..") ||
-    //             filename.contains("/") ||
-    //             filename.contains("\\") ||
-    //             !filename.matches("^[a-zA-Z0-9._-]+$")) {
-    //         throw new FileStorageException("Invalid file name: " + filename);
-    //     }
-    // }
 
     private String getFileExtension(String filename) {
         int dotIndex = filename.lastIndexOf('.');

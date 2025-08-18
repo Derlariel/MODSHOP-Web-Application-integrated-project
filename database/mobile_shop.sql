@@ -186,4 +186,5 @@ CREATE TABLE sale_item_image (
   CONSTRAINT sale_item_image_ibfk_1 FOREIGN KEY (sale_item_id) REFERENCES sale_item (id) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+select * from sale_item_image;
 

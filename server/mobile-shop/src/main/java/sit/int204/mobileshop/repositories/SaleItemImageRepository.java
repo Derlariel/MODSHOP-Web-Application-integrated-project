@@ -10,10 +10,8 @@ import sit.int204.mobileshop.entities.SaleItemImage;
 @Repository
 public interface SaleItemImageRepository extends JpaRepository<SaleItemImage, Integer> {
     List<SaleItemImage> findAllBySaleItemId(Integer saleItemId);
-
+    List<SaleItemImage> findAllBySaleItemIdOrderByImageViewOrderAsc(Integer saleItemId);
     void deleteByFileName(String fileName);
-
-
 //    @Modifying
 //    @Query("UPDATE SaleItemImage i SET i.isPrimary = 0 WHERE i.saleItem.id = :saleItemId AND i.isPrimary = 1")
 //    void updateAllNonPrimaryBySaleItemId(@Param("saleItemId") Integer saleItemId);
