@@ -24,14 +24,20 @@ async function urlToFile(url, filename, mimeType) {
 
 const add = async (data) => {
   try {
-    // แปลง blob URL เป็น File object
-    const files = await Promise.all(
-      picSelect.value.map((url, i) =>
-        urlToFile(url, `image_${i}.png`, "image/png")
-      )
-    );
+    let files = [];
 
-    // ใส่เป็น File array ลงไปแทน blob url
+    // Check if picSelect.value is an array of File objects (non-edit mode)
+    if (Array.isArray(picSelect.value) && picSelect.value.every(item => item instanceof File)) {
+      files = picSelect.value;
+    } 
+    // Check if picSelect.value is an array of objects (edit mode)
+    else if (Array.isArray(picSelect.value) && picSelect.value.some(item => item.imageFile)) {
+      files = picSelect.value
+        .filter(item => item.status === 'NEW' && item.imageFile instanceof File)
+        .map(item => item.imageFile);
+    }
+
+    // Assign the File array to data.images
     data.images = files;
 
     await productStore.createProduct(data);
@@ -39,7 +45,7 @@ const add = async (data) => {
     sessionStorage.setItem("add-success", "true");
     router.push({ name: "product-gallery" });
     localStorage.setItem("activePage", 1);
-    productStore.setActivePage(1)
+    productStore.setActivePage(1);
   } catch (error) {
     console.error("Error creating product:", error);
   }

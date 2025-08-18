@@ -147,12 +147,14 @@ export const useProductStore = defineStore("product", {
       }
     },
 
-    async updateProduct(product) {
+    async updateProduct(productId, formData) {
+      console.log("Updating product with ID:", productId);
+      console.log("FormData content:", formData)
       try {
         const updated = await updateProductById(
-          `${BASE_URL}/v1/sale-items`,
-          product.id,
-          product
+          `${BASE_URL}/v2/sale-items`,
+           productId,
+          formData  
         );
         const index = this.products.findIndex((p) => p.id === product.id);
         if (index !== -1) this.products[index] = updated;
