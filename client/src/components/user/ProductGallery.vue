@@ -128,7 +128,7 @@ onMounted(async () => {
   }
 
   await initProducts();
-  const savedPage = localStorage.getItem("activePage");
+  const savedPage = sessionStorage.getItem("activePage");
   if (savedPage) {
     productStore.setActivePage(parseInt(savedPage));
   }
@@ -151,7 +151,7 @@ onMounted(async () => {
     showSuccess.value = true;
     sessionStorage.removeItem("delete-success");
     productStore.setActivePage(1)
-    localStorage.setItem("activePage", 1)
+    sessionStorage.setItem("activePage", 1)
     setTimeout(() => {
       showSuccess.value = false;
     }, 2000);

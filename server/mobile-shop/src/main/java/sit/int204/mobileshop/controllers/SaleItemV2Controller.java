@@ -3,10 +3,8 @@ package sit.int204.mobileshop.controllers;
 import java.io.IOException;
 import java.util.List;
 
-import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
@@ -21,28 +19,24 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import sit.int204.mobileshop.config.FileStorageProperties;
 import sit.int204.mobileshop.dtos.*;
-import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.services.SaleItemImageService;
 import sit.int204.mobileshop.services.SaleItemService;
 import sit.int204.mobileshop.utils.ListMapper;
-import sit.int204.mobileshop.dtos.PageDto;
-
-import java.util.List;
 
 @CrossOrigin(origins = "${app.origins}")
 @RestController
 @RequestMapping("/v2/sale-items")
 @Tag(name = "Sale Item API V2", description = "API for retrieving paginated product data")
 public class SaleItemV2Controller {
+
     @Autowired
     private SaleItemService saleItemService;
 
     @Autowired
-    private SaleItemImageService saleItemImageService;
+    private FileStorageProperties fileStorageProperties;
 
     @Autowired
-    FileStorageProperties fileStorageProperties;
-
+    private SaleItemImageService saleItemImageService;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -62,48 +56,64 @@ public class SaleItemV2Controller {
     @PostMapping("")
     public ResponseEntity<SaleItemDetailDto> createSaleItem(
             @ModelAttribute SaleItemRequestDto dto,
-            @RequestParam(required = false) List<MultipartFile> images
+            @RequestParam(value = "images", required = false) List<MultipartFile> images
     ) throws IOException {
-        return ResponseEntity.ok(saleItemService.createSaleItem(dto, images));
+        SaleItemDetailDto result = saleItemService.createSaleItem(dto, images);
+        result.setSaleItemImages(saleItemImageService.getSaleItemImagesDto(result.getId()));
+        return ResponseEntity.ok(result);
     }
 
-//    @PatchMapping("/{id}")
-//    public ResponseEntity<SaleItemDetailDto> updateSaleItem(@RequestPart(value = "images", required = false) List<MultipartFile> imagesInteger, Integer saleItemId) {
-//        saleItemImageService
+//    @PostMapping("")
+//    public ResponseEntity<SaleItemDetailDto> createSaleItem(
+//            @RequestPart("dto") SaleItemRequestDto dto,
+//            @RequestPart(value = "images", required = false) List<MultipartFile> images
+//    ) throws IOException {
+//        SaleItemDetailDto result = saleItemService.createSaleItem(dto, images);
+//        result.setSaleItemImages(saleItemImageService.getSaleItemImagesDto(result.getId()));
+//        return ResponseEntity.ok(result);
 //    }
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<SaleItemDetailDto> getProductById(
-            @Parameter(description = "ID of the product to search", required = true)
-            @PathVariable Integer id) {
-//        SaleItem item = saleItemService.getSaleItemById(id);
-
-//        SaleItemDetailDto dto = modelMapper.map(item, SaleItemDetailDto.class);
-        SaleItem saleItem = modelMapper.map(saleItemService.getSaleItemById(id), SaleItem.class);
-        SaleItemDetailDto dto =  saleItemService.getSaleItemById(id);
-        dto.setBrandName(saleItem.getBrand().getName());
+    public ResponseEntity<SaleItemDetailDto> getProductById(@PathVariable Integer id) {
+        SaleItemDetailDto dto = saleItemService.getSaleItemById(id);
+        dto.setSaleItemImages(saleItemImageService.getSaleItemImagesDto(id));
         return ResponseEntity.ok(dto);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<SaleItemDetailDto> deleteSaleItemPictures(@PathVariable Integer id) {
-        saleItemService.deleteSaleItemById(id);
-        saleItemImageService.removeImages(id);  
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-//
-//    @PatchMapping("/{id}")
-//    public ResponseEntity<SaleItemDetailDto> updateSaleItemPictures(@PathVariable Integer id, @RequestPart("images") List<MultipartFile> images) {
-//        saleItemImageService.updateImages(id, images);
-//        return null;
-//    }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<SaleItemDetailDto> updateSaleItem(
+            @PathVariable Integer id,
+            @ModelAttribute SaleItemRequestDto dto,
+            @RequestParam(required = false) List<MultipartFile> images,
+            @RequestParam(required = false) List<Integer> imagesToDelete,
+            @RequestParam(required = false) List<Integer> imageOrder
+    ) throws IOException {
+        SaleItemDetailDto result = saleItemService.getSaleItemById(id);
+        saleItemImageService.updateImages(id, imageOrder, imagesToDelete, images);
+        result.setSaleItemImages(saleItemImageService.getSaleItemImagesDto(id));
+        return ResponseEntity.ok(result);
+    }
+
+
+    @DeleteMapping("/{id}/images")
+    public ResponseEntity<SaleItemDetailDto> deleteImages(
+            @PathVariable Integer id,
+            @RequestParam List<Integer> imageIds
+    ) {
+        saleItemImageService.updateImages(id, null, imageIds, null);
+        SaleItemDetailDto result = saleItemService.getSaleItemById(id);
+        result.setSaleItemImages(saleItemImageService.getSaleItemImagesDto(id));
+        return ResponseEntity.ok(result);
+    }
 
     @GetMapping("/upload")
     public String getUpload() {
-        return  fileStorageProperties.getUploadDir();
+        return fileStorageProperties.getUploadDir();
     }
+
+
 
     @Operation(summary = "Get paginated products", description = "Retrieve products with pagination, filtering, and sorting options")
     @ApiResponses({
@@ -129,33 +139,26 @@ public class SaleItemV2Controller {
             @Parameter(description = "Filter storage size")
             @RequestParam(defaultValue = "[]") List<String> storageSize,
 
-            @Parameter(description = "Price range")
+            @Parameter(description = "Price range - lower bound")
             @RequestParam(required = false) String lowerPrice,
 
-            @Parameter(description = "Price range")
+            @Parameter(description = "Price range - upper bound")
             @RequestParam(required = false) String upperPrice,
-
 
             @Parameter(description = "Whether to use exact price matching for single price filter")
             @RequestParam(defaultValue = "false") Boolean isExactPrice,
 
-
             @Parameter(description = "Sort direction (asc or desc)")
             @RequestParam(defaultValue = "asc") String sortDirection) throws MissingServletRequestParameterException {
-
         if (page == null || size == null) {
             throw new MissingServletRequestParameterException(page == null ? "page" : "size", "Integer");
         }
-
         Integer lower = (lowerPrice == null || lowerPrice.equals("null")) ? null : Integer.valueOf(lowerPrice);
         Integer upper = (upperPrice == null || upperPrice.equals("null")) ? null : Integer.valueOf(upperPrice);
 
-// <<<<<<< pbi15-connect-fe-be-upload-pictures
-        PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(page, size, filterBrands, storageSize, lower, upper, isExactPrice, sortField,
-// =======
-        // PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(page, size, filterBrands, storageSize, lower, upper, sortField,
+        PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(
+                page, size, filterBrands, storageSize, lower, upper, isExactPrice, sortField, sortDirection);
 
-                sortDirection);
         return ResponseEntity.ok(pagedResult);
     }
 }

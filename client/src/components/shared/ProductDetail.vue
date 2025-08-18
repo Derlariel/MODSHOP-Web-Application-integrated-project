@@ -50,7 +50,7 @@ const confirm = async () => {
     await productStore.deleteProduct(productId);
     sessionStorage.setItem("delete-success", "true");
     router.push("/sale-items");
-    localStorage.setItem("activePage", 1);
+    sessionStorage.setItem("activePage", 1);
     productStore.setActivePage(1)
   } catch (error) {
     sessionStorage.setItem("error-message", "true");

@@ -44,8 +44,8 @@ const add = async (data) => {
 
     sessionStorage.setItem("add-success", "true");
     router.push({ name: "product-gallery" });
-    localStorage.setItem("activePage", 1);
-    productStore.setActivePage(1);
+    sessionStorage.setItem("activePage", 1);
+    productStore.setActivePage(1)
   } catch (error) {
     console.error("Error creating product:", error);
   }
