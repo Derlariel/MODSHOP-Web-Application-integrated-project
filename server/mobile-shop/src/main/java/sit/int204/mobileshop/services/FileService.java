@@ -63,21 +63,33 @@ public class FileService {
         }
     }
 
-    /**
-     * Saves an uploaded image file and associates it with a SaleItem.
-     *
-     * @param file       the uploaded image file
-     * @param saleItemId the ID of the SaleItem
-     * @param isPrimary  whether the image is primary
-     * @return the saved SaleItemImage entity
-     * @throws FileStorageException if file validation or storage fails
-     */
 
     public String formatFileName(Integer saleItemId, Integer order, String originalFileName) {
         return  saleItemId + "." + order + "." + getFileExtension(originalFileName);
     }
+
     @Transactional
-    public SaleItemImage saveFile(MultipartFile file, Integer saleItemId, Integer order) {
+    public String updateFile(MultipartFile file, Integer saleItemId, Integer order) {
+        validateFile(file);
+
+        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+        String uniqueFilename = formatFileName(saleItemId, order, originalFilename);
+        Path targetFile = baseStoragePath.resolve(uniqueFilename);
+
+        log.info(String.format("Uploading file: %s for SaleItem ID: %d", originalFilename, saleItemId));
+
+        try {
+            copyFileToStorage(file, targetFile, originalFilename);
+
+            return uniqueFilename;
+
+        } catch (IOException e) {
+            cleanupFile(targetFile, uniqueFilename);
+            throw new FileStorageException("Could not store file " + originalFilename + " at " + targetFile, e);
+        }
+    }
+    @Transactional
+    public String saveFile(MultipartFile file, Integer saleItemId, Integer order) {
         validateFile(file);
 
         String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
@@ -94,7 +106,8 @@ public class FileService {
 
 
             SaleItemImage image = createSaleItemImage(saleItem, uniqueFilename, order);
-            return saleItemImageRepository.save(image);
+            saleItemImageRepository.save(image);
+            return uniqueFilename;
 
         } catch (IOException e) {
             cleanupFile(targetFile, uniqueFilename);
@@ -237,5 +250,25 @@ public class FileService {
         } catch (IOException e) {
             log.severe("Failed to clean up file: " + filename);
         }
+    }
+
+    public boolean deleteByFileName(String fileName) throws IOException {
+        Path path = baseStoragePath.resolve(fileName).normalize();
+        System.out.println("Deleting file at path: " + path);
+        return Files.deleteIfExists(path);
+    }
+    public String updateFileName(MultipartFile file, Integer id, Integer order) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File is empty or null");
+        }
+        String originalFileName = file.getOriginalFilename();
+        String newFileName = formatFileName(id, order, originalFileName);
+
+        System.out.println("originalFileName: " + originalFileName);
+        System.out.println("newFileName: " + newFileName);
+
+        Path filePath = Path.of(fileStorageProperties.getUploadDir() + newFileName);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        return newFileName;
     }
 }

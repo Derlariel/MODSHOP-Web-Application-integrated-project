@@ -1,9 +1,9 @@
 <script setup>
 import { ref, defineExpose, defineProps, reactive, defineEmits } from "vue";
 
-const emit = defineEmits(['sendSelectPictures'])
+const emit = defineEmits(["sendSelectPictures"]);
 
-const BASE_URL = "http://localhost:8080/itb-mshop/";
+const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
 
 const props = defineProps({
   images: {
@@ -12,31 +12,27 @@ const props = defineProps({
   },
 });
 
-const sendPic = () => {
-  emit('sendSelectPictures', selectedFiles.slice());
-  console.log('selected', selectedFiles)
-  closeModal()
-}
-
 const showModal = ref(false);
 
-// previewImages เก็บ URL ของรูปแสดง (string หรือ null) 4 ช่อง
 const previewImages = reactive(Array(4).fill(null));
-// selectedFiles เก็บไฟล์จริงที่ผู้ใช้เลือกใหม่ (File หรือ null)
 const selectedFiles = reactive(Array(4).fill(null));
-// existingImages เก็บ URL รูปเดิมจาก props ที่ยังไม่ถูกลบ (string หรือ null)
 const existingImages = reactive(Array(4).fill(null));
 
 const selectedImage = ref(null);
 
-// โหลดรูปเดิมจาก props ลง previewImages และ existingImages ตอนเปิด modal
 const openModal = () => {
   if (props.images?.length) {
     for (let i = 0; i < 4; i++) {
-      if (props.images[i]) {
-        const url = props.images[i].startsWith("http")
-          ? props.images[i]
-          : BASE_URL + props.images[i];
+      const item = props.images[i];
+      if (typeof item === "string") {
+        const url = item.startsWith("http") ? item : BASE_URL + item;
+        previewImages[i] = url;
+        existingImages[i] = url;
+        selectedFiles[i] = null;
+      } else if (item?.fileName) {
+        const url = item.fileName.startsWith("http")
+          ? item.fileName
+          : BASE_URL + item.fileName;
         previewImages[i] = url;
         existingImages[i] = url;
         selectedFiles[i] = null;
@@ -56,13 +52,7 @@ const openModal = () => {
   showModal.value = true;
 };
 
-// ใช้ ref เก็บ input file แต่ละช่อง
 const fileInputs = reactive([null, null, null, null]);
-
-const closeModal = () => {
-  showModal.value = false;
-  clearFiles();
-};
 
 const clearFiles = () => {
   for (let i = 0; i < 4; i++) {
@@ -76,24 +66,19 @@ const clearFiles = () => {
   selectedImage.value = null;
 };
 
-// เมื่อเลือกไฟล์ในช่องที่ i
 const handleFileChange = (event, i) => {
   const file = event.target.files[0];
   if (!file) return;
 
-  // ถ้ารูปเดิมในช่องนี้เป็น blob URL ให้ล้างก่อน
   if (previewImages[i]?.startsWith("blob:")) {
     URL.revokeObjectURL(previewImages[i]);
   }
 
-  // ลบรูปเดิมที่ช่องนี้ (เพราะเลือกไฟล์ใหม่แทนที่แล้ว)
   existingImages[i] = null;
-
   selectedFiles[i] = file;
   previewImages[i] = URL.createObjectURL(file);
 };
 
-// ลบรูปในช่องที่ i
 const removeImage = (i) => {
   if (previewImages[i]?.startsWith("blob:")) {
     URL.revokeObjectURL(previewImages[i]);
@@ -103,11 +88,43 @@ const removeImage = (i) => {
   existingImages[i] = null;
 };
 
-const selectImage = (index) => {
-  selectedImage.value = index;
+const swapImages = (fromIndex, toIndex) => {
+  [previewImages[fromIndex], previewImages[toIndex]] = [
+    previewImages[toIndex],
+    previewImages[fromIndex],
+  ];
+  [selectedFiles[fromIndex], selectedFiles[toIndex]] = [
+    selectedFiles[toIndex],
+    selectedFiles[fromIndex],
+  ];
+  [existingImages[fromIndex], existingImages[toIndex]] = [
+    existingImages[toIndex],
+    existingImages[fromIndex],
+  ];
 };
 
-// เพิ่มรูปหลายไฟล์จาก input หลัก ลงช่องว่างตามลำดับ
+
+const sendPic = () => {
+  console.log("🟠 sendPic clicked");  // ให้แน่ใจว่าเรียกเข้ามาที่ฟังก์ชัน
+
+  const filledSlots = previewImages.filter((img) => img !== null);
+  console.log("Selected images to send:", filledSlots);  // ตรวจสอบข้อมูลที่ถูกเลือก
+
+    closeModal();  // ปิด modal
+
+  emit("sendSelectPictures", filledSlots); // ส่งข้อมูลไปยัง parent
+
+  console.log("Modal closed and data sent.");
+};
+
+const findEmptySlot = () => {
+  return previewImages.findIndex((img) => img === null);
+};
+const closeModal = () => {
+  showModal.value = false;
+};
+
+
 const handleMultiFileChange = (event) => {
   const files = Array.from(event.target.files);
   let emptySlots = previewImages.reduce((acc, img, i) => {
@@ -115,43 +132,38 @@ const handleMultiFileChange = (event) => {
     return acc;
   }, []);
 
-  if (files.length > emptySlots.length) {
-    alert(`You can only add up to ${emptySlots.length} images.`);
-  }
-
-  files.slice(0, emptySlots.length).forEach((file, idx) => {
+    files.slice(0, emptySlots.length).forEach((file, idx) => {
     const slotIndex = emptySlots[idx];
-
     if (previewImages[slotIndex]?.startsWith("blob:")) {
       URL.revokeObjectURL(previewImages[slotIndex]);
     }
-
     existingImages[slotIndex] = null;
     selectedFiles[slotIndex] = file;
     previewImages[slotIndex] = URL.createObjectURL(file);
   });
+
+
+  if (files.length > emptySlots.length) {
+    alert(`You can only add up to ${emptySlots.length} images.`);
+  }
+
 
   event.target.value = "";
 };
 
 const uploadFiles = async () => {
   const formData = new FormData();
-
-  // append ไฟล์ใหม่
   selectedFiles.forEach((file) => {
     if (file) formData.append("images", file);
   });
 
-  
   const existingFileNames = existingImages
     .filter((img) => img !== null)
-    .map((img) => {
-      return img.split("/").pop();
-    });
+    .map((img) => img.split("/").pop());
 
   formData.append("existingImages", JSON.stringify(existingFileNames));
 
-  if (formData.has("files") === false && existingFileNames.length === 0) {
+  if (formData.has("images") === false && existingFileNames.length === 0) {
     alert("Please select or keep at least one image before uploading.");
     return;
   }
@@ -160,35 +172,17 @@ const uploadFiles = async () => {
   console.log("Existing images filenames:", existingFileNames);
 
   for (let pair of formData.entries()) {
-    if (pair[0] === "files") {
-      console.log(pair[0] + ":", pair[1].name); // แสดงชื่อไฟล์แต่ละไฟล์
-    } else {
-      console.log(pair[0] + ":", pair[1]);
-    }
+    console.log(pair[0] + ":", pair[1]);
   }
-
- 
-  // try {
-  //   const res = await fetch("/api/upload", {
-  //     method: "POST",
-  //     body: formData,
-  //   });
-
-  //   if (!res.ok) throw new Error("Upload failed.");
-
-  //   alert("Upload successful.");
-  //   closeModal();
-  // } catch (error) {
-  //   alert(error.message);
-  // }
-
 };
-
 
 const getPictureClass = (index, isCleared = false) => {
   const baseClass = `itbms-picture-file${index + 1}`;
   return isCleared ? `${baseClass}-clear` : baseClass;
 };
+
+const isPreviousDisabled = (index) => index === 0;
+const isNextDisabled = (index) => index === 3;
 
 defineExpose({
   openModal,
@@ -215,16 +209,21 @@ defineExpose({
             <div
               v-for="(img, i) in previewImages"
               :key="i"
-              class="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-300 cursor-pointer flex items-center justify-center bg-gray-200"
+              class="relative w-24 h-32 rounded-lg overflow-hidden border border-gray-300 cursor-pointer flex flex-col items-center justify-center bg-gray-200"
               @click="fileInputs[i].click()"
             >
               <img
                 v-if="img"
                 :src="img"
                 alt="preview"
-                class="w-full h-full object-cover"
+                class="w-full h-24 object-cover mb-1"
               />
-              <div v-else class="text-gray-500 select-none">+ Add</div>
+              <div
+                v-else
+                class="text-gray-500 select-none h-24 flex items-center justify-center w-full mb-1"
+              >
+                + Add
+              </div>
 
               <button
                 v-if="img"
@@ -238,7 +237,31 @@ defineExpose({
                 &times;
               </button>
 
-              <!-- input file ซ่อน สำหรับแต่ละช่อง -->
+              <div v-if="img" class="absolute bottom-1 left-1 flex space-x-1">
+                <button
+                  @click.stop="swapImages(i, i - 1)"
+                  :class="[
+                    'bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition',
+                    isPreviousDisabled(i) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'
+                  ]"
+                  aria-label="Move to previous slot"
+                  :disabled="isPreviousDisabled(i)"
+                >
+                  ←
+                </button>
+                <button
+                  @click.stop="swapImages(i, i + 1)"
+                  :class="[
+                    'bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition',
+                    isNextDisabled(i) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'
+                  ]"
+                  aria-label="Move to next slot"
+                  :disabled="isNextDisabled(i)"
+                >
+                  →
+                </button>
+              </div>
+
               <input
                 type="file"
                 accept="image/*"
@@ -249,18 +272,17 @@ defineExpose({
             </div>
           </div>
 
-          <div class="mb-4 p-3 bg-gray-100 rounded text-sm">
-            <p class="font-semibold mb-2">Class names ที่จะใช้:</p>
-            <div class="grid grid-cols-2 gap-2">
-              <div v-for="i in 4" :key="i" class="text-gray-700">
-                <span class="font-mono">{{
-                  getPictureClass(i - 1, false)
-                }}</span>
-                →
-                <span class="font-mono text-red-600">{{
-                  getPictureClass(i - 1, true)
-                }}</span>
-              </div>
+          <div class="flex justify-center gap-4 mb-6">
+            <div
+              v-for="(img, i) in previewImages"
+              :key="'filename-' + i"
+              class="w-24 text-center text-xs text-gray-700 truncate"
+            >
+              {{
+                selectedFiles[i]?.name ||
+                existingImages[i]?.split("/").pop() ||
+                ""
+              }}
             </div>
           </div>
 
@@ -288,11 +310,10 @@ defineExpose({
             />
 
             <button
-              
               @click="sendPic"
               class="px-5 py-2 rounded bg-orange-500 text-white hover:bg-orange-700 transition"
             >
-              Save
+              xxx
             </button>
           </div>
 
