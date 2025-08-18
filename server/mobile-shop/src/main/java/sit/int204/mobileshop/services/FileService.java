@@ -83,6 +83,26 @@ public class FileService {
         return  saleItemId + "." + order + "." + getFileExtension(originalFileName);
     }
     @Transactional
+    public String updateFile(MultipartFile file, Integer saleItemId, Integer order) {
+        validateFile(file);
+
+        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+        String uniqueFilename = formatFileName(saleItemId, order, originalFilename);
+        Path targetFile = baseStoragePath.resolve(uniqueFilename);
+
+        log.info(String.format("Uploading file: %s for SaleItem ID: %d", originalFilename, saleItemId));
+
+        try {
+            copyFileToStorage(file, targetFile, originalFilename);
+
+            return uniqueFilename;
+
+        } catch (IOException e) {
+            cleanupFile(targetFile, uniqueFilename);
+            throw new FileStorageException("Could not store file " + originalFilename + " at " + targetFile, e);
+        }
+    }
+    @Transactional
     public SaleItemImage saveFile(MultipartFile file, Integer saleItemId, Integer order) {
         validateFile(file);
 
@@ -127,6 +147,8 @@ public class FileService {
             }
         });
     }
+
+
 
     /**
      * ✅ Checks if a file exists in storage
@@ -306,27 +328,6 @@ public class FileService {
                 ));
     }
 
-//    public void updateImagesByIdAndImgUrls(Integer id, List<MultipartFile> imagePart) {
-//
-//        List<SaleItemImage> images = saleItemImageRepository.findAllBySaleItemId(id);
-//
-//        images.forEach(image -> {
-//            Path filePath = baseStoragePath.resolve(image.getImageUrl()).normalize();
-//            try {
-//                System.out.println(image.getImageUrl() + "image.getImageUrl()");
-//                System.out.println(filePath.toString() + "filePath");
-//               if(!filePath.toString().equals(image.getImageUrl())) {
-//                   Files.deleteIfExists(filePath);
-//                   saleItemImageRepository.delete(image);
-//               }
-//            } catch (IOException e) {
-//                throw new FileStorageException("Could not delete file: " + image.getImageUrl(), e);
-//            }
-//        });
-//    }
-
-
-
 
     /**
      * Loads a file as a Resource.
@@ -354,17 +355,6 @@ public class FileService {
     }
 
 
-
-
-    // private void validateFileName(String filename) {
-    //     if (filename == null || filename.isBlank() ||
-    //             filename.contains("..") ||
-    //             filename.contains("/") ||
-    //             filename.contains("\\") ||
-    //             !filename.matches("^[a-zA-Z0-9._-]+$")) {
-    //         throw new FileStorageException("Invalid file name: " + filename);
-    //     }
-    // }
 
     private String getFileExtension(String filename) {
         int dotIndex = filename.lastIndexOf('.');
@@ -401,5 +391,25 @@ public class FileService {
         } catch (IOException e) {
             log.severe("Failed to clean up file: " + filename);
         }
+    }
+
+    public boolean deleteByFileName(String fileName) throws IOException {
+        Path path = baseStoragePath.resolve(fileName).normalize();
+        System.out.println("Deleting file at path: " + path);
+        return Files.deleteIfExists(path);
+    }
+    public String updateFileName(MultipartFile file, Integer id, Integer order) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File is empty or null");
+        }
+        String originalFileName = file.getOriginalFilename();
+        String newFileName = formatFileName(id, order, originalFileName);
+
+        System.out.println("originalFileName: " + originalFileName);
+        System.out.println("newFileName: " + newFileName);
+
+        Path filePath = Path.of(fileStorageProperties.getUploadDir() + newFileName);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        return newFileName;
     }
 }

@@ -1,10 +1,19 @@
 package sit.int204.mobileshop.services;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,21 +29,16 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import sit.int204.mobileshop.config.FileStorageProperties;
-import sit.int204.mobileshop.dtos.PageDto;
-import sit.int204.mobileshop.dtos.SaleItemDetailDto;
-import sit.int204.mobileshop.dtos.SaleItemDto;
-import sit.int204.mobileshop.dtos.SaleItemImageDto;
-import sit.int204.mobileshop.dtos.SaleItemRequestDto;
+import sit.int204.mobileshop.dtos.*;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.entities.SaleItem;
+import sit.int204.mobileshop.entities.SaleItemImage;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
 import sit.int204.mobileshop.utils.ListMapper;
 
-/**
- * Service for managing SaleItem operations, including retrieval, creation, update, and deletion.
- */
+
 @Service
 public class SaleItemService {
     private static final Logger log = Logger.getLogger(SaleItemService.class.getName());
@@ -64,29 +68,10 @@ public class SaleItemService {
     @Autowired
     private FileService fileService;
 
-    /**
-     * Retrieves all SaleItems sorted by creation date.
-     *
-     * @return list of all SaleItems
-     */
     public List<SaleItem> getAllSaleItems() {
         return saleItemRepository.findAll();
     }
 
-    /**
-     * Retrieves SaleItems with pagination and optional filtering.
-     *
-     * @param page          page number
-     * @param size          page size
-     * @param filterBrands  list of brand names to filter
-     * @param storageSize   list of storage sizes to filter
-     * @param lowerPrice    minimum price filter
-     * @param upperPrice    maximum price filter
-     * @param isExactPrice  whether to use exact price matching for single price filter
-     * @param sortField     field to sort by
-     * @param sortDirection sort direction (ASC/DESC)
-     * @return paginated list of SaleItem DTOs
-     */
     public PageDto<SaleItemDto> getAllSaleItemsPage(
             Integer page,
             Integer size,
@@ -154,34 +139,28 @@ public class SaleItemService {
         return listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
     }
 
-    /**
-     * Retrieves a SaleItem by ID, including its associated image URLs.
-     *
-     * @param id the ID of the SaleItem
-     * @return SaleItemDetailDto with item details and image URLs
-     * @throws ItemNotFoundException if the SaleItem is not found
-     */
     public SaleItemDetailDto getSaleItemById(Integer id) {
         SaleItem item = saleItemRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
 
         SaleItemDetailDto dto = modelMapper.map(item, SaleItemDetailDto.class);
-        System.out.println("saleItemImageRepository.findAllBySaleItemId(id)" + saleItemImageRepository.findAllBySaleItemId(id));
-        dto.setSaleItemImages(listMapper.mapList(saleItemImageRepository.findAllBySaleItemId(id), SaleItemImageDto.class, modelMapper));
+
+        List<SaleItemImageDto> imageDtos = new ArrayList<>(
+                listMapper.mapList(
+                        saleItemImageRepository.findAllBySaleItemId(id),
+                        SaleItemImageDto.class,
+                        modelMapper
+                )
+        );
+
+        imageDtos.sort(Comparator.comparingInt(SaleItemImageDto::getImageViewOrder));
+
+        dto.setSaleItemImages(imageDtos);
         dto.setBrandName(item.getBrand().getName());
-//        dto.setImageUrls(getImageUrls(id));
 
         return dto;
     }
 
-    /**
-     * Creates a new SaleItem with optional images.
-     *
-     * @param dtoItem the SaleItem request DTO
-     * @param images  list of image files to upload
-     * @return SaleItemDetailDto of the created item
-     * @throws IOException if file upload fails
-     */
     @Transactional
     public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem, List<MultipartFile> images) throws IOException {
         if (images != null && images.size() > MAX_IMAGES) {
@@ -244,6 +223,132 @@ public class SaleItemService {
         if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
             dtoItem.setQuantity(1);
         }
+    }
+
+
+    public SaleItem getSaleItemByIdOld(Integer id) {
+        return saleItemRepository.findById(id)
+                .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
+    }
+
+    public SaleItemDetailDto updateSaleItemById(Integer id, SaleItemRequestDto dtoItem) {
+        SaleItem existingItem = getSaleItemByIdOld(id);
+
+        if (dtoItem.getBrand() == null || dtoItem.getBrand().getId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null.");
+        }
+
+        Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
+
+        if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
+            dtoItem.setQuantity(1);
+        }
+
+        existingItem.setBrand(brand);
+        existingItem.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
+        existingItem.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
+        existingItem.setPrice(dtoItem.getPrice());
+        existingItem.setRamGb(dtoItem.getRamGb() != null ? dtoItem.getRamGb() : null);
+        existingItem.setScreenSizeInch(dtoItem.getScreenSizeInch());
+        existingItem.setQuantity(dtoItem.getQuantity());
+        existingItem.setStorageGb(dtoItem.getStorageGb() != null ? dtoItem.getStorageGb() : null);
+        existingItem.setColor(
+                dtoItem.getColor() != null && !dtoItem.getColor().trim().isEmpty() ? dtoItem.getColor().trim() : null);
+
+        SaleItem updatedItem = saleItemRepository.save(existingItem);
+        SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
+        result.setBrandName(brand.getName());
+        return result;
+    }
+
+    public SaleItemDetailDto updateSaleItemByIdWithImages(Integer id, SaleItemWithImageInfo saleItemWithImageInfo) {
+        SaleItem existingItem = getSaleItemByIdOld(id);
+
+        System.out.println(saleItemWithImageInfo);
+
+        if (saleItemWithImageInfo.getSaleItem() == null ||
+                saleItemWithImageInfo.getSaleItem().getBrand() == null ||
+                saleItemWithImageInfo.getSaleItem().getBrand().getId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null.");
+        }
+
+        Brand brand = brandService.getBrandById(saleItemWithImageInfo.getSaleItem().getBrand().getId());
+        existingItem.setBrand(brand);
+
+        if (saleItemWithImageInfo.getSaleItem().getQuantity() == null ||
+                saleItemWithImageInfo.getSaleItem().getQuantity() < 0) {
+            existingItem.setQuantity(1);
+        }
+
+        modelMapper.getConfiguration()
+                .setSkipNullEnabled(true)
+                .setPropertyCondition(Conditions.isNotNull());
+
+        modelMapper.map(saleItemWithImageInfo.getSaleItem(), existingItem);
+
+        SaleItem updatedItem = saleItemRepository.save(existingItem);
+        SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
+
+        List<SaleItemImage> images = saleItemImageRepository.findAllBySaleItemId(id);
+        List<SaleItemImageRequest> newImages = saleItemWithImageInfo.getImageInfos();
+
+        for (int i = 0; i < images.size() && i < newImages.size(); i++) {
+            SaleItemImage existingImage = images.get(i);
+            SaleItemImageRequest newImage = newImages.get(i);
+
+            System.out.println("old: " + existingImage.getFileName());
+            System.out.println("new: " + newImage.getFileName());
+
+            if (existingImage.getFileName().equals(newImage.getFileName())) {
+                try {
+                    existingImage.setImageViewOrder(newImage.getOrder());
+                    existingImage.setUpdatedOn(Instant.now());
+                    saleItemImageRepository.save(existingImage);
+
+                    fileService.updateFileName(newImage.getImageFile(), id, newImage.getOrder());
+                    fileService.updateFileName(newImage.getImageFile(), id, newImage.getOrder());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                try {
+                    // ลบไฟล์เก่าออกจากระบบไฟล์
+                    Path path = Paths.get(fileStorageProperties.getUploadDir())
+                            .toAbsolutePath()
+                            .normalize()
+                            .resolve(existingImage.getFileName())
+                            .normalize();
+
+                    if (fileService.deleteByFileName(existingImage.getFileName())) {
+                        System.out.println("File deleted: " + existingImage.getFileName());
+                    }
+
+                } catch (IOException e) {
+                    throw new RuntimeException("Error deleting file: " + existingImage.getFileName(), e);
+                }
+
+                saleItemImageRepository.delete(existingImage);
+
+                String newFileName = fileService.updateFile(newImage.getImageFile(), id, newImage.getOrder());
+
+                SaleItemImage newSaleItemImage = new SaleItemImage();
+                newSaleItemImage.setSaleItem(existingItem);
+                newSaleItemImage.setFileName(newFileName);
+                newSaleItemImage.setImageViewOrder(newImage.getOrder());
+                newSaleItemImage.setCreatedOn(Instant.now());
+                newSaleItemImage.setUpdatedOn(Instant.now());
+
+                saleItemImageRepository.save(newSaleItemImage);
+            }
+        }
+
+        result.setBrandName(brand.getName());
+        return result;
+    }
+
+
+    public void deleteSaleItemByIdOld(Integer id) {
+        saleItemRepository.delete(getSaleItemByIdOld(id));
     }
 
     private SaleItem mapToSaleItem(SaleItemRequestDto dtoItem, Brand brand) {
