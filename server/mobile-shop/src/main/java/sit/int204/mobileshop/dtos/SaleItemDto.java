@@ -32,4 +32,6 @@ public class SaleItemDto {
     
     @Schema(description = "Color of the product", example = "Midnight Black")
     private String color;
+
+    private String image;
 }

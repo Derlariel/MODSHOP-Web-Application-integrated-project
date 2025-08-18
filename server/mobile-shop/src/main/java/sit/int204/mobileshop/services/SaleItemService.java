@@ -133,7 +133,22 @@ public class SaleItemService {
         }
 
         Page<SaleItem> saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands, storageSize, includeNullStorage, lowerPrice, upperPrice, isExactPrice);
-        return listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
+        PageDto<SaleItemDto> saleItemDtoPageDto = listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
+        for(int i = 0; i < saleItemDtoPageDto.getContent().size(); i++ ) {
+
+            System.out.println(saleItemDtoPageDto.getContent().get(i));
+            Optional<SaleItemImage> imageOpt = saleItemImageRepository
+                    .findAllBySaleItemId(saleItemDtoPageDto.getContent().get(i).getId()).stream()
+                    .filter(img -> img.getImageViewOrder() == 1)
+                    .findFirst();
+
+            if(imageOpt.isPresent()) {
+                System.out.println(imageOpt.orElse(null).getFileName());
+                saleItemDtoPageDto.getContent().get(i).setImage(imageOpt.orElse(null).getFileName());
+                System.out.println("image get" +   saleItemDtoPageDto.getContent().get(i).getImage());
+            }
+        }
+        return saleItemDtoPageDto;
     }
 
     public SaleItemDetailDto getSaleItemById(Integer id) {
