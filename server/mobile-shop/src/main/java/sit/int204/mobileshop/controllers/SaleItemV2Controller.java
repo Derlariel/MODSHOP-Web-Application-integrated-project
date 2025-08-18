@@ -82,19 +82,19 @@ public class SaleItemV2Controller {
     }
 
 
-    @PutMapping("/{id}")
-    public ResponseEntity<SaleItemDetailDto> updateSaleItem(
-            @PathVariable Integer id,
-            @ModelAttribute SaleItemRequestDto dto,
-            @RequestParam(required = false) List<MultipartFile> images,
-            @RequestParam(required = false) List<Integer> imagesToDelete,
-            @RequestParam(required = false) List<Integer> imageOrder
-    ) throws IOException {
-        SaleItemDetailDto result = saleItemService.getSaleItemById(id);
-        saleItemImageService.updateImages(id, imageOrder, imagesToDelete, images);
-        result.setSaleItemImages(saleItemImageService.getSaleItemImagesDto(id));
-        return ResponseEntity.ok(result);
-    }
+//    @PutMapping("/{id}")
+//    public ResponseEntity<SaleItemDetailDto> updateSaleItem(
+//            @PathVariable Integer id,
+//            @ModelAttribute SaleItemRequestDto dto,
+//            @RequestParam(required = false) List<MultipartFile> images,
+//            @RequestParam(required = false) List<Integer> imagesToDelete,
+//            @RequestParam(required = false) List<Integer> imageOrder
+//    ) throws IOException {
+//        SaleItemDetailDto result = saleItemService.getSaleItemById(id);
+//        saleItemImageService.updateImages(id, imageOrder, imagesToDelete, images);
+//        result.setSaleItemImages(saleItemImageService.getSaleItemImagesDto(id));
+//        return ResponseEntity.ok(result);
+//    }
 
 
     @DeleteMapping("/{id}/images")

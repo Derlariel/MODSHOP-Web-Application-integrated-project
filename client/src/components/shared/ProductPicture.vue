@@ -11,8 +11,8 @@ const previewImages = reactive(Array(4).fill(null));
 const existingImages = reactive(Array(4).fill(null));
 const fileInputs = reactive([null, null, null, null]);
 
-const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
-
+const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
+// const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
 
 onBeforeUnmount(() => {
   previewImages.forEach(url => {
