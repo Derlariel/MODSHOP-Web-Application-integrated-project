@@ -31,9 +31,7 @@ import sit.int204.mobileshop.exceptions.FileStorageException;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
 
-/**
- * Service for handling file uploads, deletions, and retrievals.
- */
+
 @Service
 public class FileService {
     private static final Logger log = Logger.getLogger(FileService.class.getName());
@@ -178,7 +176,7 @@ public class FileService {
     }
 
     /**
-     * ✅ Deletes a specific image file from storage
+     *  Deletes a specific image file from storage
      *
      * @param filename the filename of the image to delete
      * @throws FileStorageException if deletion fails
@@ -307,7 +305,6 @@ public class FileService {
     }
 
     /**
-     * ✅ ใช้ NIO2 สำหรับ better performance
      */
     private void copyFileToStorageOptimized(MultipartFile file, Path targetFile, String originalFilename) throws IOException {
         // ใช้ transferTo() ซึ่งมี performance ดีกว่า
@@ -318,7 +315,6 @@ public class FileService {
     }
 
     /**
-     * ✅ Bulk file existence check
      */
     public Map<String, Boolean> checkMultipleFilesExist(List<String> filenames) {
         return filenames.parallelStream()

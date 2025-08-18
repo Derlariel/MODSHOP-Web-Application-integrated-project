@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// ปรับปรุง SaleItemImageService ให้รองรับ structure ที่มีอยู่
 @Service
 public class SaleItemImageService {
     @Autowired
@@ -46,7 +45,6 @@ public class SaleItemImageService {
 
         for (MultipartFile image : images) {
             if (!image.isEmpty()) {
-                // ✅ fileService.saveFile return SaleItemImage
                 SaleItemImage savedImage = fileService.saveFile(image, saleItemId, nextOrder);
 
                 // อัปเดต order เผื่อกรณี saveFile ไม่ได้เซ็ต
@@ -70,7 +68,6 @@ public class SaleItemImageService {
         List<SaleItemImage> allImages = saleItemImageRepository
                 .findAllBySaleItemIdOrderByImageViewOrderAsc(saleItemId);
 
-        // Step 1: Delete
         if (imagesToDelete != null && !imagesToDelete.isEmpty()) {
             List<SaleItemImage> toDelete = allImages.stream()
                     .filter(img -> imagesToDelete.contains(img.getId()))
@@ -85,7 +82,6 @@ public class SaleItemImageService {
             }
         }
 
-        // Step 2: Reorder
         if (updatedImageOrder != null && !updatedImageOrder.isEmpty()) {
             List<SaleItemImage> reordered = updateImageOrderOptimized(allImages, updatedImageOrder);
             if (!reordered.isEmpty()) saleItemImageRepository.saveAll(reordered);
@@ -93,8 +89,6 @@ public class SaleItemImageService {
             List<SaleItemImage> reordered = reorderImagesOptimized(allImages);
             if (!reordered.isEmpty()) saleItemImageRepository.saveAll(reordered);
         }
-
-        // Step 3: Add new
         if (newImages != null && !newImages.isEmpty()) {
             addImagesToExistingSaleItem(saleItemId, newImages);
         }

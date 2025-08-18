@@ -101,6 +101,8 @@ public class SaleItemV2Controller {
         return fileStorageProperties.getUploadDir();
     }
 
+
+
     @Operation(summary = "Get paginated products", description = "Retrieve products with pagination, filtering, and sorting options")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Successfully retrieved paginated products",
@@ -136,17 +138,12 @@ public class SaleItemV2Controller {
 
             @Parameter(description = "Sort direction (asc or desc)")
             @RequestParam(defaultValue = "asc") String sortDirection) throws MissingServletRequestParameterException {
-
-        // Validate required parameters
         if (page == null || size == null) {
             throw new MissingServletRequestParameterException(page == null ? "page" : "size", "Integer");
         }
-
-        // Parse price parameters (handle null and "null" string values)
         Integer lower = (lowerPrice == null || lowerPrice.equals("null")) ? null : Integer.valueOf(lowerPrice);
         Integer upper = (upperPrice == null || upperPrice.equals("null")) ? null : Integer.valueOf(upperPrice);
 
-        // Get paginated results
         PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(
                 page, size, filterBrands, storageSize, lower, upper, isExactPrice, sortField, sortDirection);
 
