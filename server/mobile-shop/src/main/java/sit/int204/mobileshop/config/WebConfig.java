@@ -25,7 +25,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173") // FE dev URL
+                .allowedOrigins(
+                        "http://localhost:5173", //FE DEV
+                        "http://ip24kk1.sit.kmutt.ac.th"
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
     }
+
 }
