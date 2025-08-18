@@ -45,13 +45,13 @@ public class SaleItemV2Controller {
     private ListMapper listMapper;
 
 
-    @PutMapping("/{id}")
-    public ResponseEntity<SaleItemDetailDto> updateSaleItem(@PathVariable Integer id, @ModelAttribute SaleItemWithImageInfo saleItem) throws IOException {
-        System.out.println(saleItem);
-        saleItemService.updateSaleItemByIdWithImages(id, saleItem);
-
-        return ResponseEntity.ok().body(modelMapper.map(saleItem, SaleItemDetailDto.class));
-    }
+//    @PutMapping("/{id}")
+//    public ResponseEntity<SaleItemDetailDto> updateSaleItem(@PathVariable Integer id, @ModelAttribute SaleItemWithImageInfo saleItem) throws IOException {
+//        System.out.println(saleItem);
+//        saleItemService.updateSaleItemByIdWithImages(id, saleItem);
+//
+//        return ResponseEntity.ok().body(modelMapper.map(saleItem, SaleItemDetailDto.class));
+//    }
 
     @PostMapping("")
     public ResponseEntity<SaleItemDetailDto> createSaleItem(
