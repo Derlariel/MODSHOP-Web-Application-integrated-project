@@ -126,6 +126,7 @@ export const useProductStore = defineStore("product", {
         if (product.images && Array.isArray(product.images)) {
           product.images.forEach((file, index) => {
             if (file instanceof File) {
+              console.log("file", file)
               formData.append("images", file);
             } else {
               console.warn(

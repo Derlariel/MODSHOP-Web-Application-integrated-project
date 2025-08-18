@@ -12,13 +12,27 @@ const router = useRouter();
 const picSelect = ref(null);
 
 const saleItemPic = (data) => {
-
   picSelect.value = data;
 };
+
+async function urlToFile(url, filename, mimeType) {
+  const res = await fetch(url);
+  const buf = await res.arrayBuffer();
+  return new File([buf], filename, { type: mimeType });
+}
+
+
 const add = async (data) => {
   try {
-    
-    data.images = picSelect.value;
+    // แปลง blob URL เป็น File object
+    const files = await Promise.all(
+      picSelect.value.map((url, i) =>
+        urlToFile(url, `image_${i}.png`, "image/png")
+      )
+    );
+
+    // ใส่เป็น File array ลงไปแทน blob url
+    data.images = files;
 
     await productStore.createProduct(data);
 
@@ -26,12 +40,11 @@ const add = async (data) => {
     router.push({ name: "product-gallery" });
     localStorage.setItem("activePage", 1);
     productStore.setActivePage(1)
-    console.log("active page", productStore.getActivePage);
-    console.log("test", sessionStorage.getItem("add-success"));
   } catch (error) {
     console.error("Error creating product:", error);
   }
 };
+
 
 </script>
 
