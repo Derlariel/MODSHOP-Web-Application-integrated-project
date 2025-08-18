@@ -1,5 +1,6 @@
 package sit.int204.mobileshop.services;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
@@ -65,6 +66,7 @@ public class FileService {
 
 
     public String formatFileName(Integer saleItemId, Integer order, String originalFileName) {
+        System.out.println("getFileExtension(originalFileName)" +getFileExtension(originalFileName));
         return  saleItemId + "." + order + "." + getFileExtension(originalFileName);
     }
 
@@ -75,9 +77,6 @@ public class FileService {
         String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
         String uniqueFilename = formatFileName(saleItemId, order, originalFilename);
         Path targetFile = baseStoragePath.resolve(uniqueFilename);
-
-        log.info(String.format("Uploading file: %s for SaleItem ID: %d", originalFilename, saleItemId));
-
         try {
             copyFileToStorage(file, targetFile, originalFilename);
 
@@ -107,6 +106,30 @@ public class FileService {
 
             SaleItemImage image = createSaleItemImage(saleItem, uniqueFilename, order);
             saleItemImageRepository.save(image);
+            return uniqueFilename;
+
+        } catch (IOException e) {
+            cleanupFile(targetFile, uniqueFilename);
+            throw new FileStorageException("Could not store file " + originalFilename + " at " + targetFile, e);
+        }
+    }
+
+    @Transactional
+    public String saveUpdate(MultipartFile file, Integer saleItemId, Integer order) {
+        validateFile(file);
+
+        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+        String uniqueFilename = formatFileName(saleItemId, order, originalFilename);
+        Path targetFile = baseStoragePath.resolve(uniqueFilename);
+
+        log.info(String.format("Uploading file: %s for SaleItem ID: %d", originalFilename, saleItemId));
+
+        try {
+            copyFileToStorage(file, targetFile, originalFilename);
+
+            SaleItem saleItem = saleItemRepository.findById(saleItemId)
+                    .orElseThrow(() -> new FileStorageException("SaleItem not found with ID: " + saleItemId));
+
             return uniqueFilename;
 
         } catch (IOException e) {
@@ -257,18 +280,27 @@ public class FileService {
         System.out.println("Deleting file at path: " + path);
         return Files.deleteIfExists(path);
     }
-    public String updateFileName(MultipartFile file, Integer id, Integer order) throws IOException {
-        if (file == null || file.isEmpty()) {
+    public String updateFileName(String fileName, Integer id, Integer order) throws IOException {
+        if (fileName == null || fileName.isEmpty()) {
             throw new IllegalArgumentException("File is empty or null");
         }
-        String originalFileName = file.getOriginalFilename();
-        String newFileName = formatFileName(id, order, originalFileName);
 
-        System.out.println("originalFileName: " + originalFileName);
+        String newFileName = formatFileName(id, order, fileName);
+
+        System.out.println("originalFileName: " + fileName);
         System.out.println("newFileName: " + newFileName);
 
-        Path filePath = Path.of(fileStorageProperties.getUploadDir() + newFileName);
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        Path oldFilePath = baseStoragePath.resolve(fileName).normalize();
+        if (!Files.exists(oldFilePath)) {
+            throw new IOException("File not found: " + oldFilePath);
+        }
+
+        Path newFilePath = Path.of(fileStorageProperties.getUploadDir()).resolve(newFileName).normalize();
+
+        // ใช้ move แทน copy
+        Files.move(oldFilePath, newFilePath, StandardCopyOption.REPLACE_EXISTING);
+
         return newFileName;
     }
+
 }

@@ -41,17 +41,30 @@ const getProductById = async (url, id) => {
 };
 
 const updateProductById = async (url, id, data) => {
+  let options;
+  console.log("CALLED updateProductById >>>", url, id);
+
+  if (data instanceof FormData) {
+    // 📌 ถ้าเป็น FormData → ห้ามใส่ Content-Type เดี๋ยว browser ใส่ boundary ให้เอง
+    options = {
+      method: "PUT",
+      body: data,
+    };
+  } else {
+    // 📌 ถ้าเป็น JSON object ปกติ
+    options = {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    };
+  }
+
   return handleFetch(
     `${url}/${id}`,
-    {
-      method: "PUT",
-      headers: { "content-Type": "application/json" },
-      body: JSON.stringify(data),
-    },
+    options,
     "Error updating product by ID"
   );
 };
-
 async function addProduct(url, data) {
   const response = await fetch(url, {
     method: 'POST',

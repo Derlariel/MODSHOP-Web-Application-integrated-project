@@ -11,10 +11,10 @@ const previewImages = reactive(Array(4).fill(null));
 const existingImages = reactive(Array(4).fill(null));
 const fileInputs = reactive([null, null, null, null]);
 
-const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
+const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
+
 
 onBeforeUnmount(() => {
-  // Clean up blob URLs
   previewImages.forEach(url => {
     if (url?.startsWith('blob:')) {
       URL.revokeObjectURL(url);
@@ -37,9 +37,6 @@ const props = defineProps({
   }
 });
 
-
-
-// Initialize images when in edit mode
 const initializeImages = () => {
   if (props.images?.length && props.editMode) {
     for (let i = 0; i < 4; i++) {
@@ -65,7 +62,6 @@ const initializeImages = () => {
   }
 };
 
-// Call initialize when component mounts
 if (props.editMode) {
   initializeImages();
 }
@@ -78,7 +74,6 @@ const handleFileChange = (event, i) => {
   const file = event.target.files[0];
   if (!file) return;
 
-  // Clean up previous blob URL
   if (previewImages[i]?.startsWith("blob:")) {
     URL.revokeObjectURL(previewImages[i]);
   }
@@ -86,8 +81,6 @@ const handleFileChange = (event, i) => {
   existingImages[i] = null;
   selectedFiles[i] = file;
   previewImages[i] = URL.createObjectURL(file);
-  
-  // Emit changes to parent
   emitChanges();
 };
 
@@ -109,7 +102,7 @@ const handleMultiFileChange = (event) => {
   });
 
   if (files.length > emptySlots.length) {
-    alert(`You can only add up to ${emptySlots.length} images.`);
+    alert(`คุณสามารถเพิ่มได้สูงสุด ${emptySlots.length} รูปภาพ`);
   }
 
   event.target.value = "";
@@ -143,10 +136,75 @@ const swapImages = (fromIndex, toIndex) => {
 };
 
 const emitChanges = () => {
-  const filledSlots = previewImages.filter((img) => img !== null);
-  emit('savePic', filledSlots);
-};
+  if (props.editMode) {
+    const result = [];
 
+    // Debug state before emitting
+    console.log("previewImages:", previewImages);
+    console.log("existingImages:", existingImages);
+    console.log("selectedFiles:", selectedFiles);
+    console.log("props.images:", props.images);
+
+    // Process images based on current previewImages state
+    previewImages.forEach((preview, index) => {
+      if (preview) {
+        const isNewImage = !existingImages[index]; // New image if not in existingImages
+        if (isNewImage) {
+          // New image from selectedFiles
+          if (selectedFiles[index]) {
+            result.push({
+              order: index + 1,
+              fileName: selectedFiles[index].name,
+              status: 'NEW',
+              imageFile: selectedFiles[index]
+            });
+          }
+        } else {
+          // Existing image (from props.images)
+          const originalImage = props.images.find(img => {
+            const fileName = typeof img === "string" ? img : img?.fileName;
+            const fullUrl = fileName && (fileName.startsWith("http") ? fileName : BASE_URL + fileName);
+            return fullUrl === existingImages[index];
+          });
+          if (originalImage) {
+            const originalIndex = props.images.indexOf(originalImage);
+            result.push({
+              order: index + 1,
+              fileName: typeof originalImage === "string" ? originalImage : originalImage.fileName,
+              status: originalIndex === index ? 'ONLINE' : 'MOVE',
+              imageFile: null
+            });
+          }
+        }
+      }
+    });
+
+    // Process deleted images from props.images
+    props.images?.forEach((img, index) => {
+      const fileName = typeof img === "string" ? img : img?.fileName;
+      const fullUrl = fileName && (fileName.startsWith("http") ? fileName : BASE_URL + fileName);
+      if (fullUrl && !existingImages.includes(fullUrl)) {
+        result.push({
+          order: index + 1,
+          fileName: fileName,
+          status: 'DELETE',
+          imageFile: null
+        });
+      }
+    });
+
+    // Sort result by order
+    result.sort((a, b) => a.order - b.order);
+
+    console.log("Emitting images:", result);
+    emit('savePic', result);
+  } else {
+    // Non-edit mode: Emit an array of File objects only
+    const result = selectedFiles.filter(file => file !== null);
+    console.log("Emitting images (non-edit mode):", result);
+    emit('savePic', result);
+  }
+};
 const clearAllFiles = () => {
   for (let i = 0; i < 4; i++) {
     if (previewImages[i]?.startsWith("blob:")) {
@@ -169,11 +227,10 @@ const displayImages = computed(() => {
     return filled.slice(0, 4);
   }
   
-  // Otherwise use original logic
   const sourceImages = userSelectedImages.value.length
     ? userSelectedImages.value
     : props.images?.length
-    ? props.images.map(img => BASE_URL + img.fileName)
+    ? props.images.map(img => BASE_URL + (typeof img === "string" ? img : img.fileName))
     : productStore.productImages;
 
   const filled = [...sourceImages];
@@ -259,7 +316,7 @@ defineExpose({
             <path d="M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
             <path d="M3 12h18"></path>
           </svg>
-          <span>View in AR</span>
+          <span>ดูใน AR</span>
         </button>
       </div>
 
@@ -276,7 +333,7 @@ defineExpose({
               <polyline points="7,10 12,15 17,10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
-            <span>Select Multiple Images</span>
+            <span>เลือกหลายรูปภาพ</span>
           </label>
           <input
             id="file-upload-multi"
@@ -296,7 +353,7 @@ defineExpose({
               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
               <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
             </svg>
-            <span>Clear All</span>
+            <span>ล้างทั้งหมด</span>
           </button>
         </div>
 
@@ -324,7 +381,7 @@ defineExpose({
                 <circle cx="8.5" cy="8.5" r="1.5"></circle>
                 <polyline points="21,15 16,10 5,21"></polyline>
               </svg>
-              <span class="text-xs">Add Image</span>
+              <span class="text-xs">เพิ่มรูปภาพ</span>
             </div>
 
             <!-- Remove Button -->
@@ -332,7 +389,7 @@ defineExpose({
               v-if="img"
               @click.stop="removeImage(i)"
               class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition"
-              aria-label="Remove image"
+              aria-label="ลบรูปภาพ"
             >
               &times;
             </button>
@@ -345,7 +402,7 @@ defineExpose({
                   'bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition',
                   isPreviousDisabled(i) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'
                 ]"
-                aria-label="Move to previous slot"
+                aria-label="ย้ายไปช่องก่อนหน้า"
                 :disabled="isPreviousDisabled(i)"
               >
                 ←
@@ -356,7 +413,7 @@ defineExpose({
                   'bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs transition',
                   isNextDisabled(i) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'
                 ]"
-                aria-label="Move to next slot"
+                aria-label="ย้ายไปช่องถัดไป"
                 :disabled="isNextDisabled(i)"
               >
                 →

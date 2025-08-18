@@ -52,7 +52,7 @@ public class SaleItemV2Controller {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<SaleItemDetailDto> updateSaleItem(@PathVariable Integer id, @ModelAttribute SaleItemWithImageInfo saleItem) {
+    public ResponseEntity<SaleItemDetailDto> updateSaleItem(@PathVariable Integer id, @ModelAttribute SaleItemWithImageInfo saleItem) throws IOException {
         System.out.println(saleItem);
         saleItemService.updateSaleItemByIdWithImages(id, saleItem);
 

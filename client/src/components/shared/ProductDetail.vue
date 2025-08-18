@@ -20,12 +20,12 @@ console.log('detail', productStore.getActivePage);
 
 const submit = () => {
   router.push({
-    name: 'sale-items-edit',
+    name: "sale-items-edit",
     params: {
-      productId: productId
-    }
-  })
-}
+      productId: route.params.productId,
+    },
+  });
+};
 
 const title = computed(() => {
   if (!product.value) return '';
