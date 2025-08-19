@@ -7,7 +7,16 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,7 +27,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import sit.int204.mobileshop.config.FileStorageProperties;
-import sit.int204.mobileshop.dtos.*;
+import sit.int204.mobileshop.dtos.PageDto;
+import sit.int204.mobileshop.dtos.SaleItemDetailDto;
+import sit.int204.mobileshop.dtos.SaleItemDto;
+import sit.int204.mobileshop.dtos.SaleItemRequestDto;
+import sit.int204.mobileshop.dtos.SaleItemWithImageInfo;
 import sit.int204.mobileshop.services.SaleItemImageService;
 import sit.int204.mobileshop.services.SaleItemService;
 import sit.int204.mobileshop.utils.ListMapper;
@@ -45,6 +58,7 @@ public class SaleItemV2Controller {
     private ListMapper listMapper;
 
 
+
     @PutMapping("/{id}")
     public ResponseEntity<SaleItemDetailDto> updateSaleItem(
             @PathVariable Integer id,
@@ -54,8 +68,9 @@ public class SaleItemV2Controller {
         SaleItemDetailDto result = saleItemService.updateSaleItemByIdWithImages(id, saleItem);
 
         return ResponseEntity.ok().body(result);
-    }
+    
 
+            }
 
     @PostMapping("")
     public ResponseEntity<SaleItemDetailDto> createSaleItem(
