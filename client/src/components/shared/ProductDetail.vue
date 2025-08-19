@@ -8,8 +8,8 @@ import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
 import { checkUpToDate } from "@/utils/validate";
 
-const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
-// const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
+// const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
+const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
 
 const router = useRouter();
 const route = useRoute();

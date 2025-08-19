@@ -12,8 +12,8 @@ import DEFAULT_IMAGE from "@/assets/default.jpg";
 import SkeletonLoader from "@/components/shared/SkeletonLoader.vue";
 
 
-const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
-// const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
+// const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
+const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
 
 const router = useRouter();
 const route = useRoute();

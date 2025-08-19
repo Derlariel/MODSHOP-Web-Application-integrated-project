@@ -19,8 +19,8 @@ const errorMessage = ref("");
 // File size limit: 2MB
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
-const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
-// const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
+// const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
+const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
 
 onBeforeUnmount(() => {
   previewImages.forEach(url => {
