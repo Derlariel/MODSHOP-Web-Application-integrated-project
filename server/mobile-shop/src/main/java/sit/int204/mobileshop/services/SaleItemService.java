@@ -273,9 +273,12 @@ public class SaleItemService {
         return result;
     }
 
+    @Transactional
     public SaleItemDetailDto updateSaleItemByIdWithImages(Integer id, SaleItemWithImageInfo saleItemWithImageInfo) throws IOException {
+        // 1. โหลดข้อมูลเก่า
         SaleItem existingItem = getSaleItemByIdOld(id);
 
+        // 2. validate brand
         if (saleItemWithImageInfo.getSaleItem() == null ||
                 saleItemWithImageInfo.getSaleItem().getBrand() == null ||
                 saleItemWithImageInfo.getSaleItem().getBrand().getId() == null) {
@@ -290,18 +293,25 @@ public class SaleItemService {
             existingItem.setQuantity(1);
         }
 
+        // 3. map ข้อมูลใหม่ลง object เก่า
         modelMapper.getConfiguration()
                 .setSkipNullEnabled(true)
                 .setPropertyCondition(Conditions.isNotNull());
         modelMapper.map(saleItemWithImageInfo.getSaleItem(), existingItem);
 
+        // 4. save item
         SaleItem updatedItem = saleItemRepository.save(existingItem);
         SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
 
+        // 5. จัดการ image
         List<SaleItemImage> images = saleItemImageRepository.findAllBySaleItemId(id);
         List<SaleItemImageRequest> newImages = saleItemWithImageInfo.getImageInfos();
 
-        // ตรวจสอบ order ที่ซ้ำกัน เฉพาะ status ที่ไม่ใช่ DELETE
+        if (newImages == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image list cannot be null.");
+        }
+
+        // ตรวจสอบ duplicate order
         Set<Integer> orders = new HashSet<>();
         for (SaleItemImageRequest image : newImages) {
             String status = image.getStatus() != null ? image.getStatus().toUpperCase() : null;
@@ -312,6 +322,7 @@ public class SaleItemService {
             }
         }
 
+        // loop ทีละรูป
         for (int i = 0; i < newImages.size(); i++) {
             SaleItemImage existingImage = (i < images.size()) ? images.get(i) : null;
             SaleItemImageRequest newImage = newImages.get(i);
@@ -323,10 +334,11 @@ public class SaleItemService {
 
             switch (status) {
                 case "ONLINE":
+                    // ไม่ต้องทำอะไร
                     break;
 
                 case "NEW":
-                    if (newImage.getImageFile() == null) {
+                    if (newImage.getImageFile() == null || newImage.getImageFile().isEmpty()) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image file is required for NEW status at index " + i);
                     }
                     String newFileName = fileService.saveUpdate(newImage.getImageFile(), id, newImage.getOrder());
@@ -344,7 +356,7 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No existing image found for MOVE status at index " + i);
                     }
                     try {
-                        String updatedFileName = fileService.updateFileName(newImage.getFileName(), id, newImage.getOrder());
+                        String updatedFileName = fileService.updateFileName(existingImage.getFileName(), id, newImage.getOrder());
                         existingImage.setFileName(updatedFileName);
                         existingImage.setImageViewOrder(newImage.getOrder());
                         existingImage.setUpdatedOn(Instant.now());

@@ -46,12 +46,16 @@ public class SaleItemV2Controller {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<SaleItemDetailDto> updateSaleItem(@PathVariable Integer id, @ModelAttribute SaleItemWithImageInfo saleItem) throws IOException {
-        System.out.println(saleItem);
-        saleItemService.updateSaleItemByIdWithImages(id, saleItem);
+    public ResponseEntity<SaleItemDetailDto> updateSaleItem(
+            @PathVariable Integer id,
+            @ModelAttribute SaleItemWithImageInfo saleItem) throws IOException {
 
-        return ResponseEntity.ok().body(modelMapper.map(saleItem, SaleItemDetailDto.class));
+        System.out.println(saleItem);
+        SaleItemDetailDto result = saleItemService.updateSaleItemByIdWithImages(id, saleItem);
+
+        return ResponseEntity.ok().body(result);
     }
+
 
     @PostMapping("")
     public ResponseEntity<SaleItemDetailDto> createSaleItem(
