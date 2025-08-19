@@ -14,27 +14,56 @@ const product = ref(null);
 const productStore = useProductStore();
 const brandStore = useBrandStore();
 const picSelect = ref([]); // Store emitted images from ProductPicture
+const imageChanged = ref(false);
 
 console.log("Product ID from route params:", params.productId);
 
+// helper ฟังก์ชันเทียบ array ของรูป
+const isSameImages = (a, b) => {
+  if (!a || !b) return false;
+  if (a.length !== b.length) return false;
+  return a.every((img, idx) => {
+    const other = b[idx];
+    return (
+      img.order === other.order &&
+      img.fileName === other.fileName &&
+      img.status === other.status
+    );
+  });
+};
+
+const pic = (data) => {
+  console.log("images", data);
+  picSelect.value = data;
+
+  // เทียบกับรูปเดิมจาก backend
+  if (product.value && isSameImages(data, product.value.saleItemImages)) {
+    imageChanged.value = false;
+  } else {
+    imageChanged.value = true;
+  }
+};
+
 const edit = async (data) => {
+  console.log("Editing product with data:", data);
+
   try {
     // Create FormData object
     const formData = new FormData();
 
     Object.keys(data).forEach(key => {
-  if (key === "brand" && typeof data[key] === "object" && data[key] !== null) {
-    // แตก brand object ออกมา
-    if (data[key].id !== undefined) {
-      formData.append("saleItem.brand.id", data[key].id);
-    }
-    if (data[key].name !== undefined) {
-      formData.append("saleItem.brand.name", data[key].name);
-    }
-  } else {
-    formData.append(`saleItem.${key}`, data[key]);
-  }
-});
+      if (key === "brand" && typeof data[key] === "object" && data[key] !== null) {
+        // แตก brand object ออกมา
+        if (data[key].id !== undefined) {
+          formData.append("saleItem.brand.id", data[key].id);
+        }
+        if (data[key].name !== undefined) {
+          formData.append("saleItem.brand.name", data[key].name);
+        }
+      } else {
+        formData.append(`saleItem.${key}`, data[key]);
+      }
+    });
 
     // Append imageInfos from picSelect
     picSelect.value.forEach((image, index) => {
@@ -102,9 +131,9 @@ onMounted(async () => {
             v-if="product && product.saleItemImages"
             :images="product.saleItemImages"
             :editMode="true"
-            @savePic="picSelect = $event"
+            @savePic="pic"
           />
-          <ProductForm @submit="edit" v-if="product" :init="product" />
+          <ProductForm :image-changed="imageChanged"  @submit="edit" v-if="product" :init="product" />
         </div>
       </div>
     </div>

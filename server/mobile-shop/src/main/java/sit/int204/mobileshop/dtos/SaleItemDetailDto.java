@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -22,7 +23,7 @@ public class SaleItemDetailDto {
     @Min(value = 0)
     private Integer ramGb;
     private BigDecimal screenSizeInch;
-    private List<SaleItemImageDto> saleItemImages;
+    private List<SaleItemImageDto> saleItemImages = new ArrayList<>();
     @Min(value = 0)
     private Integer storageGb;
     private String color;
