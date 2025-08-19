@@ -1,20 +1,19 @@
 package sit.int204.mobileshop.services;
 
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import sit.int204.mobileshop.dtos.SaleItemImageDto;
-import sit.int204.mobileshop.entities.SaleItem;
-import sit.int204.mobileshop.entities.SaleItemImage;
-import sit.int204.mobileshop.repositories.SaleItemImageRepository;
-
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import sit.int204.mobileshop.dtos.SaleItemImageDto;
+import sit.int204.mobileshop.entities.SaleItemImage;
+import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 
 @Service
 public class SaleItemImageService {
