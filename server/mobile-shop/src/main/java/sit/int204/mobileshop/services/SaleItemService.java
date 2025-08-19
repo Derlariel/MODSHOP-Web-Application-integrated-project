@@ -303,7 +303,6 @@ public class SaleItemService {
         SaleItem updatedItem = saleItemRepository.save(existingItem);
         SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
 
-        // 5. จัดการ image
         List<SaleItemImage> images = saleItemImageRepository.findAllBySaleItemId(id);
         List<SaleItemImageRequest> newImages = saleItemWithImageInfo.getImageInfos();
 
@@ -311,7 +310,6 @@ public class SaleItemService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image list cannot be null.");
         }
 
-        // ตรวจสอบ duplicate order
         Set<Integer> orders = new HashSet<>();
         for (SaleItemImageRequest image : newImages) {
             String status = image.getStatus() != null ? image.getStatus().toUpperCase() : null;
@@ -321,8 +319,7 @@ public class SaleItemService {
                 }
             }
         }
-
-        // loop ทีละรูป
+        
         for (int i = 0; i < newImages.size(); i++) {
             SaleItemImage existingImage = (i < images.size()) ? images.get(i) : null;
             SaleItemImageRequest newImage = newImages.get(i);
@@ -383,6 +380,30 @@ public class SaleItemService {
 
                 default:
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown status: " + status + " at index " + i);
+            }
+        }
+
+        List<SaleItemImage> remainingImages = saleItemImageRepository.findAllBySaleItemId(id)
+                .stream()
+                .sorted(Comparator.comparingInt(SaleItemImage::getImageViewOrder))
+                .toList();
+
+        for (int j = 0; j < remainingImages.size(); j++) {
+            SaleItemImage img = remainingImages.get(j);
+            int expectedOrder = j + 1;
+            if (!img.getImageViewOrder().equals(expectedOrder)) {
+                img.setImageViewOrder(expectedOrder);
+                img.setUpdatedOn(Instant.now());
+                saleItemImageRepository.save(img);
+
+
+                try {
+                    String updatedFileName = fileService.updateFileName(img.getFileName(), id, expectedOrder);
+                    img.setFileName(updatedFileName);
+                    saleItemImageRepository.save(img);
+                } catch (IOException e) {
+                    throw new RuntimeException("Error renaming file after normalize: " + img.getFileName(), e);
+                }
             }
         }
 
