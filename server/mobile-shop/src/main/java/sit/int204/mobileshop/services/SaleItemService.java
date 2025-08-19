@@ -327,6 +327,7 @@ public class SaleItemService {
             }
         }
 
+        // loop รูปใหม่
         for (int i = 0; i < newImages.size(); i++) {
             SaleItemImageRequest newImage = newImages.get(i);
             String status = newImage.getStatus() != null ? newImage.getStatus().toUpperCase() : null;
@@ -361,15 +362,10 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "No existing image found for MOVE status at index " + i);
                     }
-                    try {
-                        String updatedFileName = fileService.updateFileName(existingImage.getFileName(), id, newImage.getOrder());
-                        existingImage.setFileName(updatedFileName);
-                        existingImage.setImageViewOrder(newImage.getOrder());
-                        existingImage.setUpdatedOn(Instant.now());
-                        saleItemImageRepository.save(existingImage);
-                    } catch (IOException e) {
-                        throw new RuntimeException("Error moving file: " + existingImage.getFileName(), e);
-                    }
+                    // ✅ MOVE = update order only
+                    existingImage.setImageViewOrder(newImage.getOrder());
+                    existingImage.setUpdatedOn(Instant.now());
+                    saleItemImageRepository.save(existingImage);
                     break;
 
                 case "DELETE":
@@ -394,7 +390,7 @@ public class SaleItemService {
             }
         }
 
-
+        // --- normalize order ---
         List<SaleItemImage> remainingImages = saleItemImageRepository.findAllBySaleItemId(id)
                 .stream()
                 .sorted(Comparator.comparingInt(SaleItemImage::getImageViewOrder))
@@ -407,14 +403,6 @@ public class SaleItemService {
                 img.setImageViewOrder(expectedOrder);
                 img.setUpdatedOn(Instant.now());
                 saleItemImageRepository.save(img);
-
-                try {
-                    String updatedFileName = fileService.updateFileName(img.getFileName(), id, expectedOrder);
-                    img.setFileName(updatedFileName);
-                    saleItemImageRepository.save(img);
-                } catch (IOException e) {
-                    throw new RuntimeException("Error renaming file after normalize: " + img.getFileName(), e);
-                }
             }
         }
 
