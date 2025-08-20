@@ -2,6 +2,7 @@
 import { ref, defineExpose, defineProps, computed, onBeforeUnmount, reactive } from "vue";
 import { useProductStore } from "@/stores/useProductStore";
 import defaultImage from "@/assets/default.jpg";
+import ErrorModal from "@/components/shared/modal/ErrorModal.vue";
 
 const productStore = useProductStore();
 const selectedImage = ref(0);
@@ -11,8 +12,15 @@ const previewImages = reactive(Array(4).fill(null));
 const existingImages = reactive(Array(4).fill(null));
 const fileInputs = reactive([null, null, null, null]);
 
-const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
+// Error handling state
+const showErrorModal = ref(false);
+const errorMessage = ref("");
 
+// File size limit: 2MB
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
+
+// const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
+const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
 
 onBeforeUnmount(() => {
   previewImages.forEach(url => {
@@ -70,9 +78,31 @@ const setSelectedImage = (index) => {
   selectedImage.value = index;
 };
 
+// Validate file size
+const validateFile = (file) => {
+  if (file.size > MAX_FILE_SIZE) {
+    errorMessage.value = "The picture file size cannot be larger than 2MB.";
+    showErrorModal.value = true;
+    return false;
+  }
+  return true;
+};
+
+// Handle error modal close
+const handleErrorModalClose = () => {
+  showErrorModal.value = false;
+  errorMessage.value = "";
+};
+
 const handleFileChange = (event, i) => {
   const file = event.target.files[0];
   if (!file) return;
+
+  // Validate file size
+  if (!validateFile(file)) {
+    event.target.value = ""; // Clear the input
+    return;
+  }
 
   if (previewImages[i]?.startsWith("blob:")) {
     URL.revokeObjectURL(previewImages[i]);
@@ -91,6 +121,15 @@ const handleMultiFileChange = (event) => {
     return acc;
   }, []);
 
+  // Validate files first
+  const oversizedFiles = files.filter(file => file.size > MAX_FILE_SIZE);
+  if (oversizedFiles.length > 0) {
+    errorMessage.value = "The picture file size cannot be larger than 2MB.";
+    showErrorModal.value = true;
+    event.target.value = ""; // Clear the input
+    return;
+  }
+
   files.slice(0, emptySlots.length).forEach((file, idx) => {
     const slotIndex = emptySlots[idx];
     if (previewImages[slotIndex]?.startsWith("blob:")) {
@@ -102,7 +141,8 @@ const handleMultiFileChange = (event) => {
   });
 
   if (files.length > emptySlots.length) {
-    alert(`คุณสามารถเพิ่มได้สูงสุด ${emptySlots.length} รูปภาพ`);
+    errorMessage.value = "Maximum 4 pictures are allowed.";
+    showErrorModal.value = true;
   }
 
   event.target.value = "";
@@ -251,6 +291,13 @@ defineExpose({
 </script>
 
 <template>
+  <!-- Error Modal -->
+  <ErrorModal 
+    :visible="showErrorModal" 
+    :message="errorMessage" 
+    @close="handleErrorModalClose" 
+  />
+  
   <div class="relative">
     <div class="sticky top-20 perspective">
       <!-- Main Image Display -->
@@ -471,12 +518,5 @@ defineExpose({
 
 .hover\:translate-z-20:hover {
   transform: translateZ(20px);
-}
-
-.itbms-picture-file0,
-.itbms-picture-file1,
-.itbms-picture-file2,
-.itbms-picture-file3 {
-  /* Styling for picture files if needed */
 }
 </style>

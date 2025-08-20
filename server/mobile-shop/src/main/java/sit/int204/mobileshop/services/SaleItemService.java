@@ -133,7 +133,22 @@ public class SaleItemService {
         }
 
         Page<SaleItem> saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands, storageSize, includeNullStorage, lowerPrice, upperPrice, isExactPrice);
-        return listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
+        PageDto<SaleItemDto> saleItemDtoPageDto = listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
+        for(int i = 0; i < saleItemDtoPageDto.getContent().size(); i++ ) {
+
+            System.out.println(saleItemDtoPageDto.getContent().get(i));
+            Optional<SaleItemImage> imageOpt = saleItemImageRepository
+                    .findAllBySaleItemId(saleItemDtoPageDto.getContent().get(i).getId()).stream()
+                    .filter(img -> img.getImageViewOrder() == 1)
+                    .findFirst();
+
+            if(imageOpt.isPresent()) {
+                System.out.println(imageOpt.orElse(null).getFileName());
+                saleItemDtoPageDto.getContent().get(i).setImage(imageOpt.orElse(null).getFileName());
+                System.out.println("image get" +   saleItemDtoPageDto.getContent().get(i).getImage());
+            }
+        }
+        return saleItemDtoPageDto;
     }
 
     public SaleItemDetailDto getSaleItemById(Integer id) {
@@ -258,9 +273,12 @@ public class SaleItemService {
         return result;
     }
 
+    @Transactional
     public SaleItemDetailDto updateSaleItemByIdWithImages(Integer id, SaleItemWithImageInfo saleItemWithImageInfo) throws IOException {
+        // 1. โหลดข้อมูลเก่า
         SaleItem existingItem = getSaleItemByIdOld(id);
 
+        // 2. validate brand
         if (saleItemWithImageInfo.getSaleItem() == null ||
                 saleItemWithImageInfo.getSaleItem().getBrand() == null ||
                 saleItemWithImageInfo.getSaleItem().getBrand().getId() == null) {
@@ -275,44 +293,58 @@ public class SaleItemService {
             existingItem.setQuantity(1);
         }
 
+        // 3. map ข้อมูลใหม่ลง object เก่า
         modelMapper.getConfiguration()
                 .setSkipNullEnabled(true)
                 .setPropertyCondition(Conditions.isNotNull());
         modelMapper.map(saleItemWithImageInfo.getSaleItem(), existingItem);
 
+        // 4. save item
         SaleItem updatedItem = saleItemRepository.save(existingItem);
         SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
 
+        // --- จัดการ images ---
         List<SaleItemImage> images = saleItemImageRepository.findAllBySaleItemId(id);
         List<SaleItemImageRequest> newImages = saleItemWithImageInfo.getImageInfos();
 
-        // ตรวจสอบ order ที่ซ้ำกัน เฉพาะ status ที่ไม่ใช่ DELETE
+        if (newImages == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image list cannot be null.");
+        }
+
+        // map รูปเก่าตาม fileName -> object
+        Map<String, SaleItemImage> existingImageMap =
+                images.stream().collect(Collectors.toMap(SaleItemImage::getFileName, img -> img));
+
+        // ตรวจ duplicate order
         Set<Integer> orders = new HashSet<>();
         for (SaleItemImageRequest image : newImages) {
             String status = image.getStatus() != null ? image.getStatus().toUpperCase() : null;
             if (status != null && !status.equals("DELETE")) {
                 if (!orders.add(image.getOrder())) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Duplicate order value: " + image.getOrder());
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Duplicate order value: " + image.getOrder());
                 }
             }
         }
 
+        // loop รูปใหม่
         for (int i = 0; i < newImages.size(); i++) {
-            SaleItemImage existingImage = (i < images.size()) ? images.get(i) : null;
             SaleItemImageRequest newImage = newImages.get(i);
-
             String status = newImage.getStatus() != null ? newImage.getStatus().toUpperCase() : null;
+
             if (status == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image status cannot be null at index " + i);
             }
 
             switch (status) {
                 case "ONLINE":
+                    // ไม่ต้องทำอะไร
                     break;
 
                 case "NEW":
-                    if (newImage.getImageFile() == null) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image file is required for NEW status at index " + i);
+                    if (newImage.getImageFile() == null || newImage.getImageFile().isEmpty()) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                "Image file is required for NEW status at index " + i);
                     }
                     String newFileName = fileService.saveUpdate(newImage.getImageFile(), id, newImage.getOrder());
                     SaleItemImage newSaleItemImage = new SaleItemImage();
@@ -325,43 +357,59 @@ public class SaleItemService {
                     break;
 
                 case "MOVE":
+                    SaleItemImage existingImage = existingImageMap.get(newImage.getFileName());
                     if (existingImage == null) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No existing image found for MOVE status at index " + i);
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                "No existing image found for MOVE status at index " + i);
                     }
-                    try {
-                        String updatedFileName = fileService.updateFileName(newImage.getFileName(), id, newImage.getOrder());
-                        existingImage.setFileName(updatedFileName);
-                        existingImage.setImageViewOrder(newImage.getOrder());
-                        existingImage.setUpdatedOn(Instant.now());
-                        saleItemImageRepository.save(existingImage);
-                        System.out.println("Moved image: " + updatedFileName + " to order " + newImage.getOrder());
-                    } catch (IOException e) {
-                        throw new RuntimeException("Error moving file: " + existingImage.getFileName(), e);
-                    }
+                    // ✅ MOVE = update order only
+                    existingImage.setImageViewOrder(newImage.getOrder());
+                    existingImage.setUpdatedOn(Instant.now());
+                    saleItemImageRepository.save(existingImage);
                     break;
 
                 case "DELETE":
-                    if (existingImage == null) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No existing image found for DELETE status at index " + i);
+                    SaleItemImage toDelete = existingImageMap.get(newImage.getFileName());
+                    if (toDelete == null) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                "No existing image found for DELETE status at index " + i);
                     }
                     try {
-                        if (fileService.deleteByFileName(existingImage.getFileName())) {
-                            System.out.println("File deleted: " + existingImage.getFileName());
+                        if (fileService.deleteByFileName(toDelete.getFileName())) {
+                            System.out.println("File deleted: " + toDelete.getFileName());
                         }
                     } catch (IOException e) {
-                        throw new RuntimeException("Error deleting file: " + existingImage.getFileName(), e);
+                        throw new RuntimeException("Error deleting file: " + toDelete.getFileName(), e);
                     }
-                    saleItemImageRepository.delete(existingImage);
+                    saleItemImageRepository.delete(toDelete);
                     break;
 
                 default:
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown status: " + status + " at index " + i);
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Unknown status: " + status + " at index " + i);
+            }
+        }
+
+        // --- normalize order ---
+        List<SaleItemImage> remainingImages = saleItemImageRepository.findAllBySaleItemId(id)
+                .stream()
+                .sorted(Comparator.comparingInt(SaleItemImage::getImageViewOrder))
+                .toList();
+
+        for (int j = 0; j < remainingImages.size(); j++) {
+            SaleItemImage img = remainingImages.get(j);
+            int expectedOrder = j + 1;
+            if (!img.getImageViewOrder().equals(expectedOrder)) {
+                img.setImageViewOrder(expectedOrder);
+                img.setUpdatedOn(Instant.now());
+                saleItemImageRepository.save(img);
             }
         }
 
         result.setBrandName(brand.getName());
         return result;
     }
+
     public void deleteSaleItemByIdOld(Integer id) {
         saleItemRepository.delete(getSaleItemByIdOld(id));
     }

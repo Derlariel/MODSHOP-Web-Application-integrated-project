@@ -31,12 +31,31 @@ const router = useRouter();
 const brandStore = useBrandStore();
 const brands = computed(() => brandStore.getBrands());
 const emit = defineEmits(["submit", "cancel"]);
+const changeImage = ref(false);
 const props = defineProps({
+
+  imageChanged: {
+    type: Boolean,
+    default: false,
+  },
   init: {
     type: Object,
     default: () => ({}),
   },
 });
+
+
+watch(
+  () => props.imageChanged,
+  (newVal) => {
+    console.log("Image changed prop:", newVal);
+    if (newVal) {
+      changeImage.value = true;
+    } else {
+      changeImage.value = false;
+    }
+  }
+)
 
 const temp = reactive({
   id: null,
@@ -178,7 +197,7 @@ watchEffect(() => {
 });
 
 const submit = () => {
-  if (btnNotAvailable.value) {
+  if (!(notPass || btnNotAvailable) && !changeImage) {
     console.warn("Submit blocked: Button is disabled");
     return;
   }
@@ -236,6 +255,7 @@ const trimField = (field) => {
 };
 
 onMounted(() => {
+  console.log("imageChage" ,props.imageChanged);
   brandStore.loadBrands();
 });
 </script>
@@ -380,10 +400,10 @@ onMounted(() => {
           <button
             type="button"
             @click="submit"
-            :disabled="notPass || btnNotAvailable"
+            :disabled="(notPass || btnNotAvailable) && !changeImage"
             class="itbms-save-button"
             :class="
-              notPass || btnNotAvailable
+              (notPass || btnNotAvailable) && !changeImage
                 ? 'flex-1 bg-red-400/20 text-white py-4 px-6 rounded-full hover:bg-neutral-700 transition-colors duration-300 font-medium'
                 : 'flex-1 bg-white text-black py-4 px-6 rounded-full hover:bg-gray-200 transition-colors duration-300 font-medium'
             "
