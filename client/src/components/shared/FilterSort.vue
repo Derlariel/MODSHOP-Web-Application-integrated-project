@@ -252,8 +252,17 @@ defineExpose({
           </div>
         </div>
 
-        <!-- Right Side Section: Sort and Search -->
+        <!-- Right Side Section: Search and Sort -->
         <div class="flex flex-col gap-4 items-center lg:items-end lg:flex-shrink-0">
+          <!-- Search Section -->
+          <div class="itbms-search-section flex justify-center md:justify-end md:w-full">
+            <div class="md:w-[40%] lg:w-[100%]">
+              <SearchBox v-model="searchKeyword" @search="onSearch" @clear="onClearSearch" placeholder="Search..."
+                class="w-full max-w-md md:max-w-sm" />
+            </div>
+
+          </div>
+
           <!-- Sort Controls Section -->
           <div
             class="flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-end gap-2 sm:gap-3 w-full max-w-sm sm:max-w-md md:max-w-none mx-auto lg:mx-0 lg:w-auto">
@@ -292,15 +301,6 @@ defineExpose({
                 </button>
               </div>
             </div>
-          </div>
-
-          <!-- Search Section -->
-          <div class="itbms-search-section flex justify-center md:justify-end border-1 md:w-full">
-            <div class="md:w-[40%] lg:w-[100%]">
-              <SearchBox v-model="searchKeyword" @search="onSearch" @clear="onClearSearch" placeholder="Search..."
-                class="w-full max-w-md md:max-w-sm" />
-            </div>
-
           </div>
         </div>
       </div>
