@@ -32,7 +32,8 @@ const selectedStorageSizes = ref([]);
 const size = ref(10);
 const sortField = ref("createdOn");
 const sortDirection = ref("asc");
-const searchKeyword = ref(""); // Add search keyword state
+const searchKeyword = ref(""); 
+const searchInput = ref(""); 
 
 const productStore = useProductStore();
 
@@ -59,7 +60,8 @@ if (stored) {
     size.value = parsed.size || 10;
     sortField.value = parsed.sortField || "createdOn";
     sortDirection.value = parsed.sortDirection || "asc";
-    searchKeyword.value = parsed.searchKeyword || ""; // Restore search keyword
+    searchKeyword.value = parsed.q || parsed.searchKeyword || ""; 
+    searchInput.value = parsed.q || parsed.searchKeyword || ""; 
   } catch (e) {
     console.error("Invalid session data", e);
   }
@@ -118,6 +120,7 @@ const clearAllFilters = () => {
   isExactPrice.value = false;
   selectedStorageSizes.value = [];
   searchKeyword.value = ""; // Clear search keyword
+  searchInput.value = ""; // Clear input text
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };
@@ -143,15 +146,16 @@ const sortByBrandDesc = () => {
   sessionStorage.setItem("activePage", 1);
 };
 
-// Search functionality
+// Search functionality - updated to only search when user explicitly triggers it
 const onSearch = (keyword) => {
-  searchKeyword.value = keyword;
+  searchKeyword.value = keyword.trim(); // Update the actual search keyword that triggers filters
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };
 
 const onClearSearch = () => {
   searchKeyword.value = "";
+  searchInput.value = "";
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };
@@ -170,7 +174,7 @@ watch(
         size: size.value,
         sortField: sortField.value,
         sortDirection: sortDirection.value,
-        searchKeyword: searchKeyword.value, // Include search keyword
+        q: searchKeyword.value, // Include search keyword as 'q' to match backend
         activePage: productStore.activePage,
       })
     );
@@ -183,7 +187,7 @@ watch(
       size: size.value,
       sortField: sortField.value,
       sortDirection: sortDirection.value,
-      searchKeyword: searchKeyword.value, // Include search keyword
+      q: searchKeyword.value, // Include search keyword as 'q' to match backend
       activePage: productStore.activePage,
     });
   },
@@ -201,6 +205,7 @@ onMounted(() => {
     sortField.value = "createdOn";
     sortDirection.value = "asc";
     searchKeyword.value = ""; // Initialize search keyword
+    searchInput.value = ""; // Initialize input text
     productStore.setActivePage(1);
     sessionStorage.setItem("activePage", 1);
   }
@@ -257,7 +262,7 @@ defineExpose({
           <!-- Search Section -->
           <div class="itbms-search-section flex justify-center md:justify-end md:w-full">
             <div class="md:w-[40%] lg:w-[100%]">
-              <SearchBox v-model="searchKeyword" @search="onSearch" @clear="onClearSearch" placeholder="Search..."
+              <SearchBox v-model="searchInput" @search="onSearch" @clear="onClearSearch" placeholder="Search by color, description or model"
                 class="w-full max-w-md md:max-w-sm" />
             </div>
 

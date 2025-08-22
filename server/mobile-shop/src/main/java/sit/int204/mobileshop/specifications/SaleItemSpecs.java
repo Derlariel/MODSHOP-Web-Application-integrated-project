@@ -8,12 +8,15 @@ import java.util.List;
 public class SaleItemSpecs {
     public static Specification<SaleItem> keyword(String q) {
         if (q == null || q.isBlank()) return null;
-        String like = "%" + q.trim().toLowerCase() + "%";
-        return (root, query, cb) -> cb.or(
-                cb.like(cb.lower(root.get("description")), like),
-                cb.like(cb.lower(root.get("model")), like),
-                cb.like(cb.lower(root.get("color")), like)
-        );
+        return (root, query, cb) -> {
+            // Use string comparison without LOWER() for TEXT fields to avoid type casting issues
+            String like = "%" + q.trim() + "%";
+            return cb.or(
+                    cb.like(root.get("description"), like),
+                    cb.like(root.get("model"), like),
+                    cb.like(root.get("color"), like)
+            );
+        };
     }
 
     public static Specification<SaleItem> brandNamesIn(List<String> brandNames) {
