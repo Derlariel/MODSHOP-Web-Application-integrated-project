@@ -59,6 +59,8 @@ public class SaleItemV2Controller {
 
 
 
+
+
     @PutMapping("/{id}")
     public ResponseEntity<SaleItemDetailDto> updateSaleItem(
             @PathVariable Integer id,
@@ -134,28 +136,28 @@ public class SaleItemV2Controller {
 
 
 
-    @Operation(summary = "Get paginated products", description = "Retrieve products with pagination, filtering, and sorting options")
+    @Operation(summary = "Get paginated products",
+            description = "Retrieve products with pagination, filters and keyword search (q)")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved paginated products",
+            @ApiResponse(responseCode = "200", description = "OK",
                     content = @Content(schema = @Schema(implementation = PageDto.class))),
-            @ApiResponse(responseCode = "400", description = "Missing required parameters",
-                    content = @Content)
+            @ApiResponse(responseCode = "400", description = "Missing required parameters", content = @Content)
     })
     @GetMapping("")
     public ResponseEntity<PageDto<SaleItemDto>> getAllSaleItemsPage(
             @Parameter(description = "Page number (zero-based)", required = true)
             @RequestParam(required = true) Integer page,
 
-            @Parameter(description = "Number of items per page", required = true)
+            @Parameter(description = "Items per page", required = true)
             @RequestParam(required = true) Integer size,
 
-            @Parameter(description = "Filter products by brand names", example = "['Apple', 'Samsung']")
+            @Parameter(description = "Filter products by brand names", example = "['Apple','Samsung']")
             @RequestParam(defaultValue = "[]") List<String> filterBrands,
 
             @Parameter(description = "Field to sort by", example = "brand.name")
             @RequestParam(defaultValue = "createdOn") String sortField,
 
-            @Parameter(description = "Filter storage size")
+            @Parameter(description = "Filter storage size (list of numbers, 'null' means include items with NULL)")
             @RequestParam(defaultValue = "[]") List<String> storageSize,
 
             @Parameter(description = "Price range - lower bound")
@@ -164,19 +166,25 @@ public class SaleItemV2Controller {
             @Parameter(description = "Price range - upper bound")
             @RequestParam(required = false) String upperPrice,
 
-            @Parameter(description = "Whether to use exact price matching for single price filter")
+            @Parameter(description = "Whether to use exact price for single price filter")
             @RequestParam(defaultValue = "false") Boolean isExactPrice,
 
             @Parameter(description = "Sort direction (asc or desc)")
-            @RequestParam(defaultValue = "asc") String sortDirection) throws MissingServletRequestParameterException {
+            @RequestParam(defaultValue = "asc") String sortDirection,
+
+            @Parameter(description = "Keyword to search in description/model/color")
+            @RequestParam(required = false) String q
+    ) throws MissingServletRequestParameterException {
+
         if (page == null || size == null) {
             throw new MissingServletRequestParameterException(page == null ? "page" : "size", "Integer");
         }
-        Integer lower = (lowerPrice == null || lowerPrice.equals("null")) ? null : Integer.valueOf(lowerPrice);
-        Integer upper = (upperPrice == null || upperPrice.equals("null")) ? null : Integer.valueOf(upperPrice);
+
+        Integer lower = (lowerPrice == null || "null".equalsIgnoreCase(lowerPrice)) ? null : Integer.valueOf(lowerPrice);
+        Integer upper = (upperPrice == null || "null".equalsIgnoreCase(upperPrice)) ? null : Integer.valueOf(upperPrice);
 
         PageDto<SaleItemDto> pagedResult = saleItemService.getAllSaleItemsPage(
-                page, size, filterBrands, storageSize, lower, upper, isExactPrice, sortField, sortDirection);
+                page, size, filterBrands, storageSize, lower, upper, isExactPrice, sortField, sortDirection, q);
 
         return ResponseEntity.ok(pagedResult);
     }
