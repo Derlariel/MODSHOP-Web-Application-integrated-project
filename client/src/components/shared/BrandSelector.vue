@@ -30,6 +30,7 @@ const emit = defineEmits([
   "brand-selected",
   "brand-removed",
   "clear-brands",
+  "blur",
 ]);
 
 const showDropdown = ref(false);
@@ -91,6 +92,10 @@ const handleSelect = (event) => {
     emit("brand-selected", selectedBrand);
   }
 };
+
+function onBlur(e) {
+  emit('blur', e)         // ปล่อย event blur ออกไป
+}
 </script>
 
 <template>
@@ -134,7 +139,7 @@ const handleSelect = (event) => {
       <div class="flex-shrink-0 flex">
         <button
           @click="toggleDropdown"
-          class="itbms-brand-filter px-2 md:px-3 py-1.5 bg-gray-500 border border-gray-500 hover:bg-gray-400 transition rounded-md rounded-l-none h-[32px] md:h-[36px] w-[42px] md:w-[48px] flex items-center justify-center"
+          class="itbms-brand-filter px-2 md:px-3 py-1.5 bg-black/90  hover:bg-black/80  transition rounded-md rounded-l-none h-[32px] md:h-[36px] w-[42px] md:w-[48px] flex items-center justify-center"
         >
           <Filter stroke="white" class="w-3 h-3 md:w-4 md:h-4" />
           <span class="sr-only">

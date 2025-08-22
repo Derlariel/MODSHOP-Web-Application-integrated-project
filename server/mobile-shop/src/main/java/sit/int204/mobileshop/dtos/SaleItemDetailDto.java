@@ -2,15 +2,16 @@ package sit.int204.mobileshop.dtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Min;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class SaleItemDetailDto {
     private Integer id;
     private String model;
@@ -22,7 +23,7 @@ public class SaleItemDetailDto {
     @Min(value = 0)
     private Integer ramGb;
     private BigDecimal screenSizeInch;
-    private List<SaleItemImageDto> saleItemImages;
+    private List<SaleItemImageDto> saleItemImages = new ArrayList<>();
     @Min(value = 0)
     private Integer storageGb;
     private String color;
@@ -30,5 +31,9 @@ public class SaleItemDetailDto {
     private Instant createdOn;
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "Asia/Bangkok")
     private Instant updatedOn;
-    private List<String> imageUrls;
+
+    public List<Integer> getImageIds() {
+        return saleItemImages.stream().map(SaleItemImageDto::getId).toList();
+    }
 }
+

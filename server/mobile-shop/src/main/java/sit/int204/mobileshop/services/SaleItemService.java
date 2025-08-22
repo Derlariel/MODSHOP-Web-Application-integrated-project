@@ -1,17 +1,23 @@
-
 package sit.int204.mobileshop.services;
 
 import java.io.IOException;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.util.*;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,21 +27,17 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import sit.int204.mobileshop.config.FileStorageProperties;
-import sit.int204.mobileshop.dtos.PageDto;
-import sit.int204.mobileshop.dtos.SaleItemDetailDto;
-import sit.int204.mobileshop.dtos.SaleItemDto;
-import sit.int204.mobileshop.dtos.SaleItemImageDto;
-import sit.int204.mobileshop.dtos.SaleItemRequestDto;
+import sit.int204.mobileshop.dtos.*;
 import sit.int204.mobileshop.entities.Brand;
 import sit.int204.mobileshop.entities.SaleItem;
+import sit.int204.mobileshop.entities.SaleItemImage;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
+import sit.int204.mobileshop.specifications.SaleItemSpecs;
 import sit.int204.mobileshop.utils.ListMapper;
 
-/**
- * Service for managing SaleItem operations, including retrieval, creation, update, and deletion.
- */
+
 @Service
 public class SaleItemService {
     private static final Logger log = Logger.getLogger(SaleItemService.class.getName());
@@ -65,124 +67,112 @@ public class SaleItemService {
     @Autowired
     private FileService fileService;
 
-    /**
-     * Retrieves all SaleItems sorted by creation date.
-     *
-     * @return list of all SaleItems
-     */
     public List<SaleItem> getAllSaleItems() {
-        return saleItemRepository.findAllByOrderByCreatedOnAsc();
+        return saleItemRepository.findAll();
     }
 
-    /**
-     * Retrieves SaleItems with pagination and optional filtering.
-     *
-     * @param page          page number
-     * @param size          page size
-     * @param filterBrands  list of brand names to filter
-     * @param storageSize   list of storage sizes to filter
-     * @param lowerPrice    minimum price filter
-     * @param upperPrice    maximum price filter
-     * @param isExactPrice  whether to use exact price matching for single price filter
-     * @param sortField     field to sort by
-     * @param sortDirection sort direction (ASC/DESC)
-     * @return paginated list of SaleItem DTOs
-     */
     public PageDto<SaleItemDto> getAllSaleItemsPage(
             Integer page,
             Integer size,
             List<String> filterBrands,
-            List<String> storageSize,
+            List<String> storageSize,   // มาจาก FE เป็น String
             Integer lowerPrice,
             Integer upperPrice,
             Boolean isExactPrice,
             String sortField,
-            String sortDirection) {
+            String sortDirection,
+            String q // คีย์เวิร์ด search
+    ) {
 
-        if (sortField == null || sortField.trim().isEmpty()) {
-            sortField = "createdOn";
-        }
-
+        if (sortField == null || sortField.isBlank()) sortField = "createdOn";
         Sort.Direction direction;
         try {
             direction = Sort.Direction.fromString(sortDirection);
         } catch (Exception e) {
             direction = Sort.Direction.ASC;
         }
+        if (page == null || page < 0) page = 0;
+        if (size == null || size <= 0) size = 10;
 
-        if (page == null || page < 0) {
-            page = 0;
-        }
-        if (size == null || size <= 0) {
-            size = 10;
-        }
+        Pageable pageable = PageRequest.of(page, size, Sort.by(new Sort.Order(direction, sortField)));
 
-        Sort sort = Sort.by(new Sort.Order(direction, sortField))
-                .and(Sort.by(Sort.Direction.ASC, "createdOn"));
-        Pageable pageable = PageRequest.of(page, size, sort);
-
-        if (filterBrands != null) {
+        // sanitize brand list
+        if (filterBrands != null && !filterBrands.isEmpty()) {
             filterBrands = filterBrands.stream()
-                    .filter(b -> b != null && !b.trim().isEmpty() && !b.equals("[]"))
-                    .collect(Collectors.toList());
-            if (filterBrands.isEmpty()) {
-                filterBrands = null;
-            }
+                    .filter(s -> s != null && !s.isBlank() && !"[]".equals(s))
+                    .toList();
+            if (filterBrands.isEmpty()) filterBrands = null;
         }
 
-        if (storageSize != null) {
-            storageSize = storageSize.stream()
-                    .filter(b -> b != null && !b.trim().isEmpty() && !b.equals("[]"))
-                    .collect(Collectors.toList());
-            if (storageSize.isEmpty()) {
-                storageSize = null;
-            }
+        // จัดการ storage + include null
+        boolean includeNullStorage = false;
+        List<Integer> storageNumbers = null;
+        if (storageSize != null && !storageSize.isEmpty()) {
+            includeNullStorage = storageSize.contains("null");
+            storageNumbers = storageSize.stream()
+                    .filter(s -> s != null && !s.isBlank() && !"[]".equals(s) && !"null".equalsIgnoreCase(s))
+                    .map(Integer::valueOf)
+                    .toList();
+            if (storageNumbers.isEmpty()) storageNumbers = null;
         }
 
-        // Check if null storage should be included in the filter
-        Boolean includeNullStorage = false;
-        if (storageSize != null && storageSize.contains("null")) {
-            includeNullStorage = true;
-            // Remove "null" from the storage list as it's handled separately
-            storageSize = storageSize.stream()
-                    .filter(s -> !"null".equals(s))
-                    .collect(Collectors.toList());
-            if (storageSize.isEmpty()) {
-                storageSize = null;
-            }
+        // Build Specification
+        Specification<SaleItem> spec = Specification.where(null);
+        spec = spec.and(SaleItemSpecs.keyword(q));
+        spec = spec.and(SaleItemSpecs.brandNamesIn(filterBrands));
+
+        Specification<SaleItem> storageSpec = null;
+        if (storageNumbers != null) storageSpec = SaleItemSpecs.storageIn(storageNumbers);
+        if (includeNullStorage) {
+            storageSpec = (storageSpec == null)
+                    ? SaleItemSpecs.includeNullStorage(true)
+                    : storageSpec.or(SaleItemSpecs.includeNullStorage(true));
+        }
+        if (storageSpec != null) spec = spec.and(storageSpec);
+
+        if (Boolean.TRUE.equals(isExactPrice) && lowerPrice != null) {
+            spec = spec.and(SaleItemSpecs.exactPrice(lowerPrice));
+        } else {
+            spec = spec.and(SaleItemSpecs.priceBetween(lowerPrice, upperPrice));
         }
 
-        Page<SaleItem> saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands, storageSize, includeNullStorage, lowerPrice, upperPrice, isExactPrice);
-        return listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
+        Page<SaleItem> pageResult = saleItemRepository.findAll(spec, pageable);
+
+        PageDto<SaleItemDto> dtoPage = listMapper.toPageDTO(pageResult, SaleItemDto.class, modelMapper);
+
+        for (SaleItemDto dto : dtoPage.getContent()) {
+            saleItemImageRepository.findAllBySaleItemId(dto.getId()).stream()
+                    .filter(img -> img.getImageViewOrder() == 1)
+                    .findFirst()
+                    .ifPresent((SaleItemImage img) -> dto.setImage(img.getFileName()));
+        }
+
+        return dtoPage;
     }
 
-    /**
-     * Retrieves a SaleItem by ID, including its associated image URLs.
-     *
-     * @param id the ID of the SaleItem
-     * @return SaleItemDetailDto with item details and image URLs
-     * @throws ItemNotFoundException if the SaleItem is not found
-     */
+
     public SaleItemDetailDto getSaleItemById(Integer id) {
         SaleItem item = saleItemRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
 
         SaleItemDetailDto dto = modelMapper.map(item, SaleItemDetailDto.class);
-        dto.setBrandName(item.getBrand().getName());
-//        dto.setImageUrls(getImageUrls(id));
 
-        log.info("Retrieved SaleItem with ID: " + id + " with " + dto.getImageUrls().size() + " images");
+        List<SaleItemImageDto> imageDtos = new ArrayList<>(
+                listMapper.mapList(
+                        saleItemImageRepository.findAllBySaleItemId(id),
+                        SaleItemImageDto.class,
+                        modelMapper
+                )
+        );
+
+        imageDtos.sort(Comparator.comparingInt(SaleItemImageDto::getImageViewOrder));
+
+        dto.setSaleItemImages(imageDtos);
+        dto.setBrandName(item.getBrand().getName());
+
         return dto;
     }
 
-    /**
-     * Creates a new SaleItem with optional images.
-     *
-     * @param dtoItem the SaleItem request DTO
-     * @param images  list of image files to upload
-     * @return SaleItemDetailDto of the created item
-     * @throws IOException if file upload fails
-     */
     @Transactional
     public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem, List<MultipartFile> images) throws IOException {
         if (images != null && images.size() > MAX_IMAGES) {
@@ -245,6 +235,183 @@ public class SaleItemService {
         if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
             dtoItem.setQuantity(1);
         }
+    }
+
+
+    public SaleItem getSaleItemByIdOld(Integer id) {
+        return saleItemRepository.findById(id)
+                .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
+    }
+
+    public SaleItemDetailDto updateSaleItemById(Integer id, SaleItemRequestDto dtoItem) {
+        SaleItem existingItem = getSaleItemByIdOld(id);
+
+        if (dtoItem.getBrand() == null || dtoItem.getBrand().getId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null.");
+        }
+
+        Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
+
+        if (dtoItem.getQuantity() == null || dtoItem.getQuantity() < 0) {
+            dtoItem.setQuantity(1);
+        }
+
+        existingItem.setBrand(brand);
+        existingItem.setModel(dtoItem.getModel() != null ? dtoItem.getModel().trim() : null);
+        existingItem.setDescription(dtoItem.getDescription() != null ? dtoItem.getDescription().trim() : null);
+        existingItem.setPrice(dtoItem.getPrice());
+        existingItem.setRamGb(dtoItem.getRamGb() != null ? dtoItem.getRamGb() : null);
+        existingItem.setScreenSizeInch(dtoItem.getScreenSizeInch());
+        existingItem.setQuantity(dtoItem.getQuantity());
+        existingItem.setStorageGb(dtoItem.getStorageGb() != null ? dtoItem.getStorageGb() : null);
+        existingItem.setColor(
+                dtoItem.getColor() != null && !dtoItem.getColor().trim().isEmpty() ? dtoItem.getColor().trim() : null);
+
+        SaleItem updatedItem = saleItemRepository.save(existingItem);
+        SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
+        result.setBrandName(brand.getName());
+        return result;
+    }
+
+    @Transactional
+    public SaleItemDetailDto updateSaleItemByIdWithImages(Integer id, SaleItemWithImageInfo saleItemWithImageInfo) throws IOException {
+        // 1. โหลดข้อมูลเก่า
+        SaleItem existingItem = getSaleItemByIdOld(id);
+
+        // 2. validate brand
+        if (saleItemWithImageInfo.getSaleItem() == null ||
+                saleItemWithImageInfo.getSaleItem().getBrand() == null ||
+                saleItemWithImageInfo.getSaleItem().getBrand().getId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brand ID must not be null.");
+        }
+
+        Brand brand = brandService.getBrandById(saleItemWithImageInfo.getSaleItem().getBrand().getId());
+        existingItem.setBrand(brand);
+
+        if (saleItemWithImageInfo.getSaleItem().getQuantity() == null ||
+                saleItemWithImageInfo.getSaleItem().getQuantity() < 0) {
+            existingItem.setQuantity(1);
+        }
+
+        // 3. map ข้อมูลใหม่ลง object เก่า
+        modelMapper.getConfiguration()
+                .setSkipNullEnabled(true)
+                .setPropertyCondition(Conditions.isNotNull());
+        modelMapper.map(saleItemWithImageInfo.getSaleItem(), existingItem);
+
+        // 4. save item
+        SaleItem updatedItem = saleItemRepository.save(existingItem);
+        SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
+
+        // --- จัดการ images ---
+        List<SaleItemImage> images = saleItemImageRepository.findAllBySaleItemId(id);
+        List<SaleItemImageRequest> newImages = saleItemWithImageInfo.getImageInfos();
+
+        if (newImages == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image list cannot be null.");
+        }
+
+        // map รูปเก่าตาม fileName -> object
+        Map<String, SaleItemImage> existingImageMap =
+                images.stream().collect(Collectors.toMap(SaleItemImage::getFileName, img -> img));
+
+        // ตรวจ duplicate order
+        Set<Integer> orders = new HashSet<>();
+        for (SaleItemImageRequest image : newImages) {
+            String status = image.getStatus() != null ? image.getStatus().toUpperCase() : null;
+            if (status != null && !status.equals("DELETE")) {
+                if (!orders.add(image.getOrder())) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Duplicate order value: " + image.getOrder());
+                }
+            }
+        }
+
+        // loop รูปใหม่
+        for (int i = 0; i < newImages.size(); i++) {
+            SaleItemImageRequest newImage = newImages.get(i);
+            String status = newImage.getStatus() != null ? newImage.getStatus().toUpperCase() : null;
+
+            if (status == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image status cannot be null at index " + i);
+            }
+
+            switch (status) {
+                case "ONLINE":
+                    // ไม่ต้องทำอะไร
+                    break;
+
+                case "NEW":
+                    if (newImage.getImageFile() == null || newImage.getImageFile().isEmpty()) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                "Image file is required for NEW status at index " + i);
+                    }
+                    String newFileName = fileService.saveUpdate(newImage.getImageFile(), id, newImage.getOrder());
+                    SaleItemImage newSaleItemImage = new SaleItemImage();
+                    newSaleItemImage.setSaleItem(existingItem);
+                    newSaleItemImage.setFileName(newFileName);
+                    newSaleItemImage.setImageViewOrder(newImage.getOrder());
+                    newSaleItemImage.setCreatedOn(Instant.now());
+                    newSaleItemImage.setUpdatedOn(Instant.now());
+                    saleItemImageRepository.save(newSaleItemImage);
+                    break;
+
+                case "MOVE":
+                    SaleItemImage existingImage = existingImageMap.get(newImage.getFileName());
+                    if (existingImage == null) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                "No existing image found for MOVE status at index " + i);
+                    }
+                    // ✅ MOVE = update order only
+                    existingImage.setImageViewOrder(newImage.getOrder());
+                    existingImage.setUpdatedOn(Instant.now());
+                    saleItemImageRepository.save(existingImage);
+                    break;
+
+                case "DELETE":
+                    SaleItemImage toDelete = existingImageMap.get(newImage.getFileName());
+                    if (toDelete == null) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                "No existing image found for DELETE status at index " + i);
+                    }
+                    try {
+                        if (fileService.deleteByFileName(toDelete.getFileName())) {
+                            System.out.println("File deleted: " + toDelete.getFileName());
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException("Error deleting file: " + toDelete.getFileName(), e);
+                    }
+                    saleItemImageRepository.delete(toDelete);
+                    break;
+
+                default:
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Unknown status: " + status + " at index " + i);
+            }
+        }
+
+        // --- normalize order ---
+        List<SaleItemImage> remainingImages = saleItemImageRepository.findAllBySaleItemId(id)
+                .stream()
+                .sorted(Comparator.comparingInt(SaleItemImage::getImageViewOrder))
+                .toList();
+
+        for (int j = 0; j < remainingImages.size(); j++) {
+            SaleItemImage img = remainingImages.get(j);
+            int expectedOrder = j + 1;
+            if (!img.getImageViewOrder().equals(expectedOrder)) {
+                img.setImageViewOrder(expectedOrder);
+                img.setUpdatedOn(Instant.now());
+                saleItemImageRepository.save(img);
+            }
+        }
+
+        result.setBrandName(brand.getName());
+        return result;
+    }
+
+    public void deleteSaleItemByIdOld(Integer id) {
+        saleItemRepository.delete(getSaleItemByIdOld(id));
     }
 
     private SaleItem mapToSaleItem(SaleItemRequestDto dtoItem, Brand brand) {

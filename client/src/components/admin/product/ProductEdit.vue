@@ -4,20 +4,93 @@ import { onMounted, ref, computed } from "vue";
 import ProductPicture from "@/components/shared/ProductPicture.vue";
 import ProductForm from "./ProductForm.vue";
 import { useProductStore } from "@/stores/useProductStore";
-
 import { useRoute, useRouter } from "vue-router";
 import HistoryPath from "@/components/shared/HistoryPath.vue";
+
 const { params } = useRoute();
 const router = useRouter();
 
 const product = ref(null);
 const productStore = useProductStore();
 const brandStore = useBrandStore();
+const picSelect = ref([]); // Store emitted images from ProductPicture
+const imageChanged = ref(false);
+
+console.log("Product ID from route params:", params.productId);
+
+// helper ฟังก์ชันเทียบ array ของรูป
+const isSameImages = (a, b) => {
+  if (!a || !b) return false;
+  if (a.length !== b.length) return false;
+  return a.every((img, idx) => {
+    const other = b[idx];
+    return (
+      img.order === other.order &&
+      img.fileName === other.fileName &&
+      img.status === other.status
+    );
+  });
+};
+
+const pic = (data) => {
+  console.log("images", data);
+  picSelect.value = data;
+
+  // เทียบกับรูปเดิมจาก backend
+  if (product.value && isSameImages(data, product.value.saleItemImages)) {
+    imageChanged.value = false;
+  } else {
+    imageChanged.value = true;
+  }
+};
 
 const edit = async (data) => {
-  await productStore.updateProduct(data);
-  sessionStorage.setItem("edit-success", "true");
-  router.push(`/sale-items/${params.productId}`);
+  console.log("Editing product with data:", data);
+
+  try {
+    // Create FormData object
+    const formData = new FormData();
+
+    Object.keys(data).forEach(key => {
+      if (key === "brand" && typeof data[key] === "object" && data[key] !== null) {
+        // แตก brand object ออกมา
+        if (data[key].id !== undefined) {
+          formData.append("saleItem.brand.id", data[key].id);
+        }
+        if (data[key].name !== undefined) {
+          formData.append("saleItem.brand.name", data[key].name);
+        }
+      } else {
+        formData.append(`saleItem.${key}`, data[key]);
+      }
+    });
+
+    // Append imageInfos from picSelect
+    picSelect.value.forEach((image, index) => {
+      formData.append(`imageInfos[${index}].order`, image.order);
+      formData.append(`imageInfos[${index}].fileName`, image.fileName);
+      formData.append(`imageInfos[${index}].status`, image.status);
+      if (image.imageFile) {
+        // Append File object for new images
+        formData.append(`imageInfos[${index}].imageFile`, image.imageFile);
+      }
+    });
+
+    // Debug FormData contents
+    console.log("FormData contents:");
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+
+    // Send FormData to updateProduct
+    await productStore.updateProduct(params.productId, formData);
+
+    sessionStorage.setItem("edit-success", "true");
+    router.push(`/sale-items/${params.productId}`);
+  } catch (error) {
+    console.error("Error updating product:", error);
+    sessionStorage.setItem("error-message", "true");
+  }
 };
 
 const title = computed(() => {
@@ -35,19 +108,16 @@ const title = computed(() => {
 });
 
 onMounted(async () => {
-
   try {
     await productStore.loadProducts();
-
     product.value = await productStore.fetchProductDetail(params.productId);
   } catch (e) {
-    router.push("/sale-items")
-    sessionStorage.setItem("error-message", "true")
+    router.push("/sale-items");
+    sessionStorage.setItem("error-message", "true");
   }
-
 });
 </script>
-  
+
 <template>
   <div class="min-h-screen bg-black text-white">
     <div class="pt-24 pb-20">
@@ -57,9 +127,13 @@ onMounted(async () => {
         </h1>
         <HistoryPath :name-path="title" :previous="2" :next="1" />
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-          <ProductPicture v-if="product && product.imageUrls" :images="product.imageUrls" />
-
-          <ProductForm @submit="edit" v-if="product" :init="product" />
+          <ProductPicture
+            v-if="product && product.saleItemImages"
+            :images="product.saleItemImages"
+            :editMode="true"
+            @savePic="pic"
+          />
+          <ProductForm :image-changed="imageChanged"  @submit="edit" v-if="product" :init="product" />
         </div>
       </div>
     </div>

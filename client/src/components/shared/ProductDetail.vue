@@ -8,6 +8,9 @@ import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
 import { checkUpToDate } from "@/utils/validate";
 
+// const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
+const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
+
 const router = useRouter();
 const route = useRoute();
 const productId = Number(route.params.productId);
@@ -20,12 +23,12 @@ console.log('detail', productStore.getActivePage);
 
 const submit = () => {
   router.push({
-    name: 'sale-items-edit',
+    name: "sale-items-edit",
     params: {
-      productId: productId
-    }
-  })
-}
+      productId: route.params.productId,
+    },
+  });
+};
 
 const title = computed(() => {
   if (!product.value) return '';
@@ -103,7 +106,7 @@ onMounted(async () => {
       <div class="max-w-[1200px] mx-auto px-6">
         <HistoryPath :previous="1" :name-path="title" /> 
         <div class="itbms-row grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-          <ProductPicture :images="product.imageUrls" />
+          <ProductPicture :editMode="false" :images="product.saleItemImages" />
 
           <div class="flex flex-col gap-8">
             <div class="itbms-row space-y-1">

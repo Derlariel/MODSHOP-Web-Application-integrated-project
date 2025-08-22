@@ -11,6 +11,10 @@ import ErrorModal from "@/components/shared/modal/ErrorModal.vue";
 import DEFAULT_IMAGE from "@/assets/default.jpg";
 import SkeletonLoader from "@/components/shared/SkeletonLoader.vue";
 
+
+// const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
+const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
+
 const router = useRouter();
 const route = useRoute();
 
@@ -36,6 +40,7 @@ const filters = ref({
   size: 10,
   sortField: "createdOn",
   sortDirection: "asc",
+  q: "", // Add search keyword as 'q' to match backend
 });
 
 const trigger = ref(0)
@@ -69,8 +74,10 @@ async function initProducts() {
       const hasFilters = filters.value.filterBrands.length > 0 ||
         filters.value.lowerPrice !== null ||
         filters.value.upperPrice !== null ||
-        filters.value.storageSize.length > 0;
+        filters.value.storageSize.length > 0 ||
+        filters.value.q.trim() !== ""; // Include search keyword in filter check
 
+      
       if (hasFilters) {
         // If filters are applied and no results, show no products message
         noProductsFromFilter.value = true;
@@ -234,7 +241,7 @@ watch(trigger, async () => {
               <div
                 class="relative h-[300px] rounded-2xl overflow-hidden bg-gradient-to-br from-white to-neutral-100 mb-4 perspective group-hover:shadow-2xl group-hover:shadow-white/30 transition-shadow duration-700">
                 <div class="absolute inset-0 flex items-center justify-center transition-transform duration-700 py-6 ">
-                  <img :src="DEFAULT_IMAGE"
+                  <img :src="`${BASE_URL}${product.image}`"
                     class="max-h-full max-w-full object-contain transform transition-transform duration-700 -mt-10 group-hover:scale-110"
                     alt="" />
                   <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/30 to-transparent">

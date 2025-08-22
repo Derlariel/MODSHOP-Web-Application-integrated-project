@@ -21,14 +21,31 @@ const getProducts = async (url) => {
 
 
 const getProductsPage = async (url, params = {}) => {
-  const query = new URLSearchParams (params).toString ();
+  // Create a clean params object excluding empty/null values
+  const cleanParams = {};
+  
+  Object.keys(params).forEach(key => {
+    const value = params[key];
+    if (value !== null && value !== undefined && value !== '') {
+      // For arrays, only include if not empty
+      if (Array.isArray(value)) {
+        if (value.length > 0) {
+          cleanParams[key] = value;
+        }
+      } else {
+        cleanParams[key] = value;
+      }
+    }
+  });
+  
+  const query = new URLSearchParams(cleanParams).toString();
   const fullUrl = query ? `${url}?${query}` : url;
 
-  const res = await fetch (fullUrl);
-  if (!res.ok) throw new Error (res.status);
+  const res = await fetch(fullUrl);
+  if (!res.ok) throw new Error(res.status);
   if (res.status === 204) return null;
 
-  return await res.json ();
+  return await res.json();
 };
 
 
@@ -41,28 +58,39 @@ const getProductById = async (url, id) => {
 };
 
 const updateProductById = async (url, id, data) => {
+  let options;
+  console.log("CALLED updateProductById >>>", url, id);
+
+  if (data instanceof FormData) {
+    // 📌 ถ้าเป็น FormData → ห้ามใส่ Content-Type เดี๋ยว browser ใส่ boundary ให้เอง
+    options = {
+      method: "PUT",
+      body: data,
+    };
+  } else {
+    // 📌 ถ้าเป็น JSON object ปกติ
+    options = {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    };
+  }
+
   return handleFetch(
     `${url}/${id}`,
-    {
-      method: "PUT",
-      headers: { "content-Type": "application/json" },
-      body: JSON.stringify(data),
-    },
+    options,
     "Error updating product by ID"
   );
 };
+async function addProduct(url, data) {
+  const response = await fetch(url, {
+    method: 'POST',
+    body: data,
+   
+  });
 
-
-const addProduct = async (url,product) => {
-  return handleFetch(
-    url,
-    {
-      method:"POST",
-      headers: { "content-Type": "application/json" },
-      body: JSON.stringify(product),
-    },
-    "Error adding product"
-  )
+  if (!response.ok) throw new Error('Failed to add product');
+  return await response.json();
 }
 
 const deleteProductById = async (url, id) => {

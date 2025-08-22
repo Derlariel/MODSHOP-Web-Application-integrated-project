@@ -35,7 +35,7 @@ const message = errorMessages[code] || errorMessages.default;
 
 // Clear filters and reset page when NODATA error occurs
 const clearFiltersAndGoBack = () => {
-  // Clear all session storage filters
+  // Clear all sessionStorage filters
   sessionStorage.removeItem("filterAndSort");
   sessionStorage.removeItem("activePage");
   
