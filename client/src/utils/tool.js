@@ -21,14 +21,31 @@ const getProducts = async (url) => {
 
 
 const getProductsPage = async (url, params = {}) => {
-  const query = new URLSearchParams (params).toString ();
+  // Create a clean params object excluding empty/null values
+  const cleanParams = {};
+  
+  Object.keys(params).forEach(key => {
+    const value = params[key];
+    if (value !== null && value !== undefined && value !== '') {
+      // For arrays, only include if not empty
+      if (Array.isArray(value)) {
+        if (value.length > 0) {
+          cleanParams[key] = value;
+        }
+      } else {
+        cleanParams[key] = value;
+      }
+    }
+  });
+  
+  const query = new URLSearchParams(cleanParams).toString();
   const fullUrl = query ? `${url}?${query}` : url;
 
-  const res = await fetch (fullUrl);
-  if (!res.ok) throw new Error (res.status);
+  const res = await fetch(fullUrl);
+  if (!res.ok) throw new Error(res.status);
   if (res.status === 204) return null;
 
-  return await res.json ();
+  return await res.json();
 };
 
 

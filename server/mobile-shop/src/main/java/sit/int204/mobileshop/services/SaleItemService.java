@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +34,7 @@ import sit.int204.mobileshop.entities.SaleItemImage;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
+import sit.int204.mobileshop.specifications.SaleItemSpecs;
 import sit.int204.mobileshop.utils.ListMapper;
 
 
@@ -73,83 +75,81 @@ public class SaleItemService {
             Integer page,
             Integer size,
             List<String> filterBrands,
-            List<String> storageSize,
+            List<String> storageSize,   // มาจาก FE เป็น String
             Integer lowerPrice,
             Integer upperPrice,
             Boolean isExactPrice,
             String sortField,
-            String sortDirection) {
+            String sortDirection,
+            String q // คีย์เวิร์ด search
+    ) {
 
-        if (sortField == null || sortField.trim().isEmpty()) {
-            sortField = "createdOn";
-        }
-
+        if (sortField == null || sortField.isBlank()) sortField = "createdOn";
         Sort.Direction direction;
         try {
             direction = Sort.Direction.fromString(sortDirection);
         } catch (Exception e) {
             direction = Sort.Direction.ASC;
         }
+        if (page == null || page < 0) page = 0;
+        if (size == null || size <= 0) size = 10;
 
-        if (page == null || page < 0) {
-            page = 0;
-        }
-        if (size == null || size <= 0) {
-            size = 10;
-        }
+        Pageable pageable = PageRequest.of(page, size, Sort.by(new Sort.Order(direction, sortField)));
 
-        Sort sort = Sort.by(new Sort.Order(direction, sortField));
-        Pageable pageable = PageRequest.of(page, size, sort);
-
-        if (filterBrands != null) {
+        // sanitize brand list
+        if (filterBrands != null && !filterBrands.isEmpty()) {
             filterBrands = filterBrands.stream()
-                    .filter(b -> b != null && !b.trim().isEmpty() && !b.equals("[]"))
-                    .collect(Collectors.toList());
-            if (filterBrands.isEmpty()) {
-                filterBrands = null;
-            }
+                    .filter(s -> s != null && !s.isBlank() && !"[]".equals(s))
+                    .toList();
+            if (filterBrands.isEmpty()) filterBrands = null;
         }
 
-        if (storageSize != null) {
-            storageSize = storageSize.stream()
-                    .filter(b -> b != null && !b.trim().isEmpty() && !b.equals("[]"))
-                    .collect(Collectors.toList());
-            if (storageSize.isEmpty()) {
-                storageSize = null;
-            }
+        // จัดการ storage + include null
+        boolean includeNullStorage = false;
+        List<Integer> storageNumbers = null;
+        if (storageSize != null && !storageSize.isEmpty()) {
+            includeNullStorage = storageSize.contains("null");
+            storageNumbers = storageSize.stream()
+                    .filter(s -> s != null && !s.isBlank() && !"[]".equals(s) && !"null".equalsIgnoreCase(s))
+                    .map(Integer::valueOf)
+                    .toList();
+            if (storageNumbers.isEmpty()) storageNumbers = null;
         }
 
-        // Check if null storage should be included in the filter
-        Boolean includeNullStorage = false;
-        if (storageSize != null && storageSize.contains("null")) {
-            includeNullStorage = true;
-            // Remove "null" from the storage list as it's handled separately
-            storageSize = storageSize.stream()
-                    .filter(s -> !"null".equals(s))
-                    .collect(Collectors.toList());
-            if (storageSize.isEmpty()) {
-                storageSize = null;
-            }
+        // Build Specification
+        Specification<SaleItem> spec = Specification.where(null);
+        spec = spec.and(SaleItemSpecs.keyword(q));
+        spec = spec.and(SaleItemSpecs.brandNamesIn(filterBrands));
+
+        Specification<SaleItem> storageSpec = null;
+        if (storageNumbers != null) storageSpec = SaleItemSpecs.storageIn(storageNumbers);
+        if (includeNullStorage) {
+            storageSpec = (storageSpec == null)
+                    ? SaleItemSpecs.includeNullStorage(true)
+                    : storageSpec.or(SaleItemSpecs.includeNullStorage(true));
+        }
+        if (storageSpec != null) spec = spec.and(storageSpec);
+
+        if (Boolean.TRUE.equals(isExactPrice) && lowerPrice != null) {
+            spec = spec.and(SaleItemSpecs.exactPrice(lowerPrice));
+        } else {
+            spec = spec.and(SaleItemSpecs.priceBetween(lowerPrice, upperPrice));
         }
 
-        Page<SaleItem> saleItemPage = saleItemRepository.findAllFilter(pageable, filterBrands, storageSize, includeNullStorage, lowerPrice, upperPrice, isExactPrice);
-        PageDto<SaleItemDto> saleItemDtoPageDto = listMapper.toPageDTO(saleItemPage, SaleItemDto.class, modelMapper);
-        for(int i = 0; i < saleItemDtoPageDto.getContent().size(); i++ ) {
+        Page<SaleItem> pageResult = saleItemRepository.findAll(spec, pageable);
 
-            System.out.println(saleItemDtoPageDto.getContent().get(i));
-            Optional<SaleItemImage> imageOpt = saleItemImageRepository
-                    .findAllBySaleItemId(saleItemDtoPageDto.getContent().get(i).getId()).stream()
+        PageDto<SaleItemDto> dtoPage = listMapper.toPageDTO(pageResult, SaleItemDto.class, modelMapper);
+
+        for (SaleItemDto dto : dtoPage.getContent()) {
+            saleItemImageRepository.findAllBySaleItemId(dto.getId()).stream()
                     .filter(img -> img.getImageViewOrder() == 1)
-                    .findFirst();
-
-            if(imageOpt.isPresent()) {
-                System.out.println(imageOpt.orElse(null).getFileName());
-                saleItemDtoPageDto.getContent().get(i).setImage(imageOpt.orElse(null).getFileName());
-                System.out.println("image get" +   saleItemDtoPageDto.getContent().get(i).getImage());
-            }
+                    .findFirst()
+                    .ifPresent((SaleItemImage img) -> dto.setImage(img.getFileName()));
         }
-        return saleItemDtoPageDto;
+
+        return dtoPage;
     }
+
 
     public SaleItemDetailDto getSaleItemById(Integer id) {
         SaleItem item = saleItemRepository.findById(id)

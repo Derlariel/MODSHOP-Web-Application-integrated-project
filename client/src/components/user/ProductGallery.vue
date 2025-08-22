@@ -40,6 +40,7 @@ const filters = ref({
   size: 10,
   sortField: "createdOn",
   sortDirection: "asc",
+  q: "", // Add search keyword as 'q' to match backend
 });
 
 const trigger = ref(0)
@@ -73,7 +74,8 @@ async function initProducts() {
       const hasFilters = filters.value.filterBrands.length > 0 ||
         filters.value.lowerPrice !== null ||
         filters.value.upperPrice !== null ||
-        filters.value.storageSize.length > 0;
+        filters.value.storageSize.length > 0 ||
+        filters.value.q.trim() !== ""; // Include search keyword in filter check
 
       
       if (hasFilters) {
