@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = SellerFieldsValidator.class)
 @Documented
 public @interface SellerFieldsValidation {
-    String message() default "Missing required fields for seller";
+    String message() default "Seller fields validation failed";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }
