@@ -19,7 +19,7 @@ import sit.int204.mobileshop.services.UserService;
 
 @RestController
 @CrossOrigin(origins = "${app.origins}")
-@RequestMapping("/v2")
+@RequestMapping("/v2/users")
 @Tag(name = "User API", description = "API for user registration and email verification")
 public class UserController {
 
