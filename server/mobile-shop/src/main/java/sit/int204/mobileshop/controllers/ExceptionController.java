@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import sit.int204.mobileshop.exceptions.BrandAlreadyExistException;
 import sit.int204.mobileshop.exceptions.DatabaseCommunicationException;
+import sit.int204.mobileshop.exceptions.EmailAlreadyExistsException;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.exceptions.MyErrorResponse;
 
@@ -42,6 +43,16 @@ public class ExceptionController {
                                 HttpStatus.BAD_REQUEST.value(), HttpStatus.NOT_FOUND.getReasonPhrase(), e.getMessage(),
                                 request.getRequestURI());
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(myErrorResponse);
+        }
+
+        @ExceptionHandler(EmailAlreadyExistsException.class)
+        public ResponseEntity<MyErrorResponse> handleEmailAlreadyExistsException(
+                        EmailAlreadyExistsException e,
+                        HttpServletRequest request) {
+                MyErrorResponse myErrorResponse = new MyErrorResponse(
+                                HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT.getReasonPhrase(), e.getMessage(),
+                                request.getRequestURI());
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(myErrorResponse);
         }
 
         @ExceptionHandler(ItemNotFoundException.class)

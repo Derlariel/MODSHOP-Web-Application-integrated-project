@@ -24,7 +24,7 @@ public class RegisterUserDto {
 //            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).+$",
 //            message = "Password must contain upper, lower, number, and special character"
 //    )
-    private String passwordHash;
+    private String password;
 
     @NotBlank(message = "Full name is required")
     @Size(min = 4, max = 40, message = "Full name must be between 4 and 40 characters")
