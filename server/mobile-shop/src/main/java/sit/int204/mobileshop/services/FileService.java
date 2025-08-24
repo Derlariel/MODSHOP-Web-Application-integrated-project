@@ -1,6 +1,5 @@
 package sit.int204.mobileshop.services;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -107,7 +106,7 @@ public class FileService {
         String uniqueFilename = formatFileName(saleItemId, order, originalFilename);
         Path targetFile = baseStoragePath.resolve(uniqueFilename);
 
-        log.info(String.format("Uploading file: %s for SaleItem ID: %d", originalFilename, saleItemId));
+        log.info(String.format("Uploading file: %s for SaleItem ID: %d ", originalFilename, saleItemId));
 
         try {
             copyFileToStorage(file, targetFile, originalFilename);
