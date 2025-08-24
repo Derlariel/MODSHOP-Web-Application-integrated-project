@@ -186,5 +186,41 @@ CREATE TABLE sale_item_image (
   CONSTRAINT sale_item_image_ibfk_1 FOREIGN KEY (sale_item_id) REFERENCES sale_item (id) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-select * from sale_item_image;
+
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nickname VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    fullname VARCHAR(40) NOT NULL,
+    role ENUM('BUYER', 'SELLER') NOT NULL,
+    status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'INACTIVE',
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT chk_fullname_length CHECK (CHAR_LENGTH(fullname) >= 4 AND CHAR_LENGTH(fullname) <= 40)
+);
+
+CREATE TABLE sellers (
+    user_id BIGINT PRIMARY KEY,
+    mobile_number VARCHAR(20) NOT NULL,
+    bank_account_number VARCHAR(50) NOT NULL,
+    bank_name VARCHAR(100) NOT NULL,
+    national_id_number VARCHAR(50) NOT NULL,
+    national_id_photo_front VARCHAR(255) NOT NULL,
+    national_id_photo_back VARCHAR(255) NOT NULL,
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_seller_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE email_verification_tokens (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    expiry_time TIMESTAMP NOT NULL,
+    is_used BOOLEAN DEFAULT FALSE,
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_email_verification_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 
