@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -81,7 +82,7 @@ public class SaleItemV2Controller {
     ) throws IOException {
         SaleItemDetailDto result = saleItemService.createSaleItem(dto, images);
         result.setSaleItemImages(saleItemImageService.getSaleItemImagesDto(result.getId()));
-        return ResponseEntity.ok(result);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
 //    @PostMapping("")
