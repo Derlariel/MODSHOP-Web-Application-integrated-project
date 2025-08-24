@@ -20,7 +20,8 @@ const errorMessage = ref("");
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
 // const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
-const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
+// const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
+const BASE_URL = `${import.meta.env.VITE_BASE_URL}/sale-items-images/`;
 
 onBeforeUnmount(() => {
   previewImages.forEach(url => {
@@ -121,13 +122,21 @@ const handleMultiFileChange = (event) => {
     return acc;
   }, []);
 
-  // Validate files first
+
   const oversizedFiles = files.filter(file => file.size > MAX_FILE_SIZE);
   if (oversizedFiles.length > 0) {
     errorMessage.value = "The picture file size cannot be larger than 2MB.";
     showErrorModal.value = true;
-    event.target.value = ""; // Clear the input
+    event.target.value = ""; 
     return;
+  }
+
+  // Check if there are no empty slots and user is trying to upload files
+  if (emptySlots.length === 0 && files.length > 0) {
+    errorMessage.value = "Maximum 4 pictures are allowed.";
+    showErrorModal.value = true;
+    event.target.value = ""; // Clear the input
+    return; 
   }
 
   files.slice(0, emptySlots.length).forEach((file, idx) => {
