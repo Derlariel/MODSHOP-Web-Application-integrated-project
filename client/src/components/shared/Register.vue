@@ -376,21 +376,23 @@ async function onSubmit() {
 
       <!-- Actions -->
       <div class="flex gap-3 mt-10">
-        <button
+        <BaseInput
+          isButton
           type="button"
-          class="submit-button flex-1 font-bold text-md bg-white text-black px-4 py-3 rounded-full shadow-md hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
+          cypress="submit-button"
+          :buttonText="auth.isSubmitting ? 'Submitting..' : 'Submit'"
           :disabled="submitDisabled"
+          variant="primary"
           @click="onSubmit"
-        >
-          {{ auth.isSubmitting ? "Submitting.." : "Submit" }}
-        </button>
-        <button
+        />
+        <BaseInput
+          isButton
           type="button"
-          class="cancel-button flex-1 bg-neutral-800 text-white px-4 py-3 rounded-full hover:bg-neutral-700 transition"
+          cypress="cancel-button"
+          buttonText="Cancel"
+          variant="secondary"
           @click="router.back()"
-        >
-          Cancel
-        </button>
+        />
       </div>
       <p class="text-center text-gray-500 text-sm mt-4">
         By registering, you agree to our terms & conditions.

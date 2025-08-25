@@ -21,9 +21,17 @@ const props = defineProps({
   maxInput: Number,
   showCounter: Boolean,
   validateOnInput: Boolean,
+  // Button props
+  isButton: Boolean,
+  buttonText: String,
+  disabled: Boolean,
+  variant: {
+    type: String,
+    default: "primary", // primary, secondary
+  },
 });
 
-const emit = defineEmits(["update:modelValue", "trim"]);
+const emit = defineEmits(["update:modelValue", "trim", "click"]);
 
 const updateValue = (e) => {
   emit("update:modelValue", e.target.value);
@@ -37,18 +45,44 @@ const onBlur = () => {
   emit("trim");
 };
 
+const onButtonClick = (e) => {
+  emit("click", e);
+};
+
+const buttonClasses = computed(() => {
+  const baseClasses = "flex-1 px-4 py-3 rounded-xl text-md transition-all duration-300 ease-out disabled:opacity-70 disabled:cursor-not-allowed";
+  
+  if (props.variant === "primary") {
+    return `${baseClasses} bg-white text-black shadow-md hover:bg-red-500 hover:text-white  `;
+  } else {
+    return `${baseClasses} bg-neutral-800 text-white hover:bg-neutral-700`;
+  }
+});
+
 
 </script>
 
 <template>
   <div class="space-y-1">
-    <div class="flex justify-between items-center">
+    <div v-if="label && !isButton" class="flex justify-between items-center">
       <label :for="id || cypress" class="block text-sm font-medium text-gray-300">
         {{ label }}<span v-if="required" class="text-red-500 ml-1">*</span>
       </label> 
-
     </div>
-    <div class="relative">
+    
+    <!-- Button mode -->
+    <button
+      v-if="isButton"
+      :type="type"
+      :class="[cypress, buttonClasses]"
+      :disabled="disabled"
+      @click="onButtonClick"
+    >
+      {{ buttonText }}
+    </button>
+    
+    <!-- Input mode -->
+    <div v-else class="relative">
       <div v-if="prefix" class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
         {{ prefix }}
       </div>
