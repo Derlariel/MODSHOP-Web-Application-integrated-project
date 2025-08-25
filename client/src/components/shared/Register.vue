@@ -382,7 +382,7 @@ async function onSubmit() {
           :disabled="submitDisabled"
           @click="onSubmit"
         >
-          {{ auth.isSubmitting ? "Submitting..." : "Submit" }}
+          {{ auth.isSubmitting ? "Submitting...." : "Submit" }}
         </button>
         <button
           type="button"
