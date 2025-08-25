@@ -35,11 +35,13 @@ const errors = reactive({});
 const isSeller = computed(() => form.accountType === "SELLER");
 
 const vEmail = (data) => {
-  const email = String(data || "");
-  // Check if email is valid format (basic email pattern check)
+  const email = String(data || '').trim();
+  console.log("🔍 Email after trim:", `"${email}"`);
   const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  return { valid: ok, message: ok ? null : "Email is invalid." };
+  console.log("✅ Valid format?", ok);
+  return { valid: ok, message: ok ? null : 'Email is invalid.' };
 };
+
 
 const vPasswordPolicy = (data) => {
   const s = String(data || "");
@@ -223,6 +225,17 @@ function onFileChange(e, key) {
 }
 
 async function onSubmit() {
+  form.email = String(form.email || '').trim();
+  form.nickname = String(form.nickname || '').trim();
+  form.password = String(form.password || '');
+  if(isSeller.value) {
+    form.mobile = String(form.mobile || '').trim().replace(/-/g, '')
+    form.bankAccountNo = String(form.bankAccountNo || '').trim();
+    form.bankName = String(form.bankName || '').trim();
+    form.nationalIdNumber = String(form.nationalIdNumber || '').trim();
+  }
+
+
   if (!validateAll()) return;
 
   const fd = new FormData();
@@ -316,7 +329,7 @@ async function onSubmit() {
           required
           cypress="email"
           :error="errors.email"
-          @trim="trimAndValidateField('email')"
+          @trim="() => validateField('email')"
         />
 
         <div class="space-y-1">

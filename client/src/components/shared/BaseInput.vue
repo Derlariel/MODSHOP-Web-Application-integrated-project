@@ -29,11 +29,23 @@ const props = defineProps({
     type: String,
     default: "primary", // primary, secondary
   },
+  sanitize: {type:String , default:""}
 });
 
 const emit = defineEmits(["update:modelValue", "trim", "click"]);
 
+const cleanValue = (raw) => {
+  let v = raw ?? ""
+  if(props.sanitize === "email"){
+    v = String(v).replace(/\s+/g, "")
+  }
+  return v
+}
+
 const updateValue = (e) => {
+  const raw = e.target.value;
+  const val = cleanValue(raw)
+  if(val !== raw) e.target.value = val
   emit("update:modelValue", e.target.value);
   
   if (props.validateOnInput && props.maxInput && e.target.value.length > props.maxInput) {
@@ -41,7 +53,10 @@ const updateValue = (e) => {
   }
 };
 
-const onBlur = () => {
+const onBlur = (e) => {
+  const val = cleanValue(e.target.value)
+  if(val !== e.target.value) e.target.value = val
+  emit("update:modelValue", val);
   emit("trim");
 };
 

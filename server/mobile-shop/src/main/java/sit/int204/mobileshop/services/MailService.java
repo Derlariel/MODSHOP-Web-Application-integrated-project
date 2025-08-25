@@ -1,7 +1,6 @@
 package sit.int204.mobileshop.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -9,17 +8,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class MailService {
 
-    @Autowired
-    private JavaMailSender javaMailSender;
+    private final JavaMailSender mailSender;
 
-    @Autowired
-    private Environment environment;
+    @Value("${app.verifyUrl:http://localhost:8080/itb-mshop/v2/verify-email?token=}")
+    private String verifyBaseUrl;
 
-   public void sendVerificationEmail(String email, String jwtToken) {
+    public MailService(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
+
+    public void sendVerificationEmail(String email, String jwtToken) {
         try {
-            String teamCode = environment.getProperty("app.teamCode", "kk-1");
-//            String verifyUrl = "http://intproj24.sit.kmutt.ac.th/" + teamCode + "/verify-email?token=" + jwtToken;
-            String verifyUrl = "http://localhost:8080/itb-mshop/v2/users/verify-email?token=" + jwtToken;
+            final String verifyUrl = verifyBaseUrl + jwtToken;
+
             String subject = "Please Verify Your Email - ITB-Mshop";
             String body = """
                     Welcome to ITB-Mshop!
@@ -36,16 +37,13 @@ public class MailService {
                     ITB-Mshop Team
                     """.formatted(verifyUrl);
 
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(email);
-            message.setSubject(subject);
-            message.setText(body);
-            
-            this.javaMailSender.send(message);
-            
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setTo(email);
+            msg.setSubject(subject);
+            msg.setText(body);
+            mailSender.send(msg);
         } catch (Exception e) {
             throw new RuntimeException("Failed to send verification email", e);
         }
     }
-
 }
