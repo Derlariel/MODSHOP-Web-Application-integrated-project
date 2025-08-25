@@ -1,8 +1,9 @@
 <script setup>
-import { reactive, computed } from "vue";
+import { reactive, computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/useAuthStore";
 import BaseInput from "@/components/shared/BaseInput.vue";
+import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
 import {
   runValidation,
   validateMinLength,
@@ -12,6 +13,8 @@ import {
 
 const router = useRouter();
 const auth = useAuthStore();
+const showSuccess = ref(false);
+const successMessage = ref("The user account has been successfully registered.");
 
 const form = reactive({
   accountType: "BUYER", // BUYER | SELLER
@@ -232,8 +235,9 @@ async function onSubmit() {
 
   try {
     await auth.register(fd);
-    sessionStorage.setItem("register-success", "The user account has been successfully registered.");
-    router.push("/sale-items");
+    // Store success message in sessionStorage and redirect to ProductGallery
+    sessionStorage.setItem("register-success", "true");
+    router.push({ path: "/sale-items" });
   } catch (e) {
     alert(e?.message || "Registration failed!");
   }
@@ -438,5 +442,13 @@ async function onSubmit() {
         By registering, you agree to our terms & conditions.
       </p>
     </div>
+    
+    <!-- Success modal -->
+    <SuccessModal 
+      :visible="showSuccess" 
+      :message="successMessage" 
+      :duration="2000"
+      @close="showSuccess = false" 
+    />
   </div>
 </template>
