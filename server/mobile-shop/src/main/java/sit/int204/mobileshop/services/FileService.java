@@ -1,6 +1,5 @@
 package sit.int204.mobileshop.services;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -12,11 +11,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.scheduling.annotation.Async;
@@ -48,6 +49,12 @@ public class FileService {
     @Autowired
     private FileStorageProperties fileStorageProperties;
 
+    @Value("${app.file.upload-dir:uploads}")
+    private String uploadDir;
+
+    @Value("${app.file.max-size:5242880}") // 5MB default
+    private long maxFileSize;
+
     /**
      * Constructor to initialize file storage path.
      *
@@ -67,16 +74,55 @@ public class FileService {
             throw new FileStorageException("Could not create or access base directory for file storage: " + this.baseStoragePath, ex);
         }
     }
+    public String storeFile(MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            return null;
+        }
 
-    /**
-     * Saves an uploaded image file and associates it with a SaleItem.
-     *
-     * @param originalFileName       the uploaded image file
-     * @param saleItemId the ID of the SaleItem
-     * @param order  whether the image is primary
-     * @return the saved SaleItemImage entity
-     * @throws FileStorageException if file validation or storage fails
-     */
+        // Validate file size
+        if (file.getSize() > maxFileSize) {
+            throw new IllegalArgumentException("File size exceeds maximum allowed size of " + maxFileSize + " bytes");
+        }
+
+        // Validate file type (images only)
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("Only image files are allowed");
+        }
+
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        // Generate unique filename
+        String originalFilename = file.getOriginalFilename();
+        String fileExtension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        String uniqueFilename = UUID.randomUUID().toString() + fileExtension;
+
+        // Store the file
+        Path filePath = uploadPath.resolve(uniqueFilename);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        // Return relative path for storing in database
+        String relativePath = "/" + uniqueFilename;
+        return relativePath;
+    }
+
+    public void deleteFile(String filePath) {
+        if (filePath == null || filePath.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            Path path = Paths.get(uploadDir, filePath);
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+        }
+    }
 
     public String formatFileName(Integer saleItemId, Integer order, String originalFileName) {
         System.out.println("getFileExtension(originalFileName)" +getFileExtension(originalFileName));
@@ -107,7 +153,7 @@ public class FileService {
         String uniqueFilename = formatFileName(saleItemId, order, originalFilename);
         Path targetFile = baseStoragePath.resolve(uniqueFilename);
 
-        log.info(String.format("Uploading file: %s for SaleItem ID: %d", originalFilename, saleItemId));
+        log.info(String.format("Uploading file: %s for SaleItem ID: %d ", originalFilename, saleItemId));
 
         try {
             copyFileToStorage(file, targetFile, originalFilename);
