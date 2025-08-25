@@ -171,7 +171,7 @@ async function onSubmit() {
   }
 
   try {
-    await auth.register(fd); 
+    await auth.register(fd);
     sessionStorage.setItem("register-success", "The user account has been successfully registered.");
     router.push("/sale-items");
   } catch (e) {
@@ -182,175 +182,124 @@ async function onSubmit() {
 
 
 <template>
-<div class="min-h-screen bg-black text-white">
-<div class="max-w-xl mx-auto px-6 pt-24 pb-16">
-<h1 class="text-3xl font-semibold mb-8">Register</h1>
-<!-- Account Type -->
-<div class="mb-6">
-<label class="block mb-2 text-sm text-gray-300">Account Type</label>
-<div class="flex gap-4 itbms-account-type">
-<label class="flex items-center gap-2 cursor-pointer">
-<input
-             type="radio"
-             value="BUYER"
-             v-model="form.accountType"
-             class="accent-white"
-             @change="() => { ['mobile','bankAccountNo','bankName','nationalIdNumber','nationalIdFront','nationalIdBack'].forEach(k => errors[k]=null) }"
-           />
-<span>Buyer</span>
-</label>
-<label class="flex items-center gap-2 cursor-pointer">
-<input
-             type="radio"
-             value="SELLER"
-             v-model="form.accountType"
-             class="accent-white"
-             @change="() => {}"
-           />
-<span>Seller</span>
-</label>
-</div>
-</div>
-<!-- Common fields -->
-<div class="space-y-5">
-<div>
-<label class="block mb-1 text-sm text-gray-300">Nickname *</label>
-<input
-           v-model="form.nickname"
-           @blur="validateField('nickname')"
-           class="itbms-nickname w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
-           placeholder="nick"
-         />
-<p v-if="errors.nickname" class="text-red-500 text-sm mt-1">{{ errors.nickname }}</p>
-</div>
-<div>
-<label class="block mb-1 text-sm text-gray-300">Email *</label>
-<input
-           type="email"
-           v-model="form.email"
-           @blur="validateField('email')"
-           class="itbms-email w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
-           placeholder="you@example.com"
-         />
-<p v-if="errors.email" class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
-</div>
-<div>
-<label class="block mb-1 text-sm text-gray-300">Password *</label>
-<input
-           type="password"
-           v-model="form.password"
-           @blur="validateField('password')"
-           class="itbms-password w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
-           placeholder="••••••••"
-         />
-<p v-if="errors.password" class="text-red-500 text-sm mt-1">{{ errors.password }}</p>
-<p class="text-xs text-gray-400 mt-1">
-           min 8 chars, include lower, upper, number, special char
-</p>
-</div>
-<div>
-<label class="block mb-1 text-sm text-gray-300">Full name *</label>
-<input
-           v-model="form.fullName"
-           @blur="validateField('fullName')"
-           class="itbms-fullname w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
-           placeholder="John Doe"
-           maxlength="40"
-         />
-<p v-if="errors.fullName" class="text-red-500 text-sm mt-1">{{ errors.fullName }}</p>
-</div>
-</div>
-<!-- Seller fields -->
-<div v-if="isSeller" class="space-y-5 mt-8 border-t border-neutral-800 pt-8">
-<h3 class="text-lg font-medium">Seller Information</h3>
-<div>
-<label class="block mb-1 text-sm text-gray-300">Mobile number *</label>
-<input
-           v-model="form.mobile"
-           @blur="validateField('mobile')"
-           class="itbms-mobile w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
-           placeholder="08XXXXXXXX"
-         />
-<p v-if="errors.mobile" class="text-red-500 text-sm mt-1">{{ errors.mobile }}</p>
-</div>
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-<div>
-<label class="block mb-1 text-sm text-gray-300">Bank account no. *</label>
-<input
-             v-model="form.bankAccountNo"
-             @blur="validateField('bankAccountNo')"
-             class="itbms-bank-account-no w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
-             placeholder="123-4-56789-0"
-           />
-<p v-if="errors.bankAccountNo" class="text-red-500 text-sm mt-1">{{ errors.bankAccountNo }}</p>
-</div>
-<div>
-<label class="block mb-1 text-sm text-gray-300">Bank name *</label>
-<input
-             v-model="form.bankName"
-             @blur="validateField('bankName')"
-             class="itbms-bank-name w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
-             placeholder="Kasikornbank"
-           />
-<p v-if="errors.bankName" class="text-red-500 text-sm mt-1">{{ errors.bankName }}</p>
-</div>
-</div>
-<div>
-<label class="block mb-1 text-sm text-gray-300">National ID number *</label>
-<input
-           v-model="form.nationalIdNumber"
-           @blur="validateField('nationalIdNumber')"
-           class="itbms-card-no w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
-           placeholder="1-2345-67890-12-3"
-         />
-<p v-if="errors.nationalIdNumber" class="text-red-500 text-sm mt-1">{{ errors.nationalIdNumber }}</p>
-</div>
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-<div>
-<label class="block mb-1 text-sm text-gray-300">National ID (front) *</label>
-<input
-             type="file"
-             accept="image/*"
-             @change="e => onFileChange(e, 'nationalIdFront')"
-             class="itbms-card-photo-front w-full text-sm file:mr-4 file:rounded file:border-0 file:bg-white file:text-black file:px-3 file:py-2 file:cursor-pointer"
-           />
-<p v-if="errors.nationalIdFront" class="text-red-500 text-sm mt-1">{{ errors.nationalIdFront }}</p>
-</div>
-<div>
-<label class="block mb-1 text-sm text-gray-300">National ID (back) *</label>
-<input
-             type="file"
-             accept="image/*"
-             @change="e => onFileChange(e, 'nationalIdBack')"
-             class="itbms-card-photo-back w-full text-sm file:mr-4 file:rounded file:border-0 file:bg-white file:text-black file:px-3 file:py-2 file:cursor-pointer"
-           />
-<p v-if="errors.nationalIdBack" class="text-red-500 text-sm mt-1">{{ errors.nationalIdBack }}</p>
-</div>
-</div>
-</div>
-<!-- Actions -->
-<div class="flex gap-3 mt-10">
-<button
-         type="button"
-         class="itbms-submit-button flex-1 font-bold text-md bg-white text-black px-4 py-3 rounded-full shadow-md
+  <div class="min-h-screen bg-black text-white">
+    <div class="max-w-xl mx-auto px-6 pt-24 pb-16">
+      <h1 class="text-3xl font-semibold mb-8">Register</h1>
+      <!-- Account Type -->
+      <div class="mb-6">
+        <label class="block mb-2 text-sm text-gray-300">Account Type</label>
+        <div class="flex gap-4 itbms-account-type">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" value="BUYER" v-model="form.accountType" class="accent-white"
+              @change="() => { ['mobile', 'bankAccountNo', 'bankName', 'nationalIdNumber', 'nationalIdFront', 'nationalIdBack'].forEach(k => errors[k] = null) }" />
+            <span>Buyer</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" value="SELLER" v-model="form.accountType" class="accent-white" @change="() => { }" />
+            <span>Seller</span>
+          </label>
+        </div>
+      </div>
+      <!-- Common fields -->
+      <div class="space-y-5">
+        <div>
+          <label class="block mb-1 text-sm text-gray-300">Nickname *</label>
+          <input v-model="form.nickname" @blur="validateField('nickname')"
+            class="itbms-nickname w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
+            placeholder="nick" />
+          <p v-if="errors.nickname" class="text-red-500 text-sm mt-1">{{ errors.nickname }}</p>
+        </div>
+        <div>
+          <label class="block mb-1 text-sm text-gray-300">Email *</label>
+          <input type="email" v-model="form.email" @blur="validateField('email')"
+            class="itbms-email w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
+            placeholder="you@example.com" />
+          <p v-if="errors.email" class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
+        </div>
+        <div>
+          <label class="block mb-1 text-sm text-gray-300">Password *</label>
+          <input type="password" v-model="form.password" @blur="validateField('password')"
+            class="itbms-password w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
+            placeholder="••••••••" />
+          <p v-if="errors.password" class="text-red-500 text-sm mt-1">{{ errors.password }}</p>
+          <p class="text-xs text-gray-400 mt-1">
+            min 8 chars, include lower, upper, number, special char
+          </p>
+        </div>
+        <div>
+          <label class="block mb-1 text-sm text-gray-300">Full name *</label>
+          <input v-model="form.fullName" @blur="validateField('fullName')"
+            class="itbms-fullname w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
+            placeholder="John Doe" maxlength="40" />
+          <p v-if="errors.fullName" class="text-red-500 text-sm mt-1">{{ errors.fullName }}</p>
+        </div>
+      </div>
+      <!-- Seller fields -->
+      <div v-if="isSeller" class="space-y-5 mt-8 border-t border-neutral-800 pt-8">
+        <h3 class="text-lg font-medium">Seller Information</h3>
+        <div>
+          <label class="block mb-1 text-sm text-gray-300">Mobile number *</label>
+          <input v-model="form.mobile" @blur="validateField('mobile')"
+            class="itbms-mobile w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
+            placeholder="08XXXXXXXX" />
+          <p v-if="errors.mobile" class="text-red-500 text-sm mt-1">{{ errors.mobile }}</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block mb-1 text-sm text-gray-300">Bank account no. *</label>
+            <input v-model="form.bankAccountNo" @blur="validateField('bankAccountNo')"
+              class="itbms-bank-account-no w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
+              placeholder="123-4-56789-0" />
+            <p v-if="errors.bankAccountNo" class="text-red-500 text-sm mt-1">{{ errors.bankAccountNo }}</p>
+          </div>
+          <div>
+            <label class="block mb-1 text-sm text-gray-300">Bank name *</label>
+            <input v-model="form.bankName" @blur="validateField('bankName')"
+              class="itbms-bank-name w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
+              placeholder="Kasikornbank" />
+            <p v-if="errors.bankName" class="text-red-500 text-sm mt-1">{{ errors.bankName }}</p>
+          </div>
+        </div>
+        <div>
+          <label class="block mb-1 text-sm text-gray-300">National ID number *</label>
+          <input v-model="form.nationalIdNumber" @blur="validateField('nationalIdNumber')"
+            class="itbms-card-no w-full px-4 py-3 rounded-xl bg-neutral-800 border border-neutral-700 focus:ring-2 focus:ring-white outline-none"
+            placeholder="1-2345-67890-12-3" />
+          <p v-if="errors.nationalIdNumber" class="text-red-500 text-sm mt-1">{{ errors.nationalIdNumber }}</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label class="block mb-1 text-sm text-gray-300">National ID (front) *</label>
+            <input type="file" accept="image/*" @change="e => onFileChange(e, 'nationalIdFront')"
+              class="itbms-card-photo-front w-full text-sm file:mr-4 file:rounded file:border-0 file:bg-white file:text-black file:px-3 file:py-2 file:cursor-pointer" />
+            <p v-if="errors.nationalIdFront" class="text-red-500 text-sm mt-1">{{ errors.nationalIdFront }}</p>
+          </div>
+          <div>
+            <label class="block mb-1 text-sm text-gray-300">National ID (back) *</label>
+            <input type="file" accept="image/*" @change="e => onFileChange(e, 'nationalIdBack')"
+              class="itbms-card-photo-back w-full text-sm file:mr-4 file:rounded file:border-0 file:bg-white file:text-black file:px-3 file:py-2 file:cursor-pointer" />
+            <p v-if="errors.nationalIdBack" class="text-red-500 text-sm mt-1">{{ errors.nationalIdBack }}</p>
+          </div>
+        </div>
+      </div>
+      <!-- Actions -->
+      <div class="flex gap-3 mt-10">
+        <button type="button"
+          class="itbms-submit-button flex-1 font-bold text-md bg-white text-black px-4 py-3 rounded-full shadow-md
                 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white
                 hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
-         :disabled="submitDisabled"
-         @click="onSubmit"
->
-         {{ auth.isSubmitting ? "Submitting..." : "Submit" }}
-</button>
-<button
-         type="button"
-         class="itbms-cancel-button flex-1 bg-neutral-800 text-white px-4 py-3 rounded-full hover:bg-neutral-700 transition"
-         @click="router.back()"
->
-         Cancel
-</button>
-</div>
-<p class="text-center text-gray-500 text-sm mt-4">
-       By registering, you agree to our terms & conditions.
-</p>
-</div>
-</div>
+          :disabled="submitDisabled" @click="onSubmit">
+          {{ auth.isSubmitting ? "Submitting..." : "Submit" }}
+        </button>
+        <button type="button"
+          class="itbms-cancel-button flex-1 bg-neutral-800 text-white px-4 py-3 rounded-full hover:bg-neutral-700 transition"
+          @click="router.back()">
+          Cancel
+        </button>
+      </div>
+      <p class="text-center text-gray-500 text-sm mt-4">
+        By registering, you agree to our terms & conditions.
+      </p>
+    </div>
+  </div>
 </template>
