@@ -195,7 +195,7 @@ async function onSubmit() {
     sessionStorage.setItem("register-success", "The user account has been successfully registered.");
     router.push("/sale-items");
   } catch (e) {
-    alert(e?.message || "Registration failed.");
+    alert(e?.message || "Registration failed!");
   }
 }
 </script>
