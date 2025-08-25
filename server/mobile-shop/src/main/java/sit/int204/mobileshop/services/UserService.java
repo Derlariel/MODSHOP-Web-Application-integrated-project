@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import sit.int204.mobileshop.dtos.RegisterUserDto;
 import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.entities.Seller;
@@ -29,93 +28,98 @@ import java.util.Optional;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final SellerRepository sellerRepository;
+    private final ModelMapper modelMapper;
+    private final MailService mailService;
+    private final JwtService jwtService;
+    private final FileService fileService;
 
     @Autowired
-    private SellerRepository sellerRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private MailService mailService;
-
-    @Autowired
-    private JwtService jwtService;
-
-    @Autowired
-    private FileService fileService;
+    public UserService(UserRepository userRepository,
+                       SellerRepository sellerRepository,
+                       ModelMapper modelMapper,
+                       MailService mailService,
+                       JwtService jwtService,
+                       FileService fileService) {
+        this.userRepository = userRepository;
+        this.sellerRepository = sellerRepository;
+        this.modelMapper = modelMapper;
+        this.mailService = mailService;
+        this.jwtService = jwtService;
+        this.fileService = fileService;
+    }
 
     @Transactional
     public UserResponseDto register(RegisterUserDto dto) {
-        // Check if email already exists
-        if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new EmailAlreadyExistsException("Email address is already registered");
-        }
+        validateEmailUniqueness(dto.getEmail());
 
         try {
-            // Handle file uploads for seller
-            if ("SELLER".equalsIgnoreCase(dto.getRole())) {
-                handleSellerFileUploads(dto);
-            }
+            processFileUploadsIfSeller(dto);
 
-            User user = modelMapper.map(dto, User.class);
-            user.setPasswordHash(dto.getPassword()); // Should be encoded in production
-            user.setRole(dto.getRole());
-            user.setStatus("INACTIVE");
-            user.setCreatedOn(Instant.now());
-            user.setUpdatedOn(Instant.now());
-            User savedUser = userRepository.save(user);
+            User savedUser = createAndSaveUser(dto);
+            userRepository.flush();
 
-            // Create seller if role is SELLER
-            if ("SELLER".equalsIgnoreCase(dto.getRole())) {
+            if (UserRole.SELLER.name().equalsIgnoreCase(dto.getRole())) {
                 createSellerRecord(dto, savedUser);
             }
 
-            // Generate JWT token for email verification
-            String jwtToken = jwtService.generateVerificationToken(savedUser.getId(), savedUser.getEmail());
-
-            // Send verification email
-            sendVerificationEmail(savedUser.getEmail(), jwtToken);
+            sendVerificationEmailAsync(savedUser);
 
             log.info("User registered successfully with email: {}", savedUser.getEmail());
+            return mapToUserResponseDto(savedUser);
 
-            // Return response DTO
-            return UserResponseDto.builder()
-                    .id(savedUser.getId())
-                    .nickname(savedUser.getNickname())
-                    .email(savedUser.getEmail())
-                    .fullName(savedUser.getFullname())
-                    .phoneNumber(getPhoneNumber(savedUser))
-                    .isActive(false)
-                    .userType(savedUser.getRole())
-                    .build();
-
-        } catch (IOException e) {
-            log.error("Failed to process file uploads", e);
-            throw new RuntimeException("Failed to process file uploads: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Registration failed for user: {}", dto.getEmail(), e);
+            throw new RuntimeException("Registration failed: " + e.getMessage());
         }
     }
 
-    private void handleSellerFileUploads(RegisterUserDto dto) throws IOException {
-        String nationalIdDir = "national-ids";
+    private void validateEmailUniqueness(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException("Email address is already registered");
+        }
+    }
 
-        // Handle front photo
+    private void processFileUploadsIfSeller(RegisterUserDto dto) throws IOException {
+        if (!UserRole.SELLER.name().equalsIgnoreCase(dto.getRole())) {
+            return;
+        }
+        handleSellerFileUploads(dto);
+    }
+
+    private User createAndSaveUser(RegisterUserDto dto) {
+        User user = new User();
+
+        user.setNickname(dto.getNickname());
+        user.setEmail(dto.getEmail());
+        user.setPasswordHash(dto.getPassword());
+        user.setFullname(dto.getFullname());
+        user.setRole(dto.getRole());
+        user.setStatus(UserStatus.INACTIVE.name());
+
+        Instant now = Instant.now();
+        user.setCreatedOn(now);
+        user.setUpdatedOn(now);
+
+        return userRepository.save(user);
+    }
+
+    private void handleSellerFileUploads(RegisterUserDto dto) throws IOException {
         if (dto.getNationalIdPhotoFront() != null && !dto.getNationalIdPhotoFront().isEmpty()) {
-            String frontPath = fileService.storeFile(dto.getNationalIdPhotoFront(), nationalIdDir);
+            String frontPath = fileService.storeFile(dto.getNationalIdPhotoFront());
             dto.setNationalIdPhotoFrontUrl(frontPath);
         }
 
-        // Handle back photo
         if (dto.getNationalIdPhotoBack() != null && !dto.getNationalIdPhotoBack().isEmpty()) {
-            String backPath = fileService.storeFile(dto.getNationalIdPhotoBack(), nationalIdDir);
+            String backPath = fileService.storeFile(dto.getNationalIdPhotoBack());
             dto.setNationalIdPhotoBackUrl(backPath);
         }
     }
 
     private void createSellerRecord(RegisterUserDto dto, User savedUser) {
         Seller seller = new Seller();
+
         seller.setUsers(savedUser);
         seller.setMobileNumber(dto.getMobileNumber());
         seller.setBankAccountNumber(dto.getBankAccountNumber());
@@ -123,91 +127,105 @@ public class UserService {
         seller.setNationalIdNumber(dto.getNationalIdNumber());
         seller.setNationalIdPhotoFront(dto.getNationalIdPhotoFrontUrl());
         seller.setNationalIdPhotoBack(dto.getNationalIdPhotoBackUrl());
-        seller.setCreatedOn(Instant.now());
-        seller.setUpdatedOn(Instant.now());
+
+        Instant now = Instant.now();
+        seller.setCreatedOn(now);
+        seller.setUpdatedOn(now);
+
         sellerRepository.save(seller);
+    }
+
+    private void sendVerificationEmailAsync(User user) {
+        try {
+            String jwtToken = jwtService.generateVerificationToken(user.getId(), user.getEmail());
+            mailService.sendVerificationEmail(user.getEmail(), jwtToken);
+        } catch (Exception e) {
+
+        }
+    }
+
+    private UserResponseDto mapToUserResponseDto(User user) {
+        UserResponseDto responseDto = modelMapper.map(user, UserResponseDto.class);
+        responseDto.setIsActive(UserStatus.ACTIVE.name().equals(user.getStatus()));
+        responseDto.setUserType(user.getRole());
+        responseDto.setPhoneNumber(getPhoneNumber(user));
+        return responseDto;
     }
 
     @Transactional
     public ResponseEntity<Map<String, Object>> verifyEmail(String jwtToken) {
-        Map<String, Object> response = new HashMap<>();
-
         try {
-            // Validate JWT token
             JWTClaimsSet claims = jwtService.validateVerificationToken(jwtToken);
             Long userId = Long.parseLong(claims.getSubject());
             String email = claims.getStringClaim("email");
 
-            // Find user by ID and email
             Optional<User> userOptional = userRepository.findByIdAndEmail(userId, email);
 
             if (userOptional.isEmpty()) {
-                response.put("timestamp", Instant.now().toString());
-                response.put("status", 400);
-                response.put("error", "Bad Request");
-                response.put("message", "Invalid verification token");
-                response.put("path", "/itb-mshop/v2/users/verify-email");
-                return ResponseEntity.badRequest().body(response);
+                return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", "Invalid verification token");
             }
 
             User user = userOptional.get();
 
-            // Check if user is already active
-            if ("ACTIVE".equals(user.getStatus())) {
-                response.put("timestamp", Instant.now().toString());
-                response.put("status", 409);
-                response.put("error", "Conflict");
-                response.put("message", "Email already verified (กรณี verify user ที่ active แล้ว)");
-                response.put("path", "/itb-mshop/v2/users/verify-email");
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+            if (UserStatus.ACTIVE.name().equals(user.getStatus())) {
+                return buildErrorResponse(HttpStatus.CONFLICT, "Conflict",
+                        "Email already verified");
             }
 
-            // Activate user
-            user.setStatus("ACTIVE");
-            user.setUpdatedOn(Instant.now());
-            userRepository.save(user);
+            activateUser(user);
 
             log.info("User email verified successfully: {}", email);
-
-            // Return success response with user data
-            response.put("id", user.getId());
-            response.put("nickname", user.getNickname());
-            response.put("email", user.getEmail());
-            response.put("fullName", user.getFullname());
-            response.put("phoneNumber", getPhoneNumber(user));
-            response.put("isActive", true);
-            response.put("userType", user.getRole());
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(buildSuccessResponse(user));
 
         } catch (ParseException | JOSEException e) {
             log.warn("Invalid verification token: {}", e.getMessage());
-            response.put("timestamp", Instant.now().toString());
-            response.put("status", 400);
-            response.put("error", "Bad Request");
-            response.put("message", "Invalid verification token");
-            response.put("path", "/itb-mshop/v2/users/verify-email");
-            return ResponseEntity.badRequest().body(response);
+            return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", "Invalid verification token");
         } catch (Exception e) {
             log.error("Error during email verification", e);
-            response.put("timestamp", Instant.now().toString());
-            response.put("status", 500);
-            response.put("error", "Internal Server Error");
-            response.put("message", "An error occurred during verification");
-            response.put("path", "/itb-mshop/v2/users/verify-email");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error",
+                    "An error occurred during verification");
         }
     }
 
+    private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String error, String message) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", Instant.now().toString());
+        response.put("status", status.value());
+        response.put("error", error);
+        response.put("message", message);
+        response.put("path", "/itb-mshop/v2/users/verify-email");
+        return ResponseEntity.status(status).body(response);
+    }
+
+    private Map<String, Object> buildSuccessResponse(User user) {
+        UserResponseDto userDto = mapToUserResponseDto(user);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", userDto.getId());
+        response.put("nickname", userDto.getNickname());
+        response.put("email", userDto.getEmail());
+        response.put("fullName", userDto.getFullName());
+        response.put("phoneNumber", userDto.getPhoneNumber());
+        response.put("isActive", userDto.getIsActive());
+        response.put("userType", userDto.getUserType());
+
+        return response;
+    }
+
+    private void activateUser(User user) {
+        user.setStatus(UserStatus.ACTIVE.name());
+        user.setUpdatedOn(Instant.now());
+        userRepository.save(user);
+    }
+
     private String getPhoneNumber(User user) {
-        if ("SELLER".equalsIgnoreCase(user.getRole())) {
+        if (UserRole.SELLER.name().equalsIgnoreCase(user.getRole())) {
             Optional<Seller> seller = sellerRepository.findByUsers(user);
             return seller.map(Seller::getMobileNumber).orElse(null);
         }
         return null;
     }
 
-    // For backward compatibility
     public ResponseEntity<String> verifyUser(String token) {
         try {
             ResponseEntity<Map<String, Object>> response = verifyEmail(token);
@@ -221,12 +239,17 @@ public class UserService {
                 return ResponseEntity.status(response.getStatusCode()).body(message);
             }
         } catch (Exception e) {
+            log.error("Error in verifyUser method", e);
             return ResponseEntity.badRequest()
                     .body("An error occurred, or the verification link has expired. Please request a new verification email.");
         }
     }
 
-    private void sendVerificationEmail(String email, String jwtToken) {
-        mailService.sendVerificationEmail(email, jwtToken);
+    public enum UserRole {
+        BUYER, SELLER
+    }
+
+    public enum UserStatus {
+        ACTIVE, INACTIVE
     }
 }

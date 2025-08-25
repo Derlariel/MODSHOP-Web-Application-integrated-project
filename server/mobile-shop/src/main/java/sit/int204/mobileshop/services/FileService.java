@@ -74,7 +74,7 @@ public class FileService {
             throw new FileStorageException("Could not create or access base directory for file storage: " + this.baseStoragePath, ex);
         }
     }
-    public String storeFile(MultipartFile file, String subDirectory) throws IOException {
+    public String storeFile(MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             return null;
         }
@@ -90,7 +90,7 @@ public class FileService {
             throw new IllegalArgumentException("Only image files are allowed");
         }
 
-        Path uploadPath = Paths.get(uploadDir, subDirectory);
+        Path uploadPath = Paths.get(uploadDir);
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
@@ -108,7 +108,7 @@ public class FileService {
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
         // Return relative path for storing in database
-        String relativePath = subDirectory + "/" + uniqueFilename;
+        String relativePath = "/" + uniqueFilename;
         return relativePath;
     }
 
