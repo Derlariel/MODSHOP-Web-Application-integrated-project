@@ -127,6 +127,8 @@ const salItemList = () => {
 
 onMounted(async () => {
   // Check if filters were cleared due to NODATA error
+
+  
   const filtersCleared = sessionStorage.getItem("filters-cleared-from-error");
   if (filtersCleared) {
     sessionStorage.removeItem("filters-cleared-from-error");
@@ -139,6 +141,22 @@ onMounted(async () => {
   if (savedPage) {
     productStore.setActivePage(parseInt(savedPage));
   }
+
+  const status = route.query.status
+    
+    if (status === 'verified') {
+        alertMessage.value = "Email has been successfully verified! You can now start selling."
+        showSuccess.value = true
+        
+        router.replace({ 
+            path: route.path,
+            query: {} 
+        })
+        
+        setTimeout(() => {
+            showSuccess.value = false
+        }, 3000)
+    } 
 
   if (sessionStorage.getItem("error-message") === "true") {
     isModalOpen.value = true;

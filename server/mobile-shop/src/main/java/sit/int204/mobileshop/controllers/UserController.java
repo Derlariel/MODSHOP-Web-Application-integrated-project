@@ -1,7 +1,9 @@
 package sit.int204.mobileshop.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.entities.User;
 import sit.int204.mobileshop.services.UserService;
 
+import java.io.IOException;
 import java.util.Map;
 
 @RestController
@@ -26,6 +29,9 @@ import java.util.Map;
 @RequestMapping("/v2/users")
 @Tag(name = "User API", description = "API for user registration and email verification")
 public class UserController {
+
+    @Autowired
+    private Environment env;
 
     @Autowired
     private UserService userService;
@@ -58,17 +64,15 @@ public class UserController {
     })
     @GetMapping("/verify-email")
     public ResponseEntity<Map<String, Object>> verifyEmail(
-            @Parameter(description = "Email verification token", required = true)
-            @RequestParam("token") String token) {
-        return userService.verifyEmail(token);
+            @RequestParam("token") String token,
+            HttpServletResponse response) throws IOException {
+
+        Map<String, Object> result = userService.verifyEmail(token).getBody();
+        String redirectUrl = env.getProperty("app.frontend.redirect");
+            response.sendRedirect(redirectUrl + "sale-items?status=verified");
+            System.out.println(redirectUrl + "sale-items");
+        return ResponseEntity.ok(result);
     }
 
-    // Keep backward compatibility endpoint
-    @Operation(summary = "Verify user (legacy)", description = "Legacy endpoint for email verification")
-    @GetMapping("/verify")
-    public ResponseEntity<String> verifyUser(
-            @Parameter(description = "Email verification token", required = true)
-            @RequestParam("token") String token) {
-        return userService.verifyUser(token);
-    }
+
 }

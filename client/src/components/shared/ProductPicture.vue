@@ -291,7 +291,14 @@ const displayImages = computed(() => {
 });
 
 const isPreviousDisabled = (index) => index === 0;
-const isNextDisabled = (index) => index === 3;
+const isNextDisabled = (index) => {
+  if (index === 3) return true;
+  
+  for (let i = index + 1; i < 4; i++) {
+    if (previewImages[i]) return false;
+  }
+  return true;
+};
 
 defineExpose({
   clearAllFiles,
