@@ -1,17 +1,20 @@
 <script setup>
-import { reactive, computed } from "vue";
+import { reactive, computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/useAuthStore";
 import BaseInput from "@/components/shared/BaseInput.vue";
+import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
 import {
   runValidation,
   validateMinLength,
   validateMaxLength,
-  validateNoWhitespace,
+  validateNoWhitespace as vWhiteSpace,
 } from "@/utils/validate";
 
 const router = useRouter();
 const auth = useAuthStore();
+const showSuccess = ref(false);
+const successMessage = ref("The user account has been successfully registered.");
 
 const form = reactive({
   accountType: "BUYER", // BUYER | SELLER
@@ -32,7 +35,9 @@ const errors = reactive({});
 const isSeller = computed(() => form.accountType === "SELLER");
 
 const vEmail = (data) => {
-  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(data || "").trim());
+  const email = String(data || "");
+  // Check if email is valid format (basic email pattern check)
+  const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   return { valid: ok, message: ok ? null : "Email is invalid." };
 };
 
@@ -66,6 +71,26 @@ const vFullNameLen = (data) => {
   };
 };
 
+const vFullNameNoLeadingTrailing = (data) => {
+  const original = String(data || "");
+  const trimmed = original.trim();
+  const ok = original === trimmed;
+  return {
+    valid: ok,
+    message: ok ? null : "Full name must not have leading or trailing spaces.",
+  };
+};
+
+const vBankNameNoLeadingTrailing = (data) => {
+  const original = String(data || "");
+  const trimmed = original.trim();
+  const ok = original === trimmed;
+  return {
+    valid: ok,
+    message: ok ? null : "Bank name must not have leading or trailing spaces.",
+  };
+};
+
 const vThaiMobile = (data) => {
   const ok = /^0\d{9}$/.test(String(data || "").trim());
   return {
@@ -93,26 +118,30 @@ const vFileImageMax = (maxMB) => (file) => {
   return { valid: true, message: null };
 };
 
+
+
 const rules = {
   // ทั้ง Buyer & Seller
-  nickname: [vRequired("Nickname"), validateNoWhitespace],
+  nickname: [vRequired("Nickname"), vWhiteSpace],
   email: [vRequired("Email"), vEmail],
-  password: [vRequired("Password"), vPasswordPolicy],
-  fullName: [vRequired("Full name"), vFullNameLen],
+  password: [vRequired("Password"), vWhiteSpace, vPasswordPolicy],
+  fullName: [vRequired("Full name"), vFullNameLen, vFullNameNoLeadingTrailing], // ใช้ validation ใหม่
 
   // เฉพาะ Seller
-  mobile: [vRequired("Mobile number"), vThaiMobile],
+  mobile: [vRequired("Mobile number"), vThaiMobile, vWhiteSpace],
   bankAccountNo: [
     vRequired("Bank account number"),
     validateMinLength(3),
     validateMaxLength(30),
+    vWhiteSpace,
   ],
   bankName: [
     vRequired("Bank name"),
     validateMinLength(2),
     validateMaxLength(60),
+    vBankNameNoLeadingTrailing, // แทนที่ vWhiteSpace ด้วย vBankNameNoLeadingTrailing
   ],
-  nationalIdNumber: [vRequired("National ID number"), vNationalId13],
+  nationalIdNumber: [vRequired("National ID number"), vNationalId13, vWhiteSpace],
   nationalIdFront: [vFileRequired("National ID (front)"), vFileImageMax(5)],
   nationalIdBack: [vFileRequired("National ID (back)"), vFileImageMax(5)],
 };
@@ -136,6 +165,30 @@ function validateField(name) {
   const { valid, message } = runValidation(form[name], fns);
   errors[name] = message;
   return valid;
+}
+
+function trimAndValidateField(name) {
+  // Trim the field value if it's a string
+  if (typeof form[name] === 'string') {
+    let trimmedValue = form[name];
+    
+    // Special handling for different fields
+    if (name === 'mobile') {
+      // Remove dashes and trim
+      trimmedValue = trimmedValue.trim().replace(/-/g, '');
+    } else if (name === 'fullName' || name === 'bankName') {
+      // Only trim leading and trailing spaces, keep internal spaces for fullName and bankName
+      trimmedValue = trimmedValue.trim();
+    } else {
+      // Regular trim for all other fields including email
+      trimmedValue = trimmedValue.trim();
+    }
+    
+    form[name] = trimmedValue;
+  }
+  
+  // Then validate the field
+  return validateField(name);
 }
 
 function validateAll() {
@@ -192,8 +245,9 @@ async function onSubmit() {
 
   try {
     await auth.register(fd);
-    sessionStorage.setItem("register-success", "The user account has been successfully registered.");
-    router.push("/sale-items");
+    // Store success message in sessionStorage and redirect to ProductGallery
+    sessionStorage.setItem("register-success", "true");
+    router.push({ path: "/sale-items" });
   } catch (e) {
     alert(e?.message || "Registration failed!");
   }
@@ -251,7 +305,7 @@ async function onSubmit() {
           required
           cypress="nickname"
           :error="errors.nickname"
-          @trim="validateField('nickname')"
+          @trim="trimAndValidateField('nickname')"
         />
 
         <BaseInput
@@ -262,7 +316,7 @@ async function onSubmit() {
           required
           cypress="email"
           :error="errors.email"
-          @trim="validateField('email')"
+          @trim="trimAndValidateField('email')"
         />
 
         <div class="space-y-1">
@@ -274,7 +328,7 @@ async function onSubmit() {
             required
             cypress="password"
             :error="errors.password"
-            @trim="validateField('password')"
+            @trim="trimAndValidateField('password')"
           />
           <p class="text-xs text-gray-400 mt-1">
             min 8 chars, include lower, upper, number, special char
@@ -289,7 +343,7 @@ async function onSubmit() {
           cypress="fullname"
           :error="errors.fullName"
           :maxInput="40"
-          @trim="validateField('fullName')"
+          @trim="trimAndValidateField('fullName')"
         />
       </div>
 
@@ -307,7 +361,7 @@ async function onSubmit() {
           required
           cypress="mobile"
           :error="errors.mobile"
-          @trim="validateField('mobile')"
+          @trim="trimAndValidateField('mobile')"
         />
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -318,7 +372,7 @@ async function onSubmit() {
             required
             cypress="bank-account-no"
             :error="errors.bankAccountNo"
-            @trim="validateField('bankAccountNo')"
+            @trim="trimAndValidateField('bankAccountNo')"
           />
 
           <BaseInput
@@ -328,7 +382,7 @@ async function onSubmit() {
             required
             cypress="bank-name"
             :error="errors.bankName"
-            @trim="validateField('bankName')"
+            @trim="trimAndValidateField('bankName')"
           />
         </div>
 
@@ -339,7 +393,7 @@ async function onSubmit() {
           required
           cypress="card-no"
           :error="errors.nationalIdNumber"
-          @trim="validateField('nationalIdNumber')"
+          @trim="trimAndValidateField('nationalIdNumber')"
         />
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -398,5 +452,13 @@ async function onSubmit() {
         By registering, you agree to our terms & conditions.
       </p>
     </div>
+    
+    <!-- Success modal -->
+    <SuccessModal 
+      :visible="showSuccess" 
+      :message="successMessage" 
+      :duration="2000"
+      @close="showSuccess = false" 
+    />
   </div>
 </template>

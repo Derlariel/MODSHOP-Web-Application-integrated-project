@@ -163,6 +163,16 @@ onMounted(async () => {
       showSuccess.value = false;
     }, 2000);
   }
+
+  // Check for registration success message
+  if (sessionStorage.getItem("register-success") === "true") {
+    alertMessage.value = "The user account has been successfully registered.";
+    showSuccess.value = true;
+    sessionStorage.removeItem("register-success");
+    setTimeout(() => {
+      showSuccess.value = false;
+    }, 2000);
+  }
 });
 
 watch(filters, async () => {
