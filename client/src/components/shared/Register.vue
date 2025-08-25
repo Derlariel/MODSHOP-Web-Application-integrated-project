@@ -81,6 +81,16 @@ const vFullNameNoLeadingTrailing = (data) => {
   };
 };
 
+const vBankNameNoLeadingTrailing = (data) => {
+  const original = String(data || "");
+  const trimmed = original.trim();
+  const ok = original === trimmed;
+  return {
+    valid: ok,
+    message: ok ? null : "Bank name must not have leading or trailing spaces.",
+  };
+};
+
 const vThaiMobile = (data) => {
   const ok = /^0\d{9}$/.test(String(data || "").trim());
   return {
@@ -129,7 +139,7 @@ const rules = {
     vRequired("Bank name"),
     validateMinLength(2),
     validateMaxLength(60),
-    vWhiteSpace,
+    vBankNameNoLeadingTrailing, // แทนที่ vWhiteSpace ด้วย vBankNameNoLeadingTrailing
   ],
   nationalIdNumber: [vRequired("National ID number"), vNationalId13, vWhiteSpace],
   nationalIdFront: [vFileRequired("National ID (front)"), vFileImageMax(5)],
@@ -166,8 +176,8 @@ function trimAndValidateField(name) {
     if (name === 'mobile') {
       // Remove dashes and trim
       trimmedValue = trimmedValue.trim().replace(/-/g, '');
-    } else if (name === 'fullName') {
-      // Only trim leading and trailing spaces, keep internal spaces
+    } else if (name === 'fullName' || name === 'bankName') {
+      // Only trim leading and trailing spaces, keep internal spaces for fullName and bankName
       trimmedValue = trimmedValue.trim();
     } else {
       // Regular trim for all other fields including email
