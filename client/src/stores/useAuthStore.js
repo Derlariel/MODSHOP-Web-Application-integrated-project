@@ -11,7 +11,7 @@ export const useAuthStore = defineStore("auth", {
     async register(formData) {
       this.isSubmitting = true;
       try {
-        const res = await axios.post(`${BASE_URL}/v1/register`, formData, {
+        const res = await axios.post(`${BASE_URL}/v2/users/register`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
           validateStatus: () => true, 
         });
@@ -21,7 +21,7 @@ export const useAuthStore = defineStore("auth", {
             "Registration failed.";
           throw new Error(msg);
         }
-        return res.data; // user account detail
+        return res.data; 
       } finally {
         this.isSubmitting = false;
       }

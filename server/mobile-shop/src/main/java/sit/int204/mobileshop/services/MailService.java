@@ -15,29 +15,37 @@ public class MailService {
     @Autowired
     private Environment environment;
 
-    protected void sendVerificationEmail(String email, String token) {
-        String teamCode = environment.getProperty("app.teamCode", "kk-1");
-        String verifyUrl = "http://intproj24.sit.kmutt.ac.th/" + teamCode + "/verify-email/?token=" + token;
-        String subject = "Please Verify Your Email - ITB-Mshop";
-        String body = """
-                Welcome to ITB-Mshop!
+   public void sendVerificationEmail(String email, String jwtToken) {
+        try {
+            String teamCode = environment.getProperty("app.teamCode", "kk-1");
+//            String verifyUrl = "http://intproj24.sit.kmutt.ac.th/" + teamCode + "/verify-email?token=" + jwtToken;
+            String verifyUrl = "http://localhost:8080/itb-mshop/v2/users/verify-email?token=" + jwtToken;
+            String subject = "Please Verify Your Email - ITB-Mshop";
+            String body = """
+                    Welcome to ITB-Mshop!
 
-                Thank you for registering with us. To activate your account, please click the verification link below:
+                    Thank you for registering with us. To activate your account, please click the verification link below:
 
-                %s
+                    %s
 
-                This link will expire in 1 hour for security purposes.
+                    This link will expire in 1 hour for security purposes.
 
-                If you did not create an account with us, please ignore this email.
+                    If you did not create an account with us, please ignore this email.
 
-                Best regards,
-                ITB-Mshop Team
-                """.formatted(verifyUrl);
+                    Best regards,
+                    ITB-Mshop Team
+                    """.formatted(verifyUrl);
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject(subject);
-        message.setText(body);
-        this.javaMailSender.send(message);
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(email);
+            message.setSubject(subject);
+            message.setText(body);
+            
+            this.javaMailSender.send(message);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send verification email", e);
+        }
     }
+
 }
