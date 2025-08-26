@@ -46,7 +46,6 @@ public class SaleItemImageService {
             if (!image.isEmpty()) {
                 SaleItemImage savedImage = fileService.saveFile(image, saleItemId, nextOrder);
 
-                // อัปเดต order เผื่อกรณี saveFile ไม่ได้เซ็ต
                 if (savedImage.getImageViewOrder() == null) {
                     savedImage.setImageViewOrder(nextOrder);
                     savedImage.setUpdatedOn(Instant.now());

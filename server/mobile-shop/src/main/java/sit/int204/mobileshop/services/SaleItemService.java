@@ -362,10 +362,20 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "No existing image found for MOVE status at index " + i);
                     }
-                    // ✅ MOVE = update order only
+
+                    // ✅ MOVE = update order + rename file
+                    String oldFileName = existingImage.getFileName();
+                    String newFileNameEdit = fileService.renameFileForOrder(oldFileName, id, newImage.getOrder());
+
+                    // Update database record
+                    existingImage.setFileName(newFileNameEdit);
                     existingImage.setImageViewOrder(newImage.getOrder());
                     existingImage.setUpdatedOn(Instant.now());
                     saleItemImageRepository.save(existingImage);
+
+                    // Update the map for subsequent operations
+                    existingImageMap.remove(oldFileName);
+                    existingImageMap.put(newFileNameEdit, existingImage);
                     break;
 
                 case "DELETE":
@@ -390,7 +400,8 @@ public class SaleItemService {
             }
         }
 
-        // --- normalize order ---
+
+// --- normalize order + rename files ---
         List<SaleItemImage> remainingImages = saleItemImageRepository.findAllBySaleItemId(id)
                 .stream()
                 .sorted(Comparator.comparingInt(SaleItemImage::getImageViewOrder))
@@ -399,10 +410,19 @@ public class SaleItemService {
         for (int j = 0; j < remainingImages.size(); j++) {
             SaleItemImage img = remainingImages.get(j);
             int expectedOrder = j + 1;
+
             if (!img.getImageViewOrder().equals(expectedOrder)) {
+                // Need to rename file and update database
+                String oldFileName = img.getFileName();
+                String newFileName = fileService.renameFileForOrder(oldFileName, id, expectedOrder);
+
+                // Update database record
+                img.setFileName(newFileName);
                 img.setImageViewOrder(expectedOrder);
                 img.setUpdatedOn(Instant.now());
                 saleItemImageRepository.save(img);
+
+                log.info("Normalized image order: " + oldFileName + " -> " + newFileName + " (order " + expectedOrder + ")");
             }
         }
 

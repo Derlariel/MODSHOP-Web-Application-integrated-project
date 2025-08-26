@@ -74,6 +74,59 @@ public class FileService {
             throw new FileStorageException("Could not create or access base directory for file storage: " + this.baseStoragePath, ex);
         }
     }
+
+
+    /**
+     * Rename file to match new order
+     * @param oldFileName current filename (e.g., "88.4.png")
+     * @param saleItemId sale item ID
+     * @param newOrder new order number
+     * @return new filename (e.g., "88.3.png")
+     */
+    public String renameFileForOrder(String oldFileName, Integer saleItemId, Integer newOrder) throws IOException {
+        if (oldFileName == null || saleItemId == null || newOrder == null) {
+            throw new IllegalArgumentException("Parameters cannot be null");
+        }
+
+        // Extract file extension from old filename
+        String extension = "";
+        int lastDotIndex = oldFileName.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            extension = oldFileName.substring(lastDotIndex);
+        }
+
+        // Create new filename with new order
+        String newFileName = saleItemId + "." + newOrder + extension;
+
+        // If old and new filenames are the same, no need to rename
+        if (oldFileName.equals(newFileName)) {
+            return newFileName;
+        }
+
+        // Build file paths
+        Path oldFilePath = Paths.get(fileStorageProperties.getUploadDir(), oldFileName);
+        Path newFilePath = Paths.get(fileStorageProperties.getUploadDir(), newFileName);
+
+        // Check if old file exists
+        if (!Files.exists(oldFilePath)) {
+            throw new IOException("Old file does not exist: " + oldFileName);
+        }
+
+        // Check if new filename already exists (should not happen with proper order management)
+        if (Files.exists(newFilePath)) {
+            throw new IOException("Target file already exists: " + newFileName);
+        }
+
+        // Rename the file
+        try {
+            Files.move(oldFilePath, newFilePath);
+            log.info("Renamed file from " + oldFileName + " to " + newFileName);
+            return newFileName;
+        } catch (IOException e) {
+            log.severe("Failed to rename file from " + oldFileName + " to " + newFileName + ": " + e.getMessage());
+            throw new IOException("Failed to rename file: " + e.getMessage(), e);
+        }
+    }
     public String storeFile(MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             return null;
