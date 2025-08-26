@@ -273,6 +273,8 @@ public class SaleItemService {
         return result;
     }
 
+    // แก้ไขใน SaleItemService - ส่วนที่เรียกใช้ FileService
+
     @Transactional
     public SaleItemDetailDto updateSaleItemByIdWithImages(Integer id, SaleItemWithImageInfo saleItemWithImageInfo) throws IOException {
         // 1. โหลดข้อมูลเก่า
@@ -346,14 +348,9 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "Image file is required for NEW status at index " + i);
                     }
-                    String newFileName = fileService.saveUpdate(newImage.getImageFile(), id, newImage.getOrder());
-                    SaleItemImage newSaleItemImage = new SaleItemImage();
-                    newSaleItemImage.setSaleItem(existingItem);
-                    newSaleItemImage.setFileName(newFileName);
-                    newSaleItemImage.setImageViewOrder(newImage.getOrder());
-                    newSaleItemImage.setCreatedOn(Instant.now());
-                    newSaleItemImage.setUpdatedOn(Instant.now());
-                    saleItemImageRepository.save(newSaleItemImage);
+
+                    // แก้ไข: ใช้ saveFile แทน saveUpdate
+                    SaleItemImage savedImage = fileService.saveFile(newImage.getImageFile(), id, newImage.getOrder());
                     break;
 
                 case "MOVE":
@@ -363,19 +360,13 @@ public class SaleItemService {
                                 "No existing image found for MOVE status at index " + i);
                     }
 
-                    // ✅ MOVE = update order + rename file
-                    String oldFileName = existingImage.getFileName();
-                    String newFileNameEdit = fileService.renameFileForOrder(oldFileName, id, newImage.getOrder());
-
-                    // Update database record
-                    existingImage.setFileName(newFileNameEdit);
+                    // แก้ไข: อัปเดตใน database โดยตรง แทนการเรียก renameFileForOrder
                     existingImage.setImageViewOrder(newImage.getOrder());
                     existingImage.setUpdatedOn(Instant.now());
                     saleItemImageRepository.save(existingImage);
 
                     // Update the map for subsequent operations
-                    existingImageMap.remove(oldFileName);
-                    existingImageMap.put(newFileNameEdit, existingImage);
+                    existingImageMap.put(newImage.getFileName(), existingImage);
                     break;
 
                 case "DELETE":
@@ -384,14 +375,10 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "No existing image found for DELETE status at index " + i);
                     }
-                    try {
-                        if (fileService.deleteByFileName(toDelete.getFileName())) {
-                            System.out.println("File deleted: " + toDelete.getFileName());
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException("Error deleting file: " + toDelete.getFileName(), e);
-                    }
-                    saleItemImageRepository.delete(toDelete);
+
+                    // แก้ไข: ใช้ deleteSpecificImages แทน deleteByFileName
+                    List<String> fileToDelete = List.of(toDelete.getFileName());
+                    fileService.deleteSpecificImages(id, fileToDelete);
                     break;
 
                 default:
@@ -400,36 +387,33 @@ public class SaleItemService {
             }
         }
 
-
-// --- normalize order + rename files ---
+        // --- normalize order + อัปเดต database ---
         List<SaleItemImage> remainingImages = saleItemImageRepository.findAllBySaleItemId(id)
                 .stream()
                 .sorted(Comparator.comparingInt(SaleItemImage::getImageViewOrder))
                 .toList();
 
+        // อัปเดต order ให้เป็นลำดับ 1, 2, 3, ...
+        List<SaleItemImage> imagesToUpdate = new ArrayList<>();
         for (int j = 0; j < remainingImages.size(); j++) {
             SaleItemImage img = remainingImages.get(j);
             int expectedOrder = j + 1;
 
             if (!img.getImageViewOrder().equals(expectedOrder)) {
-                // Need to rename file and update database
-                String oldFileName = img.getFileName();
-                String newFileName = fileService.renameFileForOrder(oldFileName, id, expectedOrder);
-
-                // Update database record
-                img.setFileName(newFileName);
                 img.setImageViewOrder(expectedOrder);
                 img.setUpdatedOn(Instant.now());
-                saleItemImageRepository.save(img);
-
-                log.info("Normalized image order: " + oldFileName + " -> " + newFileName + " (order " + expectedOrder + ")");
+                imagesToUpdate.add(img);
             }
+        }
+
+        if (!imagesToUpdate.isEmpty()) {
+            saleItemImageRepository.saveAll(imagesToUpdate);
+            log.info("Normalized order for " + imagesToUpdate.size() + " images");
         }
 
         result.setBrandName(brand.getName());
         return result;
     }
-
     public void deleteSaleItemByIdOld(Integer id) {
         saleItemRepository.delete(getSaleItemByIdOld(id));
     }

@@ -9,8 +9,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
@@ -26,26 +29,33 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import sit.int204.mobileshop.config.FileStorageProperties;
 import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.entities.SaleItemImage;
 import sit.int204.mobileshop.exceptions.FileStorageException;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
-
+import sit.int204.mobileshop.dtos.SaleItemImageRequest;
 
 @Service
 public class FileService {
     private static final Logger log = Logger.getLogger(FileService.class.getName());
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
     private static final List<String> ALLOWED_EXTENSIONS = List.of("jpg", "jpeg", "png", "webp");
+    private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/jpeg", "image/jpg", "image/png", "image/webp");
+
     private final Path baseStoragePath;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private SaleItemImageRepository saleItemImageRepository;
 
     @Autowired
     private SaleItemRepository saleItemRepository;
+
     @Autowired
     private FileStorageProperties fileStorageProperties;
 
@@ -55,10 +65,11 @@ public class FileService {
     @Value("${app.file.max-size:5242880}") // 5MB default
     private long maxFileSize;
 
+    @Value("${app.base-url:http://localhost:8080/api/v1/images/}")
+    private String baseUrl;
+
     /**
      * Constructor to initialize file storage path.
-     *
-     * @param fileStorageProperties the file storage configuration
      */
     public FileService(FileStorageProperties fileStorageProperties) {
         this.baseStoragePath = Paths.get(fileStorageProperties.getUploadDir()).toAbsolutePath().normalize();
@@ -75,229 +86,390 @@ public class FileService {
         }
     }
 
-
     /**
-     * Rename file to match new order
-     * @param oldFileName current filename (e.g., "88.4.png")
+     * Save single file - legacy method สำหรับ backward compatibility
+     * @param file MultipartFile to save
      * @param saleItemId sale item ID
-     * @param newOrder new order number
-     * @return new filename (e.g., "88.3.png")
+     * @param imageViewOrder order of the image
+     * @return saved SaleItemImage entity
      */
-    public String renameFileForOrder(String oldFileName, Integer saleItemId, Integer newOrder) throws IOException {
-        if (oldFileName == null || saleItemId == null || newOrder == null) {
-            throw new IllegalArgumentException("Parameters cannot be null");
-        }
-
-        // Extract file extension from old filename
-        String extension = "";
-        int lastDotIndex = oldFileName.lastIndexOf('.');
-        if (lastDotIndex > 0) {
-            extension = oldFileName.substring(lastDotIndex);
-        }
-
-        // Create new filename with new order
-        String newFileName = saleItemId + "." + newOrder + extension;
-
-        // If old and new filenames are the same, no need to rename
-        if (oldFileName.equals(newFileName)) {
-            log.info("No rename needed: " + oldFileName);
-            return newFileName;
-        }
-
-        // Build file paths
-        Path oldFilePath = Paths.get(fileStorageProperties.getUploadDir(), oldFileName);
-        Path newFilePath = Paths.get(fileStorageProperties.getUploadDir(), newFileName);
-
-        // Check if old file exists
-        if (!Files.exists(oldFilePath)) {
-            throw new IOException("Old file does not exist: " + oldFileName);
-        }
-
-        // ✅ Check if target exists and handle it properly
-        if (Files.exists(newFilePath)) {
-            log.warning("Target file exists, will be replaced: " + newFileName);
-
-            // Optional: backup the existing file first
-            Path backupPath = Paths.get(fileStorageProperties.getUploadDir(),
-                    newFileName + ".backup." + System.currentTimeMillis());
-            try {
-                Files.copy(newFilePath, backupPath);
-                log.info("Backed up existing file: " + newFileName + " to " + backupPath.getFileName());
-            } catch (IOException e) {
-                log.warning("Failed to backup existing file: " + e.getMessage());
-            }
-        }
-
-        // Rename the file with REPLACE_EXISTING
-        try {
-            Files.move(oldFilePath, newFilePath, StandardCopyOption.REPLACE_EXISTING);
-
-            // ✅ Verify the rename was successful
-            if (!Files.exists(newFilePath)) {
-                throw new IOException("Rename appeared successful but target file does not exist");
-            }
-
-            log.info("Successfully renamed file from " + oldFileName + " to " + newFileName);
-            return newFileName;
-
-        } catch (IOException e) {
-            log.severe("Failed to rename file from " + oldFileName + " to " + newFileName + ": " + e.getMessage());
-
-            // ✅ Try to verify what happened to the files
-            log.info("Post-error file status - Old exists: " + Files.exists(oldFilePath) +
-                    ", New exists: " + Files.exists(newFilePath));
-
-            throw new IOException("Failed to rename file: " + e.getMessage(), e);
-        }
-    }
-    public String storeFile(MultipartFile file) throws IOException {
-        if (file.isEmpty()) {
-            return null;
-        }
-
-        // Validate file size
-        if (file.getSize() > maxFileSize) {
-            throw new IllegalArgumentException("File size exceeds maximum allowed size of " + maxFileSize + " bytes");
-        }
-
-        // Validate file type (images only)
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new IllegalArgumentException("Only image files are allowed");
-        }
-
-        Path uploadPath = Paths.get(uploadDir);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        // Generate unique filename
-        String originalFilename = file.getOriginalFilename();
-        String fileExtension = "";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        }
-        String uniqueFilename = UUID.randomUUID().toString() + fileExtension;
-
-        // Store the file
-        Path filePath = uploadPath.resolve(uniqueFilename);
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-        // Return relative path for storing in database
-        String relativePath = "/" + uniqueFilename;
-        return relativePath;
-    }
-
-    public void deleteFile(String filePath) {
-        if (filePath == null || filePath.trim().isEmpty()) {
-            return;
-        }
-
-        try {
-            Path path = Paths.get(uploadDir, filePath);
-            Files.deleteIfExists(path);
-        } catch (IOException e) {
-        }
-    }
-
-    public String formatFileName(Integer saleItemId, Integer order, String originalFileName) {
-        System.out.println("getFileExtension(originalFileName)" +getFileExtension(originalFileName));
-        return  saleItemId + "." + order + "." + getFileExtension(originalFileName);
-    }
     @Transactional
-    public String updateFile(MultipartFile file, Integer saleItemId, Integer order) {
+    public SaleItemImage saveFile(MultipartFile file, Integer saleItemId, Integer imageViewOrder) {
+        if (file == null || file.isEmpty()) {
+            throw new FileStorageException("File cannot be empty");
+        }
+
+        if (saleItemId == null) {
+            throw new FileStorageException("SaleItem ID cannot be null");
+        }
+
         validateFile(file);
 
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-        String uniqueFilename = formatFileName(saleItemId, order, originalFilename);
-        Path targetFile = baseStoragePath.resolve(uniqueFilename);
         try {
-            copyFileToStorage(file, targetFile, originalFilename);
+            String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
+            String safeFileName = sanitizeFileName(originalFileName);
+            String uniqueFileName = generateUniqueFileName(safeFileName, saleItemId);
 
-            return uniqueFilename;
+            Path targetFile = baseStoragePath.resolve(uniqueFileName);
 
-        } catch (IOException e) {
-            cleanupFile(targetFile, uniqueFilename);
-            throw new FileStorageException("Could not store file " + originalFilename + " at " + targetFile, e);
-        }
-    }
-    @Transactional
-    public SaleItemImage saveFile(MultipartFile file, Integer saleItemId, Integer order) {
-        validateFile(file);
+            // Copy file to storage
+            copyFileToStorage(file, targetFile, originalFileName);
 
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-        String uniqueFilename = formatFileName(saleItemId, order, originalFilename);
-        Path targetFile = baseStoragePath.resolve(uniqueFilename);
-
-        log.info(String.format("Uploading file: %s for SaleItem ID: %d ", originalFilename, saleItemId));
-
-        try {
-            copyFileToStorage(file, targetFile, originalFilename);
-
+            // Create SaleItemImage entity
             SaleItem saleItem = saleItemRepository.findById(saleItemId)
                     .orElseThrow(() -> new FileStorageException("SaleItem not found with ID: " + saleItemId));
 
+            SaleItemImage image = new SaleItemImage();
+            image.setSaleItem(saleItem);
+            image.setFileName(uniqueFileName);
+            image.setImageViewOrder(imageViewOrder);
+            image.setCreatedOn(Instant.now());
+            image.setUpdatedOn(Instant.now());
 
-            SaleItemImage image = createSaleItemImage(saleItem, uniqueFilename, order);
+            // Save to database
             return saleItemImageRepository.save(image);
 
         } catch (IOException e) {
-            cleanupFile(targetFile, uniqueFilename);
-            throw new FileStorageException("Could not store file " + originalFilename + " at " + targetFile, e);
+            throw new FileStorageException("Could not store file " + file.getOriginalFilename(), e);
         }
     }
 
+    /**
+     * Enhanced method to save images with proper ordering and metadata management
+     */
     @Transactional
-    public String saveUpdate(MultipartFile file, Integer saleItemId, Integer order) {
+    public List<SaleItemImage> saveImagesWithOrder(List<SaleItemImageRequest> imageRequests, Integer saleItemId) {
+        if (saleItemId == null) {
+            throw new FileStorageException("SaleItem ID cannot be null");
+        }
+
+        // Synchronize on saleItemId to prevent concurrent modifications
+        synchronized (saleItemId.toString().intern()) {
+            // Get current images
+            Map<String, SaleItemImage> currentImagesMap = saleItemImageRepository.findAllBySaleItemId(saleItemId)
+                    .stream()
+                    .collect(Collectors.toMap(SaleItemImage::getFileName, img -> img));
+
+            List<SaleItemImage> finalImages = new ArrayList<>();
+            List<String> filesToDelete = new ArrayList<>();
+
+            // Process each image request
+            for (SaleItemImageRequest request : Optional.ofNullable(imageRequests).orElse(Collections.emptyList())) {
+                if (request == null) continue;
+
+                String status = Optional.ofNullable(request.getStatus()).orElse("").toUpperCase();
+
+                switch (status) {
+                    case "DELETE":
+                        if (request.getFileName() != null) {
+                            filesToDelete.add(request.getFileName());
+                        }
+                        break;
+
+                    case "NEW":
+                        if (request.getImageFile() != null && !request.getImageFile().isEmpty()) {
+                            SaleItemImage newImage = processNewImage(request, saleItemId);
+                            finalImages.add(newImage);
+                        }
+                        break;
+
+                    case "EXISTING":
+                    case "MOVE":
+                        SaleItemImage existingImage = currentImagesMap.get(request.getFileName());
+                        if (existingImage != null) {
+                            existingImage.setImageViewOrder(request.getOrder());
+                            existingImage.setUpdatedOn(Instant.now());
+                            finalImages.add(existingImage);
+                        }
+                        break;
+                }
+            }
+
+            // Delete specified files
+            if (!filesToDelete.isEmpty()) {
+                deleteSpecificImages(saleItemId, filesToDelete);
+            }
+
+            // Sort and reorder images
+            finalImages.sort(Comparator.comparingInt(SaleItemImage::getImageViewOrder));
+
+            // Reassign sequential order numbers
+            int order = 1;
+            for (SaleItemImage image : finalImages) {
+                image.setImageViewOrder(order++);
+            }
+
+            // Save all images to database
+            List<SaleItemImage> savedImages = saleItemImageRepository.saveAll(finalImages);
+
+            // Save metadata for backup/reference
+            saveImagesMetadata(saleItemId, savedImages);
+
+            return savedImages;
+        }
+    }
+
+    /**
+     * Process new image upload
+     */
+    private SaleItemImage processNewImage(SaleItemImageRequest request, Integer saleItemId) {
+        MultipartFile file = request.getImageFile();
         validateFile(file);
 
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-        String uniqueFilename = formatFileName(saleItemId, order, originalFilename);
-        Path targetFile = baseStoragePath.resolve(uniqueFilename);
-
-        log.info(String.format("Uploading file: %s for SaleItem ID: %d", originalFilename, saleItemId));
-
         try {
-            copyFileToStorage(file, targetFile, originalFilename);
+            String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
+            String safeFileName = sanitizeFileName(originalFileName);
+            String uniqueFileName = generateUniqueFileName(safeFileName, saleItemId);
 
+            Path targetFile = baseStoragePath.resolve(uniqueFileName);
+
+            // Copy file to storage
+            copyFileToStorage(file, targetFile, originalFileName);
+
+            // Create SaleItemImage entity
             SaleItem saleItem = saleItemRepository.findById(saleItemId)
                     .orElseThrow(() -> new FileStorageException("SaleItem not found with ID: " + saleItemId));
 
-            return uniqueFilename;
+            SaleItemImage image = new SaleItemImage();
+            image.setSaleItem(saleItem);
+            image.setFileName(uniqueFileName);
+            image.setImageViewOrder(request.getOrder());
+            image.setCreatedOn(Instant.now());
+            image.setUpdatedOn(Instant.now());
+
+            return image;
 
         } catch (IOException e) {
-            cleanupFile(targetFile, uniqueFilename);
-            throw new FileStorageException("Could not store file " + originalFilename + " at " + targetFile, e);
+            throw new FileStorageException("Could not store file " + file.getOriginalFilename(), e);
         }
     }
 
     /**
-     * Deletes an image by its ID and removes the file from storage.
-     *
-     * @param id the ID of the image to delete
-     * @throws FileStorageException if the image is not found or deletion fails
+     * Generate unique filename to avoid conflicts
+     * Now includes saleItemId in the filename for uniqueness
      */
-    public void deleteImageById(Integer id) {
-        List<SaleItemImage> images = saleItemImageRepository.findAllBySaleItemId(id);
-        images.forEach(image -> {
-            Path filePath = baseStoragePath.resolve(image.getFileName()).normalize();
-            try {
-                Files.deleteIfExists(filePath);
-                saleItemImageRepository.delete(image);
-                log.info("Deleted image with ID: " + id);
-            } catch (IOException e) {
-                throw new FileStorageException("Could not delete file: " + image.getFileName(), e);
-            }
-        });
+    public String generateUniqueFileName(String originalName, Integer saleItemId) {
+        String name = originalName;
+        String extension = "";
+        int dotIndex = originalName.lastIndexOf('.');
+        if (dotIndex > 0) {
+            name = originalName.substring(0, dotIndex);
+            extension = originalName.substring(dotIndex);
+        }
+
+        // Include saleItemId and timestamp for uniqueness
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String baseFileName = saleItemId + "_" + timestamp + "_" + name;
+
+        int counter = 1;
+        String uniqueName;
+        Path path;
+        do {
+            uniqueName = baseFileName + (counter == 1 ? "" : "_" + counter) + extension;
+            path = baseStoragePath.resolve(uniqueName);
+            counter++;
+        } while (Files.exists(path));
+
+        return uniqueName;
     }
 
-
+    /**
+     * Sanitize filename to prevent security issues
+     */
+    private String sanitizeFileName(String fileName) {
+        if (fileName == null) return "unnamed";
+        return fileName.replaceAll("[^a-zA-Z0-9\\.\\-_]", "_");
+    }
 
     /**
-     * ✅ Checks if a file exists in storage
-     *
-     * @param filename the filename to check
-     * @return true if file exists
+     * Delete specific images by filename
+     */
+    public void deleteSpecificImages(Integer saleItemId, List<String> fileNames) {
+        if (saleItemId == null || fileNames == null || fileNames.isEmpty()) {
+            return;
+        }
+
+        // Delete physical files
+        fileNames.forEach(fileName -> {
+            try {
+                Path filePath = baseStoragePath.resolve(fileName);
+                Files.deleteIfExists(filePath);
+                log.info("Deleted file: " + fileName);
+            } catch (IOException e) {
+                log.warning("Failed to delete file: " + fileName + " - " + e.getMessage());
+            }
+        });
+
+        // Delete from database
+        List<SaleItemImage> imagesToDelete = saleItemImageRepository.findAllBySaleItemId(saleItemId)
+                .stream()
+                .filter(img -> fileNames.contains(img.getFileName()))
+                .collect(Collectors.toList());
+
+        saleItemImageRepository.deleteAll(imagesToDelete);
+    }
+
+    /**
+     * Delete all images for a sale item
+     */
+    public void deleteImagesForSaleItem(Integer saleItemId) {
+        if (saleItemId == null) return;
+
+        // Get all images for this sale item
+        List<SaleItemImage> images = saleItemImageRepository.findAllBySaleItemId(saleItemId);
+
+        // Delete physical files
+        images.forEach(image -> {
+            try {
+                Path filePath = baseStoragePath.resolve(image.getFileName());
+                Files.deleteIfExists(filePath);
+                log.info("Deleted file: " + image.getFileName());
+            } catch (IOException e) {
+                log.warning("Failed to delete file: " + image.getFileName() + " - " + e.getMessage());
+            }
+        });
+
+        // Delete from database
+        saleItemImageRepository.deleteAll(images);
+
+        // Delete metadata file
+        deleteMetadataFile(saleItemId);
+    }
+
+    /**
+     * Save images metadata as JSON for backup/reference
+     */
+    private void saveImagesMetadata(Integer saleItemId, List<SaleItemImage> images) {
+        try {
+            Path metadataFile = getMetadataFilePath(saleItemId);
+            Files.createDirectories(metadataFile.getParent());
+
+            List<ImageMetadata> metadata = images.stream()
+                    .map(img -> new ImageMetadata(
+                            img.getFileName(),
+                            img.getImageViewOrder(),
+                            img.getCreatedOn(),
+                            img.getUpdatedOn()
+                    ))
+                    .collect(Collectors.toList());
+
+            objectMapper.writeValue(metadataFile.toFile(), metadata);
+            log.info("Saved metadata for saleItem: " + saleItemId);
+        } catch (Exception e) {
+            log.warning("Failed to save metadata for saleItem: " + saleItemId + " - " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get metadata file path - now stored in base directory with saleItemId prefix
+     */
+    private Path getMetadataFilePath(Integer saleItemId) {
+        return baseStoragePath.resolve(saleItemId + "_images_metadata.json");
+    }
+
+    /**
+     * Delete metadata file
+     */
+    private void deleteMetadataFile(Integer saleItemId) {
+        try {
+            Path metadataFile = getMetadataFilePath(saleItemId);
+            Files.deleteIfExists(metadataFile);
+            log.info("Deleted metadata file for saleItem: " + saleItemId);
+        } catch (IOException e) {
+            log.warning("Failed to delete metadata file for saleItem: " + saleItemId);
+        }
+    }
+
+    /**
+     * Load images metadata from JSON
+     */
+    public List<ImageMetadata> loadImagesMetadata(Integer saleItemId) {
+        Path metadataFile = getMetadataFilePath(saleItemId);
+        if (!Files.exists(metadataFile)) {
+            return new ArrayList<>();
+        }
+
+        try {
+            List<ImageMetadata> metadata = objectMapper.readValue(
+                    metadataFile.toFile(),
+                    new TypeReference<List<ImageMetadata>>() {}
+            );
+
+            metadata.sort(Comparator.comparingInt(ImageMetadata::getOrder));
+            return metadata;
+        } catch (Exception e) {
+            log.warning("Failed to load metadata for saleItem: " + saleItemId);
+            return new ArrayList<>();
+        }
+    }
+
+    // === Enhanced validation methods ===
+
+    /**
+     * Enhanced file validation
+     */
+    private void validateFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new FileStorageException("File must not be empty");
+        }
+
+        if (file.getSize() > maxFileSize) {
+            throw new FileStorageException(String.format("File size (%d bytes) exceeds limit of %d bytes",
+                    file.getSize(), maxFileSize));
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+            throw new FileStorageException("Invalid file type: " + contentType + ". Allowed types: " + ALLOWED_CONTENT_TYPES);
+        }
+
+        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+        String extension = getFileExtension(originalFilename).toLowerCase();
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new FileStorageException("Invalid file extension: ." + extension + ". Allowed extensions: " + ALLOWED_EXTENSIONS);
+        }
+    }
+
+    /**
+     * Validate multiple files at once
+     */
+    public void validateMultipleFiles(List<MultipartFile> files) {
+        if (files == null || files.isEmpty()) {
+            return;
+        }
+
+        List<String> validationErrors = new ArrayList<>();
+        long totalSize = 0;
+
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) {
+                validationErrors.add("Empty file detected");
+                continue;
+            }
+
+            totalSize += file.getSize();
+
+            try {
+                validateFile(file);
+            } catch (FileStorageException e) {
+                validationErrors.add(e.getMessage());
+            }
+        }
+
+        // Check total upload size (10x single file limit)
+        if (totalSize > maxFileSize * 10) {
+            validationErrors.add("Total upload size (" + totalSize + " bytes) exceeds limit of " + (maxFileSize * 10) + " bytes");
+        }
+
+        if (!validationErrors.isEmpty()) {
+            throw new FileStorageException("Validation errors: " + String.join("; ", validationErrors));
+        }
+    }
+
+    // === Utility methods ===
+
+    /**
+     * Check if file exists in storage
      */
     public boolean fileExists(String filename) {
         if (filename == null || filename.trim().isEmpty()) {
@@ -321,145 +493,7 @@ public class FileService {
     }
 
     /**
-     *  Deletes a specific image file from storage
-     *
-     * @param filename the filename of the image to delete
-     * @throws FileStorageException if deletion fails
-     */
-    public void deleteSpecificImageFile(String filename) {
-        if (filename == null || filename.trim().isEmpty()) {
-            log.warning("Cannot delete file: filename is null or empty");
-            return;
-        }
-
-        Path filePath = baseStoragePath.resolve(filename).normalize();
-
-        // Security check
-        if (!filePath.startsWith(baseStoragePath)) {
-            throw new FileStorageException("Invalid file path: " + filename);
-        }
-
-        try {
-            if (Files.exists(filePath)) {
-                Files.delete(filePath);
-                log.info("Deleted image file: " + filename);
-            } else {
-                log.warning("Image file not found for deletion: " + filename);
-            }
-        } catch (IOException e) {
-            throw new FileStorageException("Could not delete file: " + filename, e);
-        }
-    }
-
-    public void deleteMultipleFiles(List<String> filenames) {
-        if (filenames == null || filenames.isEmpty()) {
-            return;
-        }
-
-        // ใช้ parallel stream สำหรับ I/O operations
-        List<String> failedDeletes = filenames.parallelStream()
-                .filter(filename -> {
-                    try {
-                        Path filePath = baseStoragePath.resolve(filename).normalize();
-                        if (Files.exists(filePath)) {
-                            Files.delete(filePath);
-                            log.info("Deleted image file: " + filename);
-                            return false; // สำเร็จ
-                        }
-                        return false;
-                    } catch (IOException e) {
-                        log.warning("Failed to delete file: " + filename + " - " + e.getMessage());
-                        return true; // ล้มเหลว
-                    }
-                })
-                .collect(Collectors.toList());
-
-        if (!failedDeletes.isEmpty()) {
-            throw new FileStorageException("Failed to delete some files: " + failedDeletes);
-        }
-    }
-
-//    file validation เอาไว้ลด overhaed
-    public void validateMultipleFiles(List<MultipartFile> files) {
-        if(files == null || files.isEmpty()) {
-            return ;
-        }
-
-        List<String> validationErrors = new ArrayList<>();
-        long totalSize = 0;
-
-        for (MultipartFile file : files) {
-            if(file == null || file.isEmpty()){
-                validationErrors.add("Empty file detected");
-                continue;
-            }
-            totalSize += file.getSize();
-            if(file.getSize() > MAX_FILE_SIZE) {
-                validationErrors.add("File" + file.getOriginalFilename() + " exceeds size limit");
-            }
-
-            String extension = getFileExtension(file.getOriginalFilename()).toLowerCase();
-            if(!ALLOWED_EXTENSIONS.contains(extension)){
-                validationErrors.add("Invalid file type : " + extension);
-            }
-
-            String contentType = file.getContentType();
-            if (contentType == null || !contentType.startsWith("image/")) {
-                validationErrors.add("Non-image file detected: " + file.getOriginalFilename());
-            }
-        }
-
-        if(totalSize > MAX_FILE_SIZE * 10) {
-            validationErrors.add("Total upload size too large"); //เช่นห้ามเกิน 50MB
-        }
-
-        if(!validationErrors.isEmpty()) {
-            throw new FileStorageException("Validation errors: " + String.join(", ", validationErrors));
-        }
-
-    }
-    
-    // สำหรับไฟล์ที่โคตรใหญ่
-    @Async("fileTaskExecutor")
-    public CompletableFuture<Void> deleteFileAsync(List<String> filenames) {
-        return CompletableFuture.runAsync(() -> deleteMultipleFiles(filenames));
-    }
-
-
-    private void validateFile(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new FileStorageException("File must not be empty");
-        }
-
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new FileStorageException("File size exceeds limit of 5MB");
-        }
-
-        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-        // validateFileName(originalFilename);
-
-        String extension = getFileExtension(originalFilename).toLowerCase();
-        if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw new FileStorageException("Invalid file type: ." + extension + " is not supported.");
-        }
-
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new FileStorageException("Only image files are allowed.");
-        }
-    }
-
-    /**
-     */
-    private void copyFileToStorageOptimized(MultipartFile file, Path targetFile, String originalFilename) throws IOException {
-        // ใช้ transferTo() ซึ่งมี performance ดีกว่า
-        try (InputStream inputStream = file.getInputStream()) {
-            Files.copy(inputStream, targetFile, StandardCopyOption.REPLACE_EXISTING);
-            log.info("Successfully copied file: " + originalFilename + " to " + targetFile);
-        }
-    }
-
-    /**
+     * Check multiple files existence
      */
     public Map<String, Boolean> checkMultipleFilesExist(List<String> filenames) {
         return filenames.parallelStream()
@@ -469,17 +503,13 @@ public class FileService {
                 ));
     }
 
-
     /**
-     * Loads a file as a Resource.
-     *
-     * @param filename the name of the file to load
-     * @return the file as a Resource
-     * @throws FileStorageException if the file is not found or not readable
+     * Load file as Resource
      */
     public Resource loadFileAsResource(String filename) {
         try {
             Path filePath = baseStoragePath.resolve(filename).normalize();
+
             if (!filePath.startsWith(baseStoragePath)) {
                 throw new FileStorageException("Invalid file path: " + filename);
             }
@@ -495,9 +525,40 @@ public class FileService {
         }
     }
 
+    /**
+     * Async file deletion for large operations
+     */
+    @Async("fileTaskExecutor")
+    public CompletableFuture<Void> deleteFilesAsync(Integer saleItemId, List<String> filenames) {
+        return CompletableFuture.runAsync(() -> deleteSpecificImages(saleItemId, filenames));
+    }
 
+    // === Legacy compatibility methods (kept for backward compatibility) ===
+
+    @Deprecated
+    public String storeFile(MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            return null;
+        }
+        validateFile(file);
+
+        String originalFilename = file.getOriginalFilename();
+        String fileExtension = getFileExtension(originalFilename);
+        String uniqueFilename = UUID.randomUUID().toString() + "." + fileExtension;
+
+        Path filePath = baseStoragePath.resolve(uniqueFilename);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        return uniqueFilename;
+    }
+
+    // === Private helper methods ===
 
     private String getFileExtension(String filename) {
+        if (filename == null || filename.isEmpty()) {
+            throw new FileStorageException("Filename cannot be null or empty");
+        }
+
         int dotIndex = filename.lastIndexOf('.');
         if (dotIndex < 0) {
             throw new FileStorageException("File does not have an extension: " + filename);
@@ -505,61 +566,65 @@ public class FileService {
         return filename.substring(dotIndex + 1);
     }
 
-
     private void copyFileToStorage(MultipartFile file, Path targetFile, String originalFilename) throws IOException {
-        Files.copy(file.getInputStream(), targetFile, StandardCopyOption.REPLACE_EXISTING);
-        log.info("Successfully copied file: " + originalFilename + " to " + targetFile);
-    }
-
-//    private void updateNonPrimaryImages(Integer saleItemId) {
-//        saleItemImageRepository.updateAllNonPrimaryBySaleItemId(saleItemId);
-//    }
-
-    private SaleItemImage createSaleItemImage(SaleItem saleItem, String uniqueFilename, Integer order) {
-        SaleItemImage image = new SaleItemImage();
-        image.setSaleItem(saleItem);
-        image.setFileName(uniqueFilename);
-        image.setImageViewOrder(order);
-        image.setCreatedOn(Instant.now());
-        image.setUpdatedOn(Instant.now());
-        return image;
-    }
-
-    private void cleanupFile(Path targetFile, String filename) {
-        try {
-            Files.deleteIfExists(targetFile);
-            log.warning("Cleaned up file after failed upload: " + filename);
-        } catch (IOException e) {
-            log.severe("Failed to clean up file: " + filename);
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, targetFile, StandardCopyOption.REPLACE_EXISTING);
+            log.info("Successfully copied file: " + originalFilename + " to " + targetFile);
         }
     }
 
-    public boolean deleteByFileName(String fileName) throws IOException {
-        Path path = baseStoragePath.resolve(fileName).normalize();
-        System.out.println("Deleting file at path: " + path);
-        return Files.deleteIfExists(path);
-    }
-    public String updateFileName(String fileName, Integer id, Integer order) throws IOException {
-        if (fileName == null || fileName.isEmpty()) {
-            throw new IllegalArgumentException("File is empty or null");
-        }
-
-        String newFileName = formatFileName(id, order, fileName);
-
-        System.out.println("originalFileName: " + fileName);
-        System.out.println("newFileName: " + newFileName);
-
-        Path oldFilePath = baseStoragePath.resolve(fileName).normalize();
-        if (!Files.exists(oldFilePath)) {
-            throw new IOException("File not found: " + oldFilePath);
-        }
-
-        Path newFilePath = Path.of(fileStorageProperties.getUploadDir()).resolve(newFileName).normalize();
-
-        // ใช้ move แทน copy
-        Files.move(oldFilePath, newFilePath, StandardCopyOption.REPLACE_EXISTING);
-
-        return newFileName;
+    /**
+     * Generate file URL for frontend access
+     * @param fileName the filename
+     * @return complete URL to access the file
+     */
+    public String generateFileUrl(String fileName) {
+        return baseUrl + fileName;
     }
 
+    /**
+     * Get all image URLs for a sale item
+     * @param saleItemId the sale item ID
+     * @return list of image URLs sorted by order
+     */
+    public List<String> getImageUrls(Integer saleItemId) {
+        return saleItemImageRepository.findAllBySaleItemId(saleItemId)
+                .stream()
+                .sorted(Comparator.comparingInt(SaleItemImage::getImageViewOrder))
+                .map(img -> generateFileUrl(img.getFileName()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Image metadata for JSON serialization
+     */
+    public static class ImageMetadata {
+        private String fileName;
+        private Integer order;
+        private Instant createdOn;
+        private Instant updatedOn;
+
+        public ImageMetadata() {}
+
+        public ImageMetadata(String fileName, Integer order,
+                             Instant createdOn, Instant updatedOn) {
+            this.fileName = fileName;
+            this.order = order;
+            this.createdOn = createdOn;
+            this.updatedOn = updatedOn;
+        }
+
+        // Getters and setters
+        public String getFileName() { return fileName; }
+        public void setFileName(String fileName) { this.fileName = fileName; }
+
+        public Integer getOrder() { return order; }
+        public void setOrder(Integer order) { this.order = order; }
+
+        public Instant getCreatedOn() { return createdOn; }
+        public void setCreatedOn(Instant createdOn) { this.createdOn = createdOn; }
+
+        public Instant getUpdatedOn() { return updatedOn; }
+        public void setUpdatedOn(Instant updatedOn) { this.updatedOn = updatedOn; }
+    }
 }
