@@ -1,13 +1,20 @@
 package sit.int204.mobileshop.controllers;
 
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
+import java.io.IOException;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -16,13 +23,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import sit.int204.mobileshop.dtos.RegisterUserDto;
 import sit.int204.mobileshop.dtos.UserResponseDto;
-import sit.int204.mobileshop.entities.User;
 import sit.int204.mobileshop.services.UserService;
-
-import java.io.IOException;
-import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "${app.origins}")
@@ -68,7 +73,7 @@ public class UserController {
             HttpServletResponse response) throws IOException {
 
         Map<String, Object> result = userService.verifyEmail(token).getBody();
-        String redirectUrl = env.getProperty("app.frontend.redirect");
+        String redirectUrl = env.getProperty("http://intproj24.sit.kmutt.ac.th/kk1/");
             response.sendRedirect(redirectUrl + "sale-items?status=verified");
             System.out.println(redirectUrl + "sale-items");
         return ResponseEntity.ok(result);
