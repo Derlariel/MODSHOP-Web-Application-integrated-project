@@ -100,6 +100,7 @@ public class FileService {
 
         // If old and new filenames are the same, no need to rename
         if (oldFileName.equals(newFileName)) {
+            log.info("No rename needed: " + oldFileName);
             return newFileName;
         }
 
@@ -112,18 +113,40 @@ public class FileService {
             throw new IOException("Old file does not exist: " + oldFileName);
         }
 
-        // Check if new filename already exists (should not happen with proper order management)
+        // ✅ Check if target exists and handle it properly
         if (Files.exists(newFilePath)) {
-            throw new IOException("Target file already exists: " + newFileName);
+            log.warning("Target file exists, will be replaced: " + newFileName);
+
+            // Optional: backup the existing file first
+            Path backupPath = Paths.get(fileStorageProperties.getUploadDir(),
+                    newFileName + ".backup." + System.currentTimeMillis());
+            try {
+                Files.copy(newFilePath, backupPath);
+                log.info("Backed up existing file: " + newFileName + " to " + backupPath.getFileName());
+            } catch (IOException e) {
+                log.warning("Failed to backup existing file: " + e.getMessage());
+            }
         }
 
-        // Rename the file
+        // Rename the file with REPLACE_EXISTING
         try {
-            Files.move(oldFilePath, newFilePath);
-            log.info("Renamed file from " + oldFileName + " to " + newFileName);
+            Files.move(oldFilePath, newFilePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // ✅ Verify the rename was successful
+            if (!Files.exists(newFilePath)) {
+                throw new IOException("Rename appeared successful but target file does not exist");
+            }
+
+            log.info("Successfully renamed file from " + oldFileName + " to " + newFileName);
             return newFileName;
+
         } catch (IOException e) {
             log.severe("Failed to rename file from " + oldFileName + " to " + newFileName + ": " + e.getMessage());
+
+            // ✅ Try to verify what happened to the files
+            log.info("Post-error file status - Old exists: " + Files.exists(oldFilePath) +
+                    ", New exists: " + Files.exists(newFilePath));
+
             throw new IOException("Failed to rename file: " + e.getMessage(), e);
         }
     }
