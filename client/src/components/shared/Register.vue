@@ -174,8 +174,11 @@ function trimAndValidateField(name) {
   if (typeof form[name] === 'string') {
     let trimmedValue = form[name];
     
+    
     // Special handling for different fields
     if (name === 'mobile') {
+
+      
       // Remove dashes and trim
       trimmedValue = trimmedValue.trim().replace(/-/g, '');
     } else if (name === 'fullName' || name === 'bankName') {
@@ -324,12 +327,13 @@ async function onSubmit() {
         <BaseInput
           v-model="form.email"
           label="Email"
-          type="email"
+          type="text"
           placeholder="you@example.com"
           required
           cypress="email"
           :error="errors.email"
-          @trim="() => validateField('email')"
+          sanitize="email"
+          @trim="trimAndValidateField('email')"
         />
 
         <div class="space-y-1">
