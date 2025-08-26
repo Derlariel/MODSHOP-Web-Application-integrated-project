@@ -73,9 +73,8 @@ public class UserController {
             HttpServletResponse response) throws IOException {
 
         Map<String, Object> result = userService.verifyEmail(token).getBody();
-        String redirectUrl = env.getProperty("http://intproj24.sit.kmutt.ac.th/kk1/");
-            response.sendRedirect(redirectUrl + "sale-items?status=verified");
-            System.out.println(redirectUrl + "sale-items");
+            response.sendRedirect("http://intproj24.sit.kmutt.ac.th/kk1/sale-items?status=verified");
+           
         return ResponseEntity.ok(result);
     }
 
