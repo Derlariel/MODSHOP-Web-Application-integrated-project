@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import sit.int204.mobileshop.dtos.AuthRequestDto;
 import sit.int204.mobileshop.dtos.RegisterUserDto;
 import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.entities.User;
@@ -51,6 +52,16 @@ public class UserController {
             @Valid @ModelAttribute RegisterUserDto dto) {
         UserResponseDto response = userService.register(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/authentications")
+    public ResponseEntity<?> authenticate(@RequestBody AuthRequestDto req) {
+        boolean ok = userService.authenticate(
+                req.getEmail() == null ? null : req.getEmail().trim(),
+                req.getPassword()
+        );
+        if (ok) return ResponseEntity.ok().build();        // 200
+        return ResponseEntity.status(401).build();         // 401
     }
 
     @Operation(summary = "Verify email", description = "Verify user email using verification token")
