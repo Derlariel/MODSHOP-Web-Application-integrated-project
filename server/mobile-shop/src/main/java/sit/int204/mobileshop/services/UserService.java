@@ -7,6 +7,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sit.int204.mobileshop.dtos.RegisterUserDto;
@@ -34,6 +35,7 @@ public class UserService {
     private final MailService mailService;
     private final JwtService jwtService;
     private final FileService fileService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserService(UserRepository userRepository,
@@ -41,13 +43,16 @@ public class UserService {
                        ModelMapper modelMapper,
                        MailService mailService,
                        JwtService jwtService,
-                       FileService fileService) {
+                       FileService fileService,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.sellerRepository = sellerRepository;
         this.modelMapper = modelMapper;
         this.mailService = mailService;
         this.jwtService = jwtService;
         this.fileService = fileService;
+        this.passwordEncoder = passwordEncoder;
+
     }
 
     @Transactional
@@ -75,6 +80,8 @@ public class UserService {
         }
     }
 
+
+
     private void validateEmailUniqueness(String email) {
         if (userRepository.existsByEmail(email)) {
             throw new EmailAlreadyExistsException("Email address is already registered");
@@ -92,8 +99,8 @@ public class UserService {
         User user = new User();
 
         user.setNickname(dto.getNickname());
-        user.setEmail(dto.getEmail());
-        user.setPasswordHash(dto.getPassword());
+        user.setEmail(dto.getEmail().trim().toLowerCase());
+        user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         user.setFullname(dto.getFullname());
         user.setRole(dto.getRole());
         user.setStatus(UserStatus.INACTIVE.name());
@@ -104,6 +111,16 @@ public class UserService {
 
         return userRepository.save(user);
     }
+
+    @Transactional(readOnly = true)
+    public boolean authenticate(String email, String rawPassword) {
+        String trimmedEmail = email == null ? null : email.trim();
+        Optional<User> userOpt = userRepository.findByEmail(trimmedEmail);
+        if (userOpt.isEmpty()) return false;
+        User u = userOpt.get();
+        return passwordEncoder.matches(rawPassword, u.getPasswordHash());
+    }
+
 
     private void handleSellerFileUploads(RegisterUserDto dto) throws IOException {
         if (dto.getNationalIdPhotoFront() != null && !dto.getNationalIdPhotoFront().isEmpty()) {
