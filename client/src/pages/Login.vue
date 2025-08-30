@@ -23,11 +23,11 @@ const validate = () => {
   return valid;
 };
 const canSubmit = computed(() => {
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value) && 
-                     email.value.length <= 50;
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value) &&
+    email.value.length <= 50;
   const passwordNotEmpty = password.value && password.value.length > 0;
-  
-  return emailValid || passwordNotEmpty; 
+
+  return emailValid || passwordNotEmpty;
 });
 
 const authStore = useAuthStore();
@@ -63,66 +63,38 @@ const handleCancel = () => {
     <div class="max-w-md w-full space-y-8">
       <h2 class="text-3xl font-bold text-white text-center">Login</h2>
 
-      <BaseInput
-        v-model="email"
-        label="Email"
-        type="email"
-        required
-        placeholder="you@example.com"
-        cypress="email-input"
-        :error="errors.email"
-        :maxInput="50"
-      />
+      <BaseInput v-model="email" label="Email" type="email" required placeholder="you@example.com" cypress="email-input"
+        :error="errors.email" :maxInput="50" />
 
-      <BaseInput
-        v-model="password"
-        label="Password"
-        type="password"
-        required
-        placeholder="********"
-        cypress="password-input"
-        :error="errors.password"
-        :maxInput="14"
-      />
+      <BaseInput v-model="password" label="Password" type="password" required placeholder="********"
+        cypress="password-input" :error="errors.password" :maxInput="14" />
       <p v-if="errors.server" class="text-sm text-red-500 text-center">
         {{ errors.server }}
       </p>
 
       <div class="flex space-x-3 pt-4">
-        <BaseInput
-          isButton
-          buttonText="Sign In"
-          type="button"
-          variant="primary"
-          cypress="login-submit"
-          :disabled="!canSubmit || authStore.isSubmitting"
-          @click="handleSubmit"
-        />
+        <BaseInput isButton buttonText="Sign In" type="button" variant="primary" cypress="login-submit"
+          :disabled="!canSubmit || authStore.isSubmitting" @click="handleSubmit" />
 
-        <BaseInput
-          isButton
-          buttonText="Cancel"
-          type="button"
-          variant="secondary"
-          cypress="login-cancel"
-          @click="handleCancel"
-        />
+        <BaseInput isButton buttonText="Cancel" type="button" variant="secondary" cypress="login-cancel"
+          @click="handleCancel" />
       </div>
 
-      <p class="text-xs text-gray-400 text-center">
-        By logging in, you agree to our
-        <a href="#" class="underline">terms & conditions</a>.
-      </p>
-      
+
+
       <!-- Sign up link -->
       <div class="text-center mt-6">
         <p class="text-sm text-gray-400">
-          No account? 
+          No account?
           <router-link to="/register" class="text-white hover:text-blue-400 underline font-medium">
             Sign up
           </router-link>
         </p>
       </div>
+      <p class="text-xs text-gray-400 text-center">
+        By logging in, you agree to our
+        <a href="#" class="underline">terms & conditions</a>.
+      </p>
     </div>
   </div>
 </template>
