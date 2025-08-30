@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sit.int204.mobileshop.dtos.AuthResponseDto;
 import sit.int204.mobileshop.dtos.RegisterUserDto;
 import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.entities.Seller;
@@ -118,6 +119,52 @@ public class UserService {
         if (userOpt.isEmpty()) return false;
         User u = userOpt.get();
         return passwordEncoder.matches(rawPassword, u.getPasswordHash());
+    }
+
+    @Transactional(readOnly = true)
+    public AuthResponseDto authenticateWithJwt(String email, String rawPassword) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return null; // User not found
+        }
+        
+        User user = userOpt.get();
+        
+        // Check password
+        if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+            return null; // Invalid password
+        }
+        
+        // Check if user is active
+        if (!"ACTIVE".equals(user.getStatus())) {
+            // Return empty response for inactive user (should result in 403)
+            return AuthResponseDto.builder().build();
+        }
+        
+        // Generate tokens
+        String accessToken = jwtService.generateAccessToken(
+            user.getId(),
+            user.getEmail(),
+            user.getNickname(),
+            user.getRole()
+        );
+        
+        String refreshToken = jwtService.generateRefreshToken(
+            user.getId(),
+            user.getEmail()
+        );
+        
+        // Create response
+        return AuthResponseDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(30 * 60L) // 30 minutes in seconds
+                .nickname(user.getNickname())
+                .userId(user.getId())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build();
     }
 
 

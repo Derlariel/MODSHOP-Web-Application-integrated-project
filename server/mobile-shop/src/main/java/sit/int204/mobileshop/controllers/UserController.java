@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import sit.int204.mobileshop.dtos.AuthRequestDto;
+import sit.int204.mobileshop.dtos.AuthResponseDto;
 import sit.int204.mobileshop.dtos.RegisterUserDto;
 import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.services.UserService;
@@ -57,13 +58,30 @@ public class UserController {
         }
 
         @PostMapping("/authentications")
-        public ResponseEntity<?> authenticate(@Valid @RequestBody AuthRequestDto req) {
-                boolean ok = userService.authenticate(
+        @Operation(summary = "Authenticate user", description = "Authenticate user and return JWT tokens")
+        @ApiResponses({
+                @ApiResponse(responseCode = "200", description = "Authentication successful", 
+                           content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+                @ApiResponse(responseCode = "401", description = "Invalid credentials", content = @Content),
+                @ApiResponse(responseCode = "403", description = "Account not activated", content = @Content)
+        })
+        public ResponseEntity<AuthResponseDto> authenticate(@Valid @RequestBody AuthRequestDto req) {
+                AuthResponseDto authResponse = userService.authenticateWithJwt(
                                 req.getEmail(),
                                 req.getPassword());
-                if (ok)
-                        return ResponseEntity.ok().build(); // 200
-                return ResponseEntity.status(401).build(); // 401 for wrong credentials
+                
+                if (authResponse == null) {
+                        // Invalid credentials
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // 401
+                }
+                
+                if (authResponse.getAccessToken() == null) {
+                        // Account not activated
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // 403
+                }
+                
+                // Authentication successful
+                return ResponseEntity.ok(authResponse); // 200
         }
 
         @Operation(summary = "Verify email", description = "Verify user email using verification token")
