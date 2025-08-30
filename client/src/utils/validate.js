@@ -45,6 +45,33 @@ export const validatePositiveInteger = data => {
   };
 };
 
+export function validateEmailPassword({ email, password }) {
+  const errors = { email: "", password: "" };
+  let valid = true;
+
+  if (!email) {
+    errors.email = "Email is required.";
+    valid = false;
+  } else if (email.length > 50) {
+    errors.email = "Email must not exceed 50 characters.";
+    valid = false;
+  } else if (!/\S+@\S+\.\S+/.test(email)) {
+    errors.email = "Invalid email format.";
+    valid = false;
+  }
+
+  if (!password) {
+    errors.password = "Password is required.";
+    valid = false;
+  } else if (password.length > 14) {
+    errors.password = "Password must not exceed 14 characters.";
+    valid = false;
+  }
+
+  return { valid, errors };
+}
+
+
 export const validateNoWhitespace = data => {
   const valid = !/\s/.test (data);
   return {valid, message: valid ? null : 'Must not contain whitespace'};
