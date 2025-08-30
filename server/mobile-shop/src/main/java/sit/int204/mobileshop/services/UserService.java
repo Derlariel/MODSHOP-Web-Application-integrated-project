@@ -114,8 +114,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public boolean authenticate(String email, String rawPassword) {
-        String trimmedEmail = email == null ? null : email.trim();
-        Optional<User> userOpt = userRepository.findByEmail(trimmedEmail);
+        Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) return false;
         User u = userOpt.get();
         return passwordEncoder.matches(rawPassword, u.getPasswordHash());

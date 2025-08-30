@@ -33,8 +33,6 @@ export const useAuthStore = defineStore("auth", {
  async login({ email, password }) {
       this.isSubmitting = true;
       try {
-        const { valid } = validateEmailPassword({ email, password });
-        if (!valid) throw new Error("Email or Password is incorrect.");
         console.log("Sending login request...");
         const res = await axios.post(
           `${BASE_URL}/v2/users/authentications`,
@@ -49,8 +47,14 @@ export const useAuthStore = defineStore("auth", {
           this.user = res.data;
           return res.data;
         }
-
-        throw new Error(res.status === 400 || res.status === 401 ? "Email or Password is incorrect." : "Please try again later.");
+        
+        // Handle specific status codes according to PBI-22 requirements
+        if (res.status === 400 || res.status === 401) {
+          throw new Error("Email or Password is incorrect.");
+        }
+        
+        // Any other status code
+        throw new Error("There is a problem. Please try again later.");
       } finally {
         this.isSubmitting = false;
       }

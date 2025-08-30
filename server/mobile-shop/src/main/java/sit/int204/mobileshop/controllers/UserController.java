@@ -67,7 +67,7 @@ public class UserController {
                 req.getPassword()
         );
         if (ok) return ResponseEntity.ok().build();        // 200
-        return ResponseEntity.status(401).build();         // 401
+        return ResponseEntity.status(401).build();         // 401 for wrong credentials
     }
 
     @Operation(summary = "Verify email", description = "Verify user email using verification token")

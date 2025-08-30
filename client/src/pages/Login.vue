@@ -23,18 +23,21 @@ const validate = () => {
   return valid;
 };
 const canSubmit = computed(() => {
-  return (
-    /\S+@\S+\.\S+/.test(email.value) &&
-    email.value.length <= 50 &&
-    password.value &&
-    password.value.length <= 14
-  );
+  // Enable button if email follows standard format OR password is NOT empty (as per requirement 5.1)
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value) && 
+                     email.value.length <= 50;
+  const passwordNotEmpty = password.value && password.value.length > 0;
+  
+  return emailValid || passwordNotEmpty; // OR condition as per requirement
 });
 
 const authStore = useAuthStore();
 
 const handleSubmit = async () => {
-  if (!validate()) return;
+  // Clear previous server errors
+  errors.value.server = "";
+  errors.value.email = "";
+  errors.value.password = "";
 
   try {
     await authStore.login({
@@ -69,7 +72,6 @@ const handleCancel = () => {
         placeholder="you@example.com"
         cypress="email-input"
         :error="errors.email"
-        sanitize="email"
         :maxInput="50"
       />
 

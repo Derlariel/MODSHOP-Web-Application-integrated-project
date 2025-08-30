@@ -66,18 +66,18 @@ const toggleMobileMenu = () => {
           <!-- Uncomment the following lines if you want to display text next to icons -->
           <!-- <h1 class="font-bold text-md">Wishlist</h1> -->
           <!-- <component  :is="User" class="w-5 h-5" /> -->
-<button
-  class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md 
-         hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 
-         hover:text-white hover:shadow-xl hover:scale-105 
-         transition-all duration-300 ease-out"
->
-  
-<router-link to="/register">Register</router-link>
+          <button
+            class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md 
+                   hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 
+                   hover:text-white hover:shadow-xl hover:scale-105 
+                   transition-all duration-300 ease-out"
+          >
+            <router-link to="/register">Register</router-link>
+          </button>
 
-</button>
-
-          <button class="font-bold text-md">Signin</button>
+          <button class="font-bold text-md">
+            <router-link to="/signin">Signin</router-link>
+          </button>
         </div>
       </div>
 
