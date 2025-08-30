@@ -23,12 +23,11 @@ const validate = () => {
   return valid;
 };
 const canSubmit = computed(() => {
-  // Enable button if email follows standard format OR password is NOT empty (as per requirement 5.1)
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value) && 
                      email.value.length <= 50;
   const passwordNotEmpty = password.value && password.value.length > 0;
   
-  return emailValid || passwordNotEmpty; // OR condition as per requirement
+  return emailValid || passwordNotEmpty; 
 });
 
 const authStore = useAuthStore();
@@ -55,7 +54,7 @@ const handleCancel = () => {
   email.value = "";
   password.value = "";
   errors.value = { email: "", password: "", server: "" };
-  router.back();
+  router.push("/sale-items");
 };
 </script>
 
@@ -114,6 +113,16 @@ const handleCancel = () => {
         By logging in, you agree to our
         <a href="#" class="underline">terms & conditions</a>.
       </p>
+      
+      <!-- Sign up link -->
+      <div class="text-center mt-6">
+        <p class="text-sm text-gray-400">
+          No account? 
+          <router-link to="/register" class="text-white hover:text-blue-400 underline font-medium">
+            Sign up
+          </router-link>
+        </p>
+      </div>
     </div>
   </div>
 </template>

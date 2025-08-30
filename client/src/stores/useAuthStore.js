@@ -48,12 +48,10 @@ export const useAuthStore = defineStore("auth", {
           return res.data;
         }
         
-        // Handle specific status codes according to PBI-22 requirements
         if (res.status === 400 || res.status === 401) {
           throw new Error("Email or Password is incorrect.");
         }
         
-        // Any other status code
         throw new Error("There is a problem. Please try again later.");
       } finally {
         this.isSubmitting = false;
