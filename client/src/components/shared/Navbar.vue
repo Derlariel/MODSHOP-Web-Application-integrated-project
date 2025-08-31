@@ -1,13 +1,19 @@
 <script setup>
 import { Heart, ShoppingCart, User, Menu } from "lucide-vue-next";
 import { useRoute } from "vue-router";
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 const route = useRoute();
 const isMobileMenuOpen = ref(false);
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
+
+const auth = useAuthStore();
+const greeting = computed(() => {
+  return auth.isAuthenticated ? `Hi, ${auth.nickname}` : "Sign in";
+});
 </script>
 
 <template>
@@ -61,22 +67,28 @@ const toggleMobileMenu = () => {
       <div class="hidden lg:flex text-white items-center space-x-4">
         <Heart class="w-5 h-5 cursor-pointer hover:text-white" />
         <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
-        <div class="cursor-pointer flex items-center space-x-2">
-          <User class="w-5 h-5 cursor-pointer hover:text-white" />
-          <!-- Uncomment the following lines if you want to display text next to icons -->
-          <!-- <h1 class="font-bold text-md">Wishlist</h1> -->
-          <!-- <component  :is="User" class="w-5 h-5" /> -->
-          <button
-            class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md 
-                   hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 
-                   hover:text-white hover:shadow-xl hover:scale-105 
-                   transition-all duration-300 ease-out"
-          >
-            <router-link to="/register">Sign up</router-link>
-          </button>
+        <router-link
+          v-if="!auth.isAuthenticated"
+          to="/register"
+          class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
+        >
+          Register
+        </router-link>
 
-          <button class="font-bold text-md">
-            <router-link to="/signin">Login</router-link>
+        <div class="flex items-center gap-4">
+          <span v-if="auth.isAuthenticated">{{ greeting }}</span>
+          <router-link to="/login" v-else 
+          class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md 
+             hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 
+             hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
+            >Sign in</router-link
+          >
+          <button
+            v-if="auth.isAuthenticated"
+            @click="auth.logout()"
+            class="text-sm opacity-70 hover:opacity-100"
+          >
+            Logout
           </button>
         </div>
       </div>
@@ -108,12 +120,31 @@ const toggleMobileMenu = () => {
       <router-link to="/about" class="block hover:text-blue-400"
         >About</router-link
       >
-      <router-link to="/register" class="block hover:text-blue-400"
-        >Sign up</router-link
+
+      <router-link
+        v-if="!auth.isAuthenticated"
+        to="/register"
+        class="block font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
       >
-      <router-link to="/signin" class="block hover:text-blue-400"
-        >Login</router-link
-      >
+        Register
+      </router-link>
+
+      <div class="flex items-center gap-4">
+        <span v-if="auth.isAuthenticated">{{ greeting }}</span>
+        <router-link to="/login" v-else 
+        class="block font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md 
+           hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 
+           hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
+  >
+        >Sign in</router-link>
+        <button
+          v-if="auth.isAuthenticated"
+          @click="auth.logout()"
+          class="text-sm opacity-70 hover:opacity-100"
+        >
+          Logout
+        </button>
+      </div>
     </div>
   </nav>
 </template>
