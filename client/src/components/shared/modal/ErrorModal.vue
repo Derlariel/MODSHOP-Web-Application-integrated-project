@@ -5,7 +5,7 @@ defineProps({
   visible: Boolean,
   message: {
     type: String,
-    default: "An error occurred. Please try again later."
+    default: "An error occurred. You need to activate your account before signing in."
   }
 });
 </script>
