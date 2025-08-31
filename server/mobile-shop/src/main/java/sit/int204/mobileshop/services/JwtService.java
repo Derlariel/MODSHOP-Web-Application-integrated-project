@@ -23,7 +23,7 @@ import java.util.Date;
 public class JwtService {
 
     @Value("${app.jwt.verification.expiration-hours:1}")
-    private int verificationTokenExpirationHours;
+     private int verificationTokenExpirationHours;
 
     @Value("${app.jwt.issuer:itb-mshop}")
     private String issuer;
@@ -116,5 +116,112 @@ public class JwtService {
     public String getEmailFromToken(String token) throws ParseException, JOSEException {
         JWTClaimsSet claimsSet = validateVerificationToken(token);
         return claimsSet.getStringClaim("email");
+    }
+
+    // Authentication token methods
+    public String generateAccessToken(Long userId, String email, String nickname, String role) {
+        try {
+            Instant now = Instant.now();
+            Instant expiration = now.plusSeconds(30 * 60); // 30 minutes
+
+            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                    .subject(userId.toString())
+                    .issuer(issuer)
+                    .audience("authentication")
+                    .claim("id", userId)
+                    .claim("email", email)
+                    .claim("nickname", nickname)
+                    .claim("role", role)
+                    .claim("type", "access_token")
+                    .issueTime(Date.from(now))
+                    .expirationTime(Date.from(expiration))
+                    .jwtID(java.util.UUID.randomUUID().toString())
+                    .build();
+
+            SignedJWT signedJWT = new SignedJWT(
+                    new JWSHeader.Builder(JWSAlgorithm.RS256)
+                            .keyID(rsaKey.getKeyID())
+                            .build(),
+                    claimsSet
+            );
+
+            signedJWT.sign(signer);
+            return signedJWT.serialize();
+
+        } catch (Exception e) {
+            log.error("Failed to generate access token", e);
+            throw new RuntimeException("Failed to generate access token", e);
+        }
+    }
+
+    public String generateRefreshToken(Long userId, String email) {
+        try {
+            Instant now = Instant.now();
+            Instant expiration = now.plusSeconds(24 * 60 * 60); // 24 hours
+
+            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                    .subject(userId.toString())
+                    .issuer(issuer)
+                    .audience("refresh")
+                    .claim("id", userId)
+                    .claim("email", email)
+                    .claim("type", "refresh_token")
+                    .issueTime(Date.from(now))
+                    .expirationTime(Date.from(expiration))
+                    .jwtID(java.util.UUID.randomUUID().toString())
+                    .build();
+
+            SignedJWT signedJWT = new SignedJWT(
+                    new JWSHeader.Builder(JWSAlgorithm.RS256)
+                            .keyID(rsaKey.getKeyID())
+                            .build(),
+                    claimsSet
+            );
+
+            signedJWT.sign(signer);
+            return signedJWT.serialize();
+
+        } catch (Exception e) {
+            log.error("Failed to generate refresh token", e);
+            throw new RuntimeException("Failed to generate refresh token", e);
+        }
+    }
+
+    public JWTClaimsSet validateAccessToken(String token) throws ParseException, JOSEException {
+        return validateAuthToken(token, "access_token");
+    }
+
+    public JWTClaimsSet validateRefreshToken(String token) throws ParseException, JOSEException {
+        return validateAuthToken(token, "refresh_token");
+    }
+
+    private JWTClaimsSet validateAuthToken(String token, String expectedType) throws ParseException, JOSEException {
+        SignedJWT signedJWT = SignedJWT.parse(token);
+
+        // Verify signature
+        if (!signedJWT.verify(verifier)) {
+            throw new JOSEException("Invalid token signature");
+        }
+
+        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+
+        // Check expiration
+        Date expirationTime = claimsSet.getExpirationTime();
+        if (expirationTime == null || expirationTime.before(new Date())) {
+            throw new JOSEException("Token has expired");
+        }
+
+        // Check token type
+        String tokenType = claimsSet.getStringClaim("type");
+        if (!expectedType.equals(tokenType)) {
+            throw new JOSEException("Invalid token type");
+        }
+
+        // Check issuer
+        if (!issuer.equals(claimsSet.getIssuer())) {
+            throw new JOSEException("Invalid token issuer");
+        }
+
+        return claimsSet;
     }
 }
