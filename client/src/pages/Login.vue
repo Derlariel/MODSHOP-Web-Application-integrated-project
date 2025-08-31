@@ -60,7 +60,7 @@ const handleCancel = () => {
 
 <template>
   <div class="min-h-screen flex items-center justify-center bg-black px-4">
-    <div class="max-w-md w-full space-y-8">
+    <div class="max-w-md w-full space-y-4">
       <h2 class="text-3xl font-bold text-white text-center">Login</h2>
 
       <BaseInput v-model="email" label="Email" type="email" required placeholder="you@example.com" cypress="email-input"
@@ -68,18 +68,18 @@ const handleCancel = () => {
 
       <BaseInput v-model="password" label="Password" type="password" required placeholder="********"
         cypress="password-input" :error="errors.password" :maxInput="14" />
-      <p v-if="errors.server" class="text-sm text-red-500 text-center">
-        {{ errors.server }}
-      </p>
 
-      <div class="flex space-x-3 pt-4">
-        <BaseInput isButton buttonText="Sign In" type="button" variant="primary" cypress="login-submit"
+
+      <div class="flex space-x-3 py-2">
+        <BaseInput isButton buttonText="Login" type="button" variant="primary" cypress="login-submit"
           :disabled="!canSubmit || authStore.isSubmitting" @click="handleSubmit" />
 
         <BaseInput isButton buttonText="Cancel" type="button" variant="secondary" cypress="login-cancel"
           @click="handleCancel" />
       </div>
-
+      <p v-if="errors.server" class="text-sm text-red-500 text-center">
+        {{ errors.server }}
+      </p>
 
 
       <!-- Sign up link -->

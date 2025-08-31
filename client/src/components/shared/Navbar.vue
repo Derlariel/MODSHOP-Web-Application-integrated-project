@@ -72,11 +72,11 @@ const toggleMobileMenu = () => {
                    hover:text-white hover:shadow-xl hover:scale-105 
                    transition-all duration-300 ease-out"
           >
-            <router-link to="/register">Register</router-link>
+            <router-link to="/register">Sign up</router-link>
           </button>
 
           <button class="font-bold text-md">
-            <router-link to="/signin">Signin</router-link>
+            <router-link to="/signin">Login</router-link>
           </button>
         </div>
       </div>
@@ -107,6 +107,12 @@ const toggleMobileMenu = () => {
       >
       <router-link to="/about" class="block hover:text-blue-400"
         >About</router-link
+      >
+      <router-link to="/register" class="block hover:text-blue-400"
+        >Sign up</router-link
+      >
+      <router-link to="/signin" class="block hover:text-blue-400"
+        >Login</router-link
       >
     </div>
   </nav>
