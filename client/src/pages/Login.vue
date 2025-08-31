@@ -10,53 +10,49 @@ const auth = useAuthStore();
 
 const email = ref("");
 const password = ref("");
+
+watch(email, (newValue) => {
+  if (newValue && newValue.length > 50) {
+    const emailMatch = newValue.match(/^(.*)(@.+)$/);
+    if (emailMatch) {
+      const [, localPart, domain] = emailMatch;
+      const excess = newValue.length - 50;
+      const trimmedLocal = localPart.substring(0, localPart.length - excess);
+      email.value = trimmedLocal + domain;
+    } else {
+      email.value = newValue.substring(0, 50);
+    }
+  }
+});
+
+watch(password, (newValue) => {
+  if (newValue && newValue.length > 14) {
+    password.value = newValue.substring(0, 14);
+  }
+});
+
 const errors = ref({ email: "", password: "", server: "" });
 
 watch([email, password], () => {
   errors.value.server = "";
-  errors.value.email = "";
-  errors.value.password = "";
 });
-
-function normalized() {
-  return {
-    email: String(email.value || "")
-      .trim()
-      .toLowerCase(),
-    password: String(password.value || ""),
-  };
-}
-
-function validate() {
-  const { email: e, password: p } = normalized();
-  const { valid, errors: fe } = validateEmailPassword({
-    email: e,
-    password: p,
-  });
-  errors.value.email = fe.email || "";
-  errors.value.password = fe.password || "";
-  return valid;
-}
 const canSubmit = computed(() => {
-  const emailTrim = String(email.value || "").trim().toLowerCase();
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim) && emailTrim.length <= 100;
-  const pwdValid = typeof password.value === "string" && password.value.length > 0;
-  return !auth.isSubmitting && emailValid && pwdValid;
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value);
+  const passwordNotEmpty = password.value && password.value.trim().length > 0;
+  
+  return !auth.isSubmitting && (emailValid || passwordNotEmpty);
 });
 
 
 async function handleSubmit() {
+  // Clear previous errors
   errors.value = { email: "", password: "", server: "" };
-  const { email: e, password: p } = normalized();
-  const { valid, errors: fe } = validateEmailPassword({ email: e, password: p });
-  if (!valid) {
-    errors.value.email = fe.email || "";
-    errors.value.password = fe.password || "";
-    return;
-  }
 
   try {
-    await auth.login({ email: e, password: p });
+    await auth.login({ 
+      email: email.value, 
+      password: password.value 
+    });
     router.replace("/sale-items");
   } catch (err) {
     errors.value.server = err?.message || "Email or Password is incorrect.";
