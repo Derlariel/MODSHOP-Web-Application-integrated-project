@@ -55,7 +55,7 @@ export function validateEmailPassword({ email, password }) {
   } else if (email.length > 50) {
     errors.email = "Email must not exceed 50 characters.";
     valid = false;
-  } else if (!/\S+@\S+\.\S+/.test(email)) {
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     errors.email = "Invalid email format.";
     valid = false;
   }

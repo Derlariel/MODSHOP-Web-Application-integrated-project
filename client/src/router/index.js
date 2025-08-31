@@ -28,6 +28,7 @@ const routes = [
   },
     { path: "/register", name: "Register", component: Register },
     {path: "/login", name: "Login", component: Login},
+    {path: "/signin", name: "SignIn", component: Login},
   {
     path: "/",
     component: DefaultLayout,

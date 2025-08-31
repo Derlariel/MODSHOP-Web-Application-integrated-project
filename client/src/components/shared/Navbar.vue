@@ -67,29 +67,29 @@ const greeting = computed(() => {
       <div class="hidden lg:flex text-white items-center space-x-4">
         <Heart class="w-5 h-5 cursor-pointer hover:text-white" />
         <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
-        <div class="cursor-pointer flex items-center space-x-2">
-          <User class="w-5 h-5 cursor-pointer hover:text-white" />
+        <router-link
+          v-if="!auth.isAuthenticated"
+          to="/register"
+          class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
+        >
+          Register
+        </router-link>
 
-          <router-link
-            to="/register"
-            class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
+        <div class="flex items-center gap-4">
+          <span v-if="auth.isAuthenticated">{{ greeting }}</span>
+          <router-link to="/login" v-else 
+          class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md 
+             hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 
+             hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
+            >Sign in</router-link
           >
-            Register
-          </router-link>
-
-          <div class="flex items-center gap-4">
-            <span v-if="auth.isAuthenticated">{{ greeting }}</span>
-            <router-link to="/login" v-else class="underline"
-              >Sign in</router-link
-            >
-            <button
-              v-if="auth.isAuthenticated"
-              @click="auth.logout()"
-              class="text-sm opacity-70 hover:opacity-100"
-            >
-              Logout
-            </button>
-          </div>
+          <button
+            v-if="auth.isAuthenticated"
+            @click="auth.logout()"
+            class="text-sm opacity-70 hover:opacity-100"
+          >
+            Logout
+          </button>
         </div>
       </div>
 
@@ -121,8 +121,8 @@ const greeting = computed(() => {
         >About</router-link
       >
 
-      <!-- เพิ่ม Register / Login ลงใน mobile -->
       <router-link
+        v-if="!auth.isAuthenticated"
         to="/register"
         class="block font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
       >
@@ -131,7 +131,12 @@ const greeting = computed(() => {
 
       <div class="flex items-center gap-4">
         <span v-if="auth.isAuthenticated">{{ greeting }}</span>
-        <router-link to="/login" v-else class="underline">Sign in</router-link>
+        <router-link to="/login" v-else 
+        class="block font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md 
+           hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 
+           hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
+  >
+        >Sign in</router-link>
         <button
           v-if="auth.isAuthenticated"
           @click="auth.logout()"

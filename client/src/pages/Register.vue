@@ -462,12 +462,22 @@ async function onSubmit() {
           cypress="cancel-button"
           buttonText="Cancel"
           variant="secondary"
-          @click="router.back()"
+          @click="router.push('/sale-items')"
         />
       </div>
       <p class="text-center text-gray-500 text-sm mt-4">
         By registering, you agree to our terms & conditions.
       </p>
+      
+      <!-- Login link -->
+      <div class="text-center mt-6">
+        <p class="text-sm text-gray-400">
+          Already a user? 
+          <router-link to="/signin" class="text-white hover:text-blue-400 underline font-medium">
+            Log in
+          </router-link>
+        </p>
+      </div>
     </div>
     
     <!-- Success modal -->

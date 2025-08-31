@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import sit.int204.mobileshop.dtos.AuthRequestDto;
+import sit.int204.mobileshop.dtos.AuthResponseDto;
 import sit.int204.mobileshop.dtos.RegisterUserDto;
 import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.services.UserService;
@@ -37,64 +38,73 @@ import sit.int204.mobileshop.services.UserService;
 @Tag(name = "User API", description = "API for user registration and email verification")
 public class UserController {
 
-    @Autowired
-    private Environment env;
+        @Autowired
+        private Environment env;
 
-    @Autowired
-    private UserService userService;
+        @Autowired
+        private UserService userService;
 
-    @Operation(summary = "Register user", description = "Register a new buyer or seller account with file upload support")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "User registered successfully",
-                    content = @Content(schema = @Schema(implementation = UserResponseDto.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid input data or validation error",
-                    content = @Content),
-            @ApiResponse(responseCode = "409", description = "Email already exists",
-                    content = @Content)
-    })
-    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserResponseDto> register(
-            @Parameter(description = "User registration form data", required = true)
-            @Valid @ModelAttribute RegisterUserDto dto) {
-        UserResponseDto response = userService.register(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
+        @Operation(summary = "Register user", description = "Register a new buyer or seller account with file upload support")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "201", description = "User registered successfully", content = @Content(schema = @Schema(implementation = UserResponseDto.class))),
+                        @ApiResponse(responseCode = "400", description = "Invalid input data or validation error", content = @Content),
+                        @ApiResponse(responseCode = "409", description = "Email already exists", content = @Content)
+        })
+        @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        public ResponseEntity<UserResponseDto> register(
+                        @Parameter(description = "User registration form data", required = true) @Valid @ModelAttribute RegisterUserDto dto) {
+                UserResponseDto response = userService.register(dto);
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        }
 
-    @PostMapping("/authentications")
-    public ResponseEntity<?> authenticate(@Valid @RequestBody AuthRequestDto req) {
-        boolean ok = userService.authenticate(
-                req.getEmail(),
-                req.getPassword()
-        );
-        if (ok) return ResponseEntity.ok().build();        // 200
-        return ResponseEntity.status(401).build();         // 401
-    }
+        @PostMapping("/authentications")
+        @Operation(summary = "Authenticate user", description = "Authenticate user and return JWT tokens")
+        @ApiResponses({
+                @ApiResponse(responseCode = "200", description = "Authentication successful", 
+                           content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+                @ApiResponse(responseCode = "401", description = "Invalid credentials", content = @Content),
+                @ApiResponse(responseCode = "403", description = "Account not activated", content = @Content)
+        })
+        public ResponseEntity<AuthResponseDto> authenticate(@Valid @RequestBody AuthRequestDto req) {
+                AuthResponseDto authResponse = userService.authenticateWithJwt(
+                                req.getEmail(),
+                                req.getPassword());
+                
+                if (authResponse == null) {
+                        // Invalid credentials
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // 401
+                }
+                
+                if (authResponse.getAccessToken() == null) {
+                        // Account not activated
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // 403
+                }
+                
+                // Authentication successful
+                return ResponseEntity.ok(authResponse); // 200
+        }
 
-    @Operation(summary = "Verify email", description = "Verify user email using verification token")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Email verified successfully",
-                    content = @Content),
-            @ApiResponse(responseCode = "400", description = "Invalid or expired token",
-                    content = @Content),
-            @ApiResponse(responseCode = "409", description = "Email already verified",
-                    content = @Content)
-    })
-    @GetMapping("/verify-email")
-    public ResponseEntity<Map<String, Object>> verifyEmail(
-            @RequestParam("token") String token,
-            HttpServletResponse response) throws IOException {
-// <<<<<<< Updated upstream
+        @Operation(summary = "Verify email", description = "Verify user email using verification token")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Email verified successfully", content = @Content),
+                        @ApiResponse(responseCode = "400", description = "Invalid or expired token", content = @Content),
+                        @ApiResponse(responseCode = "409", description = "Email already verified", content = @Content)
+        })
+        @GetMapping("/verify-email")
+        public ResponseEntity<Map<String, Object>> verifyEmail(
+                        @RequestParam("token") String token,
+                        HttpServletResponse response) throws IOException {
+                // <<<<<<< Updated upstream
 
-        // Map<String, Object> result = userService.verifyEmail(token).getBody();
-        // String redirectUrl = env.getProperty("app.frontend.redirect");
-        //     response.sendRedirect(redirectUrl + "sale-items?status=verified");
-        //     System.out.println(redirectUrl + "sale-items");
-// =======
+                // Map<String, Object> result = userService.verifyEmail(token).getBody();
+                // String redirectUrl = env.getProperty("app.frontend.redirect");
+                // response.sendRedirect(redirectUrl + "sale-items?status=verified");
+                // System.out.println(redirectUrl + "sale-items");
+                // =======
                 Map<String, Object> result = userService.verifyEmail(token).getBody();
-            response.sendRedirect("http://intproj24.sit.kmutt.ac.th/kk1/sale-items?status=verified");
-// >>>>>>> Stashed changes
-        return ResponseEntity.ok(result);
-    }
-
+                response.sendRedirect("http://intproj24.sit.kmutt.ac.th/kk1/sale-items?status=verified");
+                // >>>>>>> Stashed changes
+                return ResponseEntity.ok(result);
+        }
 
 }

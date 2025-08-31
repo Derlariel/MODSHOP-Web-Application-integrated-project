@@ -8,8 +8,15 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 export const api = axios.create({ baseURL: BASE_URL });
 
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem("accessToken");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const url = config.url || "";
+  const skipAuth =
+    url.endsWith("/v2/users/authentications") ||
+    url.endsWith("/v2/users/register");
+
+  if (!skipAuth) {
+    const token = sessionStorage.getItem("accessToken");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
@@ -48,7 +55,6 @@ export const useAuthStore = defineStore("auth", {
     async login({ email, password }) {
       this.isSubmitting = true;
       try {
-        
         const { valid } = validateEmailPassword({ email, password });
         if (!valid) throw new Error("Email or Password is incorrect.");
 
@@ -60,29 +66,38 @@ export const useAuthStore = defineStore("auth", {
 
         console.log("login status:", res.status, "data:", res.data);
 
-        if (res.status !== 200 || !res.data?.accessToken) {
-          console.log("login status:", res.status, "data:", res.data);
+        const token = res.data?.accessToken || res.data?.access_token || null;
+        const refresh =
+          res.data?.refreshToken || res.data?.refresh_token || null;
+
+        if (res.status !== 200 || !token) {
           throw new Error(
             res.status === 400 || res.status === 401
               ? "Email or Password is incorrect."
-              : "Please try again later."
+              : "You need to activate your account before signing in."
           );
         }
 
-        const token = res.data.accessToken;
+        // decode เฉพาะ access token (หรือจะใช้ข้อมูล nickname/id จาก body ก็ได้)
         const claims = decodeJwt(token);
 
         this.token = token;
-        this.user = claims;
-        sessionStorage.setItem("accessToken", token);
-        sessionStorage.setItem("userClaims", JSON.stringify(claims));
+        this.user = {
+          ...claims,
+          nickname: claims.nickname ?? res.data.nickname ?? "",
+          id: claims.id ?? res.data.userId ?? res.data.id,
+          email: claims.email ?? res.data.email,
+          role: claims.role ?? res.data.role,
+        };
 
-        return claims;
+        sessionStorage.setItem("accessToken", token);
+        sessionStorage.setItem("userClaims", JSON.stringify(this.user));
+
+        return this.user;
       } finally {
         this.isSubmitting = false;
       }
     },
-
     logout() {
       this.token = null;
       this.user = null;
