@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import BaseInput from "@/components/shared/BaseInput.vue";
 import { validateEmailPassword } from "@/utils/validate";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -7,6 +7,20 @@ import router from "@/router";
 
 const email = ref("");
 const password = ref("");
+
+// Watch for changes and trim excess characters
+watch(email, (newValue) => {
+  if (newValue.length > 50) {
+    email.value = newValue.substring(0, 50);
+  }
+});
+
+watch(password, (newValue) => {
+  if (newValue.length > 14) {
+    password.value = newValue.substring(0, 14);
+  }
+});
+
 const errors = ref({
   email: "",
   password: "",
@@ -22,10 +36,10 @@ const validate = () => {
   errors.value.password = validationErrors.password;
   return valid;
 };
+
 const canSubmit = computed(() => {
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value) &&
-    email.value.length <= 50;
-  const passwordNotEmpty = password.value && password.value.length > 0;
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value);
+  const passwordNotEmpty = password.value && password.value.trim().length > 0;
 
   return emailValid || passwordNotEmpty;
 });
