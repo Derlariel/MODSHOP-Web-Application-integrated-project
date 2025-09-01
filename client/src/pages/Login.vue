@@ -10,53 +10,31 @@ const auth = useAuthStore();
 
 const email = ref("");
 const password = ref("");
+
+// ...existing code...
+
 const errors = ref({ email: "", password: "", server: "" });
 
 watch([email, password], () => {
   errors.value.server = "";
-  errors.value.email = "";
-  errors.value.password = "";
 });
-
-function normalized() {
-  return {
-    email: String(email.value || "")
-      .trim()
-      .toLowerCase(),
-    password: String(password.value || ""),
-  };
-}
-
-function validate() {
-  const { email: e, password: p } = normalized();
-  const { valid, errors: fe } = validateEmailPassword({
-    email: e,
-    password: p,
-  });
-  errors.value.email = fe.email || "";
-  errors.value.password = fe.password || "";
-  return valid;
-}
 const canSubmit = computed(() => {
-  const emailTrim = String(email.value || "").trim().toLowerCase();
-  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim) && emailTrim.length <= 100;
-  const pwdValid = typeof password.value === "string" && password.value.length > 0;
-  return !auth.isSubmitting && emailValid && pwdValid;
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value);
+  const passwordNotEmpty = password.value && password.value.trim().length > 0;
+  
+  return !auth.isSubmitting && (emailValid || passwordNotEmpty);
 });
 
 
 async function handleSubmit() {
+  // Clear previous errors
   errors.value = { email: "", password: "", server: "" };
-  const { email: e, password: p } = normalized();
-  const { valid, errors: fe } = validateEmailPassword({ email: e, password: p });
-  if (!valid) {
-    errors.value.email = fe.email || "";
-    errors.value.password = fe.password || "";
-    return;
-  }
 
   try {
-    await auth.login({ email: e, password: p });
+    await auth.login({ 
+      email: email.value, 
+      password: password.value 
+    });
     router.replace("/sale-items");
   } catch (err) {
     errors.value.server = err?.message || "Email or Password is incorrect.";
@@ -74,7 +52,7 @@ function handleCancel() {
 
 <template>
   <div class="min-h-screen flex items-center justify-center bg-black px-4">
-    <div class="max-w-md w-full space-y-8">
+    <div class="max-w-md w-full space-y-4">
       <h2 class="text-3xl font-bold text-white text-center">Login</h2>
 
       <BaseInput

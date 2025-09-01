@@ -12,7 +12,7 @@ const toggleMobileMenu = () => {
 
 const auth = useAuthStore();
 const greeting = computed(() => {
-  return auth.isAuthenticated ? `Hi, ${auth.nickname}` : "Sign in";
+  return auth.isAuthenticated ? `Hi, ${auth.nickname}` : "Login";
 });
 </script>
 
@@ -77,13 +77,12 @@ const greeting = computed(() => {
 
         <div class="flex items-center gap-4">
           <span v-if="auth.isAuthenticated">{{ greeting }}</span>
-          <router-link to="/login" v-else 
-          class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md 
-             hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 
-             hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
-            >Sign in</router-link
-          >
-          <button
+          <router-link to="/login" v-else
+            class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md
+               hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500
+               hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
+          > Login</router-link>
+          <button 
             v-if="auth.isAuthenticated"
             @click="auth.logout()"
             class="text-sm opacity-70 hover:opacity-100"
@@ -124,19 +123,20 @@ const greeting = computed(() => {
       <router-link
         v-if="!auth.isAuthenticated"
         to="/register"
-        class="block font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
+        class="inline-block font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
+        style="width: auto; min-width: 80px;"
       >
         Register
       </router-link>
 
-      <div class="flex items-center gap-4">
+      <div class="flex items-center justify-center gap-4">
         <span v-if="auth.isAuthenticated">{{ greeting }}</span>
         <router-link to="/login" v-else 
         class="block font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md 
            hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 
-           hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out"
+           hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out "
   >
-        >Sign in</router-link>
+        Login</router-link>
         <button
           v-if="auth.isAuthenticated"
           @click="auth.logout()"
