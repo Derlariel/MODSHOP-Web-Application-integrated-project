@@ -1,64 +1,58 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import BaseInput from "@/components/shared/BaseInput.vue";
 import { validateEmailPassword } from "@/utils/validate";
 import { useAuthStore } from "@/stores/useAuthStore";
-import router from "@/router";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const auth = useAuthStore();
 
 const email = ref("");
 const password = ref("");
-const errors = ref({
-  email: "",
-  password: "",
-  server: "",
-});
 
-const validate = () => {
-  const { valid, errors: validationErrors } = validateEmailPassword({
-    email: email.value,
-    password: password.value,
-  });
-  errors.value.email = validationErrors.email;
-  errors.value.password = validationErrors.password;
-  return valid;
-};
+// ...existing code...
+
+const errors = ref({ email: "", password: "", server: "" });
+
+watch([email, password], () => {
+  errors.value.server = "";
+});
 const canSubmit = computed(() => {
-  return (
-    /\S+@\S+\.\S+/.test(email.value) &&
-    email.value.length <= 50 &&
-    password.value &&
-    password.value.length <= 14
-  );
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value);
+  const passwordNotEmpty = password.value && password.value.trim().length > 0;
+  
+  return !auth.isSubmitting && (emailValid || passwordNotEmpty);
 });
 
-const authStore = useAuthStore();
 
-const handleSubmit = async () => {
-  if (!validate()) return;
+async function handleSubmit() {
+  // Clear previous errors
+  errors.value = { email: "", password: "", server: "" };
 
   try {
-    await authStore.login({
-      email: email.value,
-      password: password.value,
+    await auth.login({ 
+      email: email.value, 
+      password: password.value 
     });
-    console.log("Login successful");
-    router.push("/sale-items");
+    router.replace("/sale-items");
   } catch (err) {
-    errors.value.server = err.message || "Login failed. Please try again.";
+    errors.value.server = err?.message || "Email or Password is incorrect.";
   }
-};
+}
 
-const handleCancel = () => {
+
+function handleCancel() {
   email.value = "";
   password.value = "";
   errors.value = { email: "", password: "", server: "" };
-  router.back();
-};
+  router.push("/sale-items");
+}
 </script>
 
 <template>
   <div class="min-h-screen flex items-center justify-center bg-black px-4">
-    <div class="max-w-md w-full space-y-8">
+    <div class="max-w-md w-full space-y-4">
       <h2 class="text-3xl font-bold text-white text-center">Login</h2>
 
       <BaseInput
@@ -69,7 +63,6 @@ const handleCancel = () => {
         placeholder="you@example.com"
         cypress="email-input"
         :error="errors.email"
-        sanitize="email"
         :maxInput="50"
       />
 
@@ -94,10 +87,9 @@ const handleCancel = () => {
           type="button"
           variant="primary"
           cypress="login-submit"
-          :disabled="!canSubmit || authStore.isSubmitting"
+          :disabled="!canSubmit"
           @click="handleSubmit"
         />
-
         <BaseInput
           isButton
           buttonText="Cancel"
@@ -108,6 +100,18 @@ const handleCancel = () => {
         />
       </div>
 
+      <!-- Sign up link -->
+      <div class="text-center mt-6">
+        <p class="text-sm text-gray-400">
+          No account?
+          <router-link
+            to="/register"
+            class="text-white hover:text-blue-400 underline font-medium"
+          >
+            Sign up
+          </router-link>
+        </p>
+      </div>
       <p class="text-xs text-gray-400 text-center">
         By logging in, you agree to our
         <a href="#" class="underline">terms & conditions</a>.

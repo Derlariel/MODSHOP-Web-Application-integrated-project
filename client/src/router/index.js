@@ -12,7 +12,7 @@ import BrandManager from "@/components/admin/brand/BrandManager.vue";
 import BrandCreate from "@/components/admin/brand/BrandCreate.vue";
 import BrandEdit from "@/components/admin/brand/BrandEdit.vue";
 import About from "@/pages/About.vue";
-import Register from "@/components/shared/Register.vue";
+import Register from "@/pages/Register.vue";
 import Login from "@/pages/Login.vue";
 const routes = [
   {
@@ -28,6 +28,7 @@ const routes = [
   },
     { path: "/register", name: "Register", component: Register },
     {path: "/login", name: "Login", component: Login},
+    {path: "/signin", name: "SignIn", component: Login},
   {
     path: "/",
     component: DefaultLayout,
