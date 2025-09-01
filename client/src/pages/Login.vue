@@ -11,25 +11,7 @@ const auth = useAuthStore();
 const email = ref("");
 const password = ref("");
 
-watch(email, (newValue) => {
-  if (newValue && newValue.length > 50) {
-    const emailMatch = newValue.match(/^(.*)(@.+)$/);
-    if (emailMatch) {
-      const [, localPart, domain] = emailMatch;
-      const excess = newValue.length - 50;
-      const trimmedLocal = localPart.substring(0, localPart.length - excess);
-      email.value = trimmedLocal + domain;
-    } else {
-      email.value = newValue.substring(0, 50);
-    }
-  }
-});
-
-watch(password, (newValue) => {
-  if (newValue && newValue.length > 14) {
-    password.value = newValue.substring(0, 14);
-  }
-});
+// ...existing code...
 
 const errors = ref({ email: "", password: "", server: "" });
 

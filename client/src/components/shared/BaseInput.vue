@@ -112,6 +112,7 @@ const buttonClasses = computed(() => {
         :type="type"
         :placeholder="placeholder"
         :step="step"
+    :maxlength="maxInput"
         @input="updateValue"
         @blur="onBlur"
       />
