@@ -19,12 +19,6 @@ public class SecurityConfig {
 //        return new BCryptPasswordEncoder();
 //    }
 //
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http.csrf(csrf -> csrf.disable())
-//                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
-//        return http.build();
-//    }
 @Bean
 public PasswordEncoder passwordEncoder() {
     String idForEncode = "argon2";
@@ -36,5 +30,12 @@ public PasswordEncoder passwordEncoder() {
     pe.setDefaultPasswordEncoderForMatches(encodes.get("bcrypt"));
     return pe;
 }
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
 
 }
