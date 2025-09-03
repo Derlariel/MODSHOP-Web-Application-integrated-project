@@ -23,7 +23,7 @@ describe(`TC-FE-PBI21-MATCH-PASSWORD-1\n
     it('should be enable the Sign In button after type email and password.',()=>{
 
         cy.get('.itbms-email').as('email') ;
-        cy.get('@email').type('smilllnwza@gmail.com')
+        cy.get('@email').type('itbkk.somchai@ad.sit.kmutt.ac.th')
 
         cy.get('.itbms-password').as('password')
         cy.get('@password').type('itProj24/SOM')
