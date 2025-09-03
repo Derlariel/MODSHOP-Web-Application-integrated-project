@@ -11,7 +11,6 @@ const auth = useAuthStore();
 const email = ref("");
 const password = ref("");
 
-// ...existing code...
 
 const errors = ref({ email: "", password: "", server: "" });
 
@@ -27,7 +26,6 @@ const canSubmit = computed(() => {
 
 
 async function handleSubmit() {
-  // Clear previous errors
   errors.value = { email: "", password: "", server: "" };
 
   try {
@@ -56,25 +54,25 @@ function handleCancel() {
       <h2 class="text-3xl font-bold text-white text-center">Login</h2>
 
       <BaseInput
-        v-model="email"
-        label="Email"
-        type="email"
-        required
-        placeholder="you@example.com"
-        cypress="email-input"
-        :error="errors.email"
-        :maxInput="50"
+          v-model="email"
+          label="Email"
+          type="email"
+          required
+          placeholder="you@example.com"
+          cypress="email-input itbms-email"
+          :error="errors.email"
+          :maxInput="50"
       />
 
       <BaseInput
-        v-model="password"
-        label="Password"
-        type="password"
-        required
-        placeholder="********"
-        cypress="password-input"
-        :error="errors.password"
-        :maxInput="14"
+          v-model="password"
+          label="Password"
+          type="password"
+          required
+          placeholder="********"
+          cypress="password-input itbms-password"
+          :error="errors.password"
+          :maxInput="14"
       />
       <p v-if="errors.server" class="text-sm text-red-500 text-center">
         {{ errors.server }}
@@ -82,21 +80,21 @@ function handleCancel() {
 
       <div class="flex space-x-3 pt-4">
         <BaseInput
-          isButton
-          buttonText="Sign In"
-          type="button"
-          variant="primary"
-          cypress="login-submit"
-          :disabled="!canSubmit"
-          @click="handleSubmit"
+            isButton
+            buttonText="Sign In"
+            type="button"
+            variant="primary"
+            cypress="login-submit itbms-signin-button"
+            :disabled="!canSubmit"
+            @click="handleSubmit"
         />
         <BaseInput
-          isButton
-          buttonText="Cancel"
-          type="button"
-          variant="secondary"
-          cypress="login-cancel"
-          @click="handleCancel"
+            isButton
+            buttonText="Cancel"
+            type="button"
+            variant="secondary"
+            cypress="login-cancel"
+            @click="handleCancel"
         />
       </div>
 
