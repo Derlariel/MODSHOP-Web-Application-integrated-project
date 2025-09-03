@@ -71,10 +71,13 @@ export const useAuthStore = defineStore("auth", {
           res.data?.refreshToken || res.data?.refresh_token || null;
 
         if (res.status !== 200 || !token) {
+          if (res.status === 403) {
+            throw new Error("You need to activate your account before signing in.");
+          }
           throw new Error(
             res.status === 400 || res.status === 401
               ? "Email or Password is incorrect."
-              : "You need to activate your account before signing in."
+              : "Authentication failed."
           );
         }
 
