@@ -22,7 +22,7 @@ public class User {
     @Size(max = 50)
     @NotNull
     @Column(name = "nickname", nullable = false, length = 50)
-    private String nickname;
+    private String nickName;
 
     @Size(max = 100)
     @NotNull
@@ -37,7 +37,7 @@ public class User {
     @Size(max = 40)
     @NotNull
     @Column(name = "fullname", nullable = false, length = 40)
-    private String fullname;
+    private String fullName;
 
     @NotNull
     @Lob
