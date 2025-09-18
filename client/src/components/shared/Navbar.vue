@@ -76,7 +76,9 @@ const greeting = computed(() => {
         </router-link>
 
         <div class="flex items-center gap-4">
-          <span v-if="auth.isAuthenticated">{{ greeting }}</span>
+          <router-link to="/profile" v-if="auth.isAuthenticated">
+              <span v-if="auth.isAuthenticated">{{ greeting }}</span>
+          </router-link>
           <router-link to="/login" v-else
             class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md
                hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500

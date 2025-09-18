@@ -14,6 +14,8 @@ import BrandEdit from "@/components/admin/brand/BrandEdit.vue";
 import About from "@/pages/About.vue";
 import Register from "@/pages/Register.vue";
 import Login from "@/pages/Login.vue";
+import Profile from "@/pages/Profile.vue";
+import ProfileEdit from "@/pages/ProfileEdit.vue";
 const routes = [
   {
     path: "/",
@@ -37,6 +39,16 @@ const routes = [
         path: "main",
         name: "Main",
         component: MainPage,
+      },
+      {
+        path: "profile",
+        name: "Profile",
+        component: Profile
+      },
+      {
+        path: "profile/edit",
+        name: "ProfileEdit",
+        component: ProfileEdit
       },
       {
         path: "sale-items",

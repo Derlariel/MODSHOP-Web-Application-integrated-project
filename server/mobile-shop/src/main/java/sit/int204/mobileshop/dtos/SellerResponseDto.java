@@ -12,4 +12,10 @@ public class SellerResponseDto {
     private String bankName;
     private String bankAccount;
     private String nickName;
+    private String nationalIdNumber;
+
+    public String getNationalIdNumber() {
+        return nationalIdNumber != null ? nationalIdNumber : "";
+    }
+
 }
