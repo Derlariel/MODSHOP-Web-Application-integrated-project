@@ -11,9 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sit.int204.mobileshop.dtos.AuthResponseDto;
-import sit.int204.mobileshop.dtos.BuyerResponseDto;
 import sit.int204.mobileshop.dtos.RegisterUserDto;
-import sit.int204.mobileshop.dtos.SellerResponseDto;
 import sit.int204.mobileshop.dtos.UpdateProfileDto;
 import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.entities.Seller;
@@ -69,10 +67,6 @@ public class UserService {
             User savedUser = createAndSaveUser(dto);
             userRepository.flush();
 
-            if (UserRole.SELLER.name().equalsIgnoreCase(dto.getRole())) {
-                createSellerRecord(dto, savedUser);
-            }
-
             sendVerificationEmailAsync(savedUser);
 
             log.info("User registered successfully with email: {}", savedUser.getEmail());
@@ -100,8 +94,24 @@ public class UserService {
     }
 
     private User createAndSaveUser(RegisterUserDto dto) {
-        User user = new User();
+        User user;
+        
+        // Create appropriate entity based on role
+        if (UserRole.SELLER.name().equalsIgnoreCase(dto.getRole())) {
+            Seller seller = new Seller();
+            // Set seller-specific fields
+            seller.setMobileNumber(dto.getMobileNumber());
+            seller.setBankAccountNumber(dto.getBankAccountNumber());
+            seller.setBankName(dto.getBankName());
+            seller.setNationalIdNumber(dto.getNationalIdNumber());
+            seller.setNationalIdPhotoFront(dto.getNationalIdPhotoFrontUrl());
+            seller.setNationalIdPhotoBack(dto.getNationalIdPhotoBackUrl());
+            user = seller;
+        } else {
+            user = new User();
+        }
 
+        // Set common user fields
         user.setNickName(dto.getNickname());
         user.setEmail(dto.getEmail().trim().toLowerCase());
         user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
@@ -183,24 +193,6 @@ public class UserService {
         }
     }
 
-    private void createSellerRecord(RegisterUserDto dto, User savedUser) {
-        Seller seller = new Seller();
-
-        seller.setUsers(savedUser);
-        seller.setMobileNumber(dto.getMobileNumber());
-        seller.setBankAccountNumber(dto.getBankAccountNumber());
-        seller.setBankName(dto.getBankName());
-        seller.setNationalIdNumber(dto.getNationalIdNumber());
-        seller.setNationalIdPhotoFront(dto.getNationalIdPhotoFrontUrl());
-        seller.setNationalIdPhotoBack(dto.getNationalIdPhotoBackUrl());
-
-        Instant now = Instant.now();
-        seller.setCreatedOn(now);
-        seller.setUpdatedOn(now);
-
-        sellerRepository.save(seller);
-    }
-
     private void sendVerificationEmailAsync(User user) {
         try {
             String jwtToken = jwtService.generateVerificationToken(user.getId(), user.getEmail());
@@ -211,9 +203,12 @@ public class UserService {
     }
 
     private UserResponseDto mapToUserResponseDto(User user) {
-        UserResponseDto responseDto = modelMapper.map(user, UserResponseDto.class);
-        responseDto.setIsActive(UserStatus.ACTIVE.name().equals(user.getStatus()));
+        UserResponseDto responseDto = new UserResponseDto();
+        responseDto.setId(user.getId());
+        responseDto.setEmail(user.getEmail());
+        responseDto.setFullName(user.getFullName());
         responseDto.setUserType(user.getRole());
+        responseDto.setNickName(user.getNickName());
         responseDto.setPhoneNumber(getPhoneNumber(user));
         return responseDto;
     }
@@ -268,11 +263,11 @@ public class UserService {
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", userDto.getId());
-        response.put("nickname", userDto.getNickname());
+        response.put("nickname", userDto.getNickName());
         response.put("email", userDto.getEmail());
         response.put("fullName", userDto.getFullName());
         response.put("phoneNumber", userDto.getPhoneNumber());
-        response.put("isActive", userDto.getIsActive());
+        response.put("isActive", UserStatus.ACTIVE.name().equals(user.getStatus()));
         response.put("userType", userDto.getUserType());
 
         return response;
@@ -286,8 +281,14 @@ public class UserService {
 
     private String getPhoneNumber(User user) {
         if (UserRole.SELLER.name().equalsIgnoreCase(user.getRole())) {
-            Optional<Seller> seller = sellerRepository.findByUsers(user);
-            return seller.map(Seller::getMobileNumber).orElse(null);
+            // Since Seller extends User, we can cast directly or use repository
+            if (user instanceof Seller) {
+                return ((Seller) user).getMobileNumber();
+            } else {
+                // Fallback: Query seller table directly by ID
+                Optional<Seller> seller = sellerRepository.findById(user.getId());
+                return seller.map(Seller::getMobileNumber).orElse(null);
+            }
         }
         return null;
     }
@@ -313,7 +314,7 @@ public class UserService {
 
     // Profile management methods
     @Transactional(readOnly = true)
-    public Object getUserById(Long id, String authHeader) {
+    public UserResponseDto getUserById(Long id, String authHeader) {
         // Check if authorization header is present
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new RuntimeException("No access token provided");
@@ -362,7 +363,7 @@ public class UserService {
     }
 
     @Transactional
-    public Object updateUserProfile(Long id, UpdateProfileDto updateDto, String authHeader) {
+    public UserResponseDto updateUserProfile(Long id, UpdateProfileDto updateDto, String authHeader) {
         // Check if authorization header is present
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new RuntimeException("No access token provided");
@@ -410,37 +411,35 @@ public class UserService {
         }
     }
 
-    private Object mapToProfileResponseDto(User user) {
-        if (UserRole.BUYER.name().equalsIgnoreCase(user.getRole())) {
-            BuyerResponseDto response = new BuyerResponseDto();
-            response.setId(user.getId());
-            response.setEmail(user.getEmail());
-            response.setFullName(user.getFullName());
-            response.setUserType(user.getRole());
-            response.setNickName(user.getNickName());
-            return response;
-        } else if (UserRole.SELLER.name().equalsIgnoreCase(user.getRole())) {
-            SellerResponseDto response = new SellerResponseDto();
-            response.setId(user.getId());
-            response.setEmail(user.getEmail());
-            response.setFullName(user.getFullName());
-            response.setUserType(user.getRole());
-            response.setNickName(user.getNickName());
-            response.setPhoneNumber(getPhoneNumber(user));
-            
-            // Add seller-specific fields
-            Optional<Seller> seller = sellerRepository.findByUsers(user);
-            if (seller.isPresent()) {
-                Seller sellerData = seller.get();
-                response.setBankName(sellerData.getBankName());
-                response.setBankAccount(sellerData.getBankAccountNumber());
+    private UserResponseDto mapToProfileResponseDto(User user) {
+        UserResponseDto response = new UserResponseDto();
+        response.setId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setFullName(user.getFullName());
+        response.setUserType(user.getRole());
+        response.setNickName(user.getNickName());
+        
+        // If user is a Seller, add seller-specific fields
+        if (UserRole.SELLER.name().equalsIgnoreCase(user.getRole())) {
+            // Cast to Seller since we know it's a Seller
+            if (user instanceof Seller) {
+                Seller seller = (Seller) user;
+                response.setPhoneNumber(seller.getMobileNumber());
+                response.setBankName(seller.getBankName());
+                response.setBankAccount(seller.getBankAccountNumber());
+            } else {
+                // Fallback: Query seller table directly
+                Optional<Seller> seller = sellerRepository.findById(user.getId());
+                if (seller.isPresent()) {
+                    Seller sellerData = seller.get();
+                    response.setPhoneNumber(sellerData.getMobileNumber());
+                    response.setBankName(sellerData.getBankName());
+                    response.setBankAccount(sellerData.getBankAccountNumber());
+                }
             }
-            
-            return response;
         }
         
-        // Fallback to original UserResponseDto if role is unknown
-        return mapToUserResponseDto(user);
+        return response;
     }
 
     public enum UserRole {
