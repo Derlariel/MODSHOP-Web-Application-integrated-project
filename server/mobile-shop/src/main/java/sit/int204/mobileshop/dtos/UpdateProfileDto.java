@@ -16,4 +16,10 @@ public class UpdateProfileDto {
     @NotBlank(message = "Full name cannot be blank")
     @Size(max = 50, message = "Full name must not exceed 50 characters")
     private String fullName;
+    
+    // Seller-specific fields (optional)
+    private String phoneNumber;
+    private String bankName;
+    private String bankAccount;
+    private String nationalIdNumber;
 }

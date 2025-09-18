@@ -397,6 +397,25 @@ public class UserService {
             authenticatedUser.setFullName(updateDto.getFullName());
             authenticatedUser.setUpdatedOn(Instant.now());
             
+            // If user is a Seller, update seller-specific fields
+            if (UserRole.SELLER.name().equalsIgnoreCase(authenticatedUser.getRole()) && 
+                authenticatedUser instanceof Seller) {
+                Seller seller = (Seller) authenticatedUser;
+                
+                if (updateDto.getPhoneNumber() != null) {
+                    seller.setMobileNumber(updateDto.getPhoneNumber());
+                }
+                if (updateDto.getBankName() != null) {
+                    seller.setBankName(updateDto.getBankName());
+                }
+                if (updateDto.getBankAccount() != null) {
+                    seller.setBankAccountNumber(updateDto.getBankAccount());
+                }
+                if (updateDto.getNationalIdNumber() != null) {
+                    seller.setNationalIdNumber(updateDto.getNationalIdNumber());
+                }
+            }
+            
             User updatedUser = userRepository.save(authenticatedUser);
             log.info("User profile updated successfully for user ID: {}", id);
             
@@ -427,6 +446,7 @@ public class UserService {
                 response.setPhoneNumber(seller.getMobileNumber());
                 response.setBankName(seller.getBankName());
                 response.setBankAccount(seller.getBankAccountNumber());
+                response.setNationalIdNumber(seller.getNationalIdNumber());
             } else {
                 // Fallback: Query seller table directly
                 Optional<Seller> seller = sellerRepository.findById(user.getId());
@@ -435,6 +455,7 @@ public class UserService {
                     response.setPhoneNumber(sellerData.getMobileNumber());
                     response.setBankName(sellerData.getBankName());
                     response.setBankAccount(sellerData.getBankAccountNumber());
+                    response.setNationalIdNumber(sellerData.getNationalIdNumber());
                 }
             }
         }

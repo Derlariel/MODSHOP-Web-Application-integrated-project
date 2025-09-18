@@ -18,8 +18,9 @@ public class UserResponseDto {
     private String userType;
     private String nickName;
     
-    // Seller-specific fields (only included for SELLER userType)
+    // Seller fields
     private String phoneNumber;
     private String bankName;
     private String bankAccount;
+    private String nationalIdNumber;
 }
