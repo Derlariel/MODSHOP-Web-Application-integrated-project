@@ -33,9 +33,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import sit.int204.mobileshop.dtos.AuthRequestDto;
 import sit.int204.mobileshop.dtos.AuthResponseDto;
-import sit.int204.mobileshop.dtos.BuyerResponseDto;
 import sit.int204.mobileshop.dtos.RegisterUserDto;
-import sit.int204.mobileshop.dtos.SellerResponseDto;
 import sit.int204.mobileshop.dtos.UpdateProfileDto;
 import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.services.UserService;
@@ -127,9 +125,9 @@ public class UserController {
         })
         @GetMapping("/{id}")
         // @PreAuthorize("isAuthenticated()") // Temporarily commented out
-        public ResponseEntity<Object> getUserById(@PathVariable Long id, 
+        public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id, 
                                                           @RequestHeader(value = "Authorization", required = false) String authHeader) {
-                Object user = userService.getUserById(id, authHeader);
+                UserResponseDto user = userService.getUserById(id, authHeader);
                 return ResponseEntity.ok(user);
         }
 
@@ -142,10 +140,10 @@ public class UserController {
         })
         @PutMapping("/{id}")
         // @PreAuthorize("isAuthenticated()") // Temporarily commented out
-        public ResponseEntity<Object> updateProfile(@PathVariable Long id, 
+        public ResponseEntity<UserResponseDto> updateProfile(@PathVariable Long id, 
                                                             @Valid @RequestBody UpdateProfileDto updateDto,
                                                             @RequestHeader(value = "Authorization", required = false) String authHeader) {
-                Object updatedUser = userService.updateUserProfile(id, updateDto, authHeader);
+                UserResponseDto updatedUser = userService.updateUserProfile(id, updateDto, authHeader);
                 return ResponseEntity.ok(updatedUser);
         }
 
