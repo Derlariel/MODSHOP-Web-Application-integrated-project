@@ -21,5 +21,4 @@ public class UpdateProfileDto {
     private String phoneNumber;
     private String bankName;
     private String bankAccount;
-    private String nationalIdNumber;
 }

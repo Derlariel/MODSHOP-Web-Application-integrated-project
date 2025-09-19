@@ -82,18 +82,6 @@ onMounted(async () => {
               <p class="text-sm text-gray-400">Bank Account</p>
               <p class="text-lg font-semibold">{{ maskNumber(profile.bankAccount) }}</p>
             </div>
-            <div>
-              <p class="text-sm text-gray-400">National ID</p>
-              <p class="text-lg font-semibold">
-                {{ maskNumber(profile.nationalIdNumber || profile.nationalId) }}
-              </p>
-            </div>
-            <div class="sm:col-span-2">
-              <p class="text-sm text-gray-400">National ID Photo</p>
-              <p class="inline-block px-4 py-1 mt-1 text-sm bg-green-700/40 text-green-300 font-medium rounded-full">
-                Provided
-              </p>
-            </div>
           </div>
         </div>
       </div>

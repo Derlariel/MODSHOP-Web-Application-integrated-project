@@ -22,5 +22,4 @@ public class UserResponseDto {
     private String phoneNumber;
     private String bankName;
     private String bankAccount;
-    private String nationalIdNumber;
 }

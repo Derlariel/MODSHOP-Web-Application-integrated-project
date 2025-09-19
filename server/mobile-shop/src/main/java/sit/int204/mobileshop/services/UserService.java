@@ -411,9 +411,6 @@ public class UserService {
                 if (updateDto.getBankAccount() != null) {
                     seller.setBankAccountNumber(updateDto.getBankAccount());
                 }
-                if (updateDto.getNationalIdNumber() != null) {
-                    seller.setNationalIdNumber(updateDto.getNationalIdNumber());
-                }
             }
             
             User updatedUser = userRepository.save(authenticatedUser);
@@ -446,7 +443,6 @@ public class UserService {
                 response.setPhoneNumber(seller.getMobileNumber());
                 response.setBankName(seller.getBankName());
                 response.setBankAccount(seller.getBankAccountNumber());
-                response.setNationalIdNumber(seller.getNationalIdNumber());
             } else {
                 // Fallback: Query seller table directly
                 Optional<Seller> seller = sellerRepository.findById(user.getId());
@@ -455,7 +451,6 @@ public class UserService {
                     response.setPhoneNumber(sellerData.getMobileNumber());
                     response.setBankName(sellerData.getBankName());
                     response.setBankAccount(sellerData.getBankAccountNumber());
-                    response.setNationalIdNumber(sellerData.getNationalIdNumber());
                 }
             }
         }
