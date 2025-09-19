@@ -39,27 +39,38 @@ public class SaleItem {
     @Column(name = "price", nullable = false)
     private Integer price;
 
+    @Column(name = "rate", precision = 2, scale = 1)
+    private BigDecimal rate;
+
     @Column(name = "ram_gb")
     private Integer ramGb;
 
-    @Column(name = "screen_size_inch", precision = 4, scale = 1)
+    @Column(name = "screen_size_inch", precision = 5, scale = 2)
     private BigDecimal screenSizeInch;
 
     @Column(name = "storage_gb")
     private Integer storageGb;
 
-    @Column(name = "color")
+    @Size(max = 40)
+    @Column(name = "color", length = 40)
     private String color;
 
-    @ColumnDefault("1")
+    @NotNull
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @Column(name = "created_on", insertable = false, updatable = false)
+    @NotNull
+    @ColumnDefault("CURRENT_TIMESTAMP")
+    @Column(name = "created_on", nullable = false)
     private Instant createdOn;
 
-    @Column(name = "updated_on", insertable = false, updatable = false)
+    @NotNull
+    @ColumnDefault("CURRENT_TIMESTAMP")
+    @Column(name = "updated_on", nullable = false)
     private Instant updatedOn;
 
-}
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_id")
+    private Seller seller;
 
+}

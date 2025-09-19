@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sit.int204.mobileshop.dtos.AuthResponseDto;
 import sit.int204.mobileshop.dtos.RegisterUserDto;
+import sit.int204.mobileshop.dtos.UpdateProfileDto;
 import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.entities.Seller;
 import sit.int204.mobileshop.entities.User;
@@ -66,10 +67,6 @@ public class UserService {
             User savedUser = createAndSaveUser(dto);
             userRepository.flush();
 
-            if (UserRole.SELLER.name().equalsIgnoreCase(dto.getRole())) {
-                createSellerRecord(dto, savedUser);
-            }
-
             sendVerificationEmailAsync(savedUser);
 
             log.info("User registered successfully with email: {}", savedUser.getEmail());
@@ -97,12 +94,28 @@ public class UserService {
     }
 
     private User createAndSaveUser(RegisterUserDto dto) {
-        User user = new User();
+        User user;
+        
+        // Create appropriate entity based on role
+        if (UserRole.SELLER.name().equalsIgnoreCase(dto.getRole())) {
+            Seller seller = new Seller();
+            // Set seller-specific fields
+            seller.setMobileNumber(dto.getMobileNumber());
+            seller.setBankAccountNumber(dto.getBankAccountNumber());
+            seller.setBankName(dto.getBankName());
+            seller.setNationalIdNumber(dto.getNationalIdNumber());
+            seller.setNationalIdPhotoFront(dto.getNationalIdPhotoFrontUrl());
+            seller.setNationalIdPhotoBack(dto.getNationalIdPhotoBackUrl());
+            user = seller;
+        } else {
+            user = new User();
+        }
 
-        user.setNickname(dto.getNickname());
+        // Set common user fields
+        user.setNickName(dto.getNickname());
         user.setEmail(dto.getEmail().trim().toLowerCase());
         user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
-        user.setFullname(dto.getFullname());
+        user.setFullName(dto.getFullname());
         user.setRole(dto.getRole());
         user.setStatus(UserStatus.INACTIVE.name());
 
@@ -145,7 +158,7 @@ public class UserService {
         String accessToken = jwtService.generateAccessToken(
             user.getId(),
             user.getEmail(),
-            user.getNickname(),
+            user.getNickName(),
             user.getRole()
         );
         
@@ -160,7 +173,7 @@ public class UserService {
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresIn(30 * 60L) // 30 minutes in seconds
-                .nickname(user.getNickname())
+                .nickname(user.getNickName())
                 .userId(user.getId())
                 .email(user.getEmail())
                 .role(user.getRole())
@@ -180,24 +193,6 @@ public class UserService {
         }
     }
 
-    private void createSellerRecord(RegisterUserDto dto, User savedUser) {
-        Seller seller = new Seller();
-
-        seller.setUsers(savedUser);
-        seller.setMobileNumber(dto.getMobileNumber());
-        seller.setBankAccountNumber(dto.getBankAccountNumber());
-        seller.setBankName(dto.getBankName());
-        seller.setNationalIdNumber(dto.getNationalIdNumber());
-        seller.setNationalIdPhotoFront(dto.getNationalIdPhotoFrontUrl());
-        seller.setNationalIdPhotoBack(dto.getNationalIdPhotoBackUrl());
-
-        Instant now = Instant.now();
-        seller.setCreatedOn(now);
-        seller.setUpdatedOn(now);
-
-        sellerRepository.save(seller);
-    }
-
     private void sendVerificationEmailAsync(User user) {
         try {
             String jwtToken = jwtService.generateVerificationToken(user.getId(), user.getEmail());
@@ -208,9 +203,12 @@ public class UserService {
     }
 
     private UserResponseDto mapToUserResponseDto(User user) {
-        UserResponseDto responseDto = modelMapper.map(user, UserResponseDto.class);
-        responseDto.setIsActive(UserStatus.ACTIVE.name().equals(user.getStatus()));
+        UserResponseDto responseDto = new UserResponseDto();
+        responseDto.setId(user.getId());
+        responseDto.setEmail(user.getEmail());
+        responseDto.setFullName(user.getFullName());
         responseDto.setUserType(user.getRole());
+        responseDto.setNickName(user.getNickName());
         responseDto.setPhoneNumber(getPhoneNumber(user));
         return responseDto;
     }
@@ -265,11 +263,11 @@ public class UserService {
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", userDto.getId());
-        response.put("nickname", userDto.getNickname());
+        response.put("nickname", userDto.getNickName());
         response.put("email", userDto.getEmail());
         response.put("fullName", userDto.getFullName());
         response.put("phoneNumber", userDto.getPhoneNumber());
-        response.put("isActive", userDto.getIsActive());
+        response.put("isActive", UserStatus.ACTIVE.name().equals(user.getStatus()));
         response.put("userType", userDto.getUserType());
 
         return response;
@@ -283,8 +281,14 @@ public class UserService {
 
     private String getPhoneNumber(User user) {
         if (UserRole.SELLER.name().equalsIgnoreCase(user.getRole())) {
-            Optional<Seller> seller = sellerRepository.findByUsers(user);
-            return seller.map(Seller::getMobileNumber).orElse(null);
+            // Since Seller extends User, we can cast directly or use repository
+            if (user instanceof Seller) {
+                return ((Seller) user).getMobileNumber();
+            } else {
+                // Fallback: Query seller table directly by ID
+                Optional<Seller> seller = sellerRepository.findById(user.getId());
+                return seller.map(Seller::getMobileNumber).orElse(null);
+            }
         }
         return null;
     }
@@ -306,6 +310,157 @@ public class UserService {
             return ResponseEntity.badRequest()
                     .body("An error occurred, or the verification link has expired. Please request a new verification email.");
         }
+    }
+
+    // Profile management methods
+    @Transactional(readOnly = true)
+    public UserResponseDto getUserById(Long id, String authHeader) {
+        // Check if authorization header is present
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("No access token provided");
+        }
+        
+        // Extract JWT token
+        String token = authHeader.substring(7); // Remove "Bearer " prefix
+        
+        try {
+            // Validate and parse JWT token
+            log.debug("Validating JWT token for user profile access");
+            JWTClaimsSet claims = jwtService.validateAccessToken(token);
+            String email = claims.getStringClaim("email");
+            Long tokenUserId = Long.parseLong(claims.getSubject());
+            log.debug("JWT validated successfully. Email: {}, UserID: {}", email, tokenUserId);
+            
+            // Find user by email from token
+            User authenticatedUser = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found, Invalid Token"));
+            log.debug("User found in database: {}", authenticatedUser.getId());
+            
+            // Check if user is active
+            if (!UserStatus.ACTIVE.name().equals(authenticatedUser.getStatus())) {
+                log.warn("User {} is not active", authenticatedUser.getId());
+                throw new RuntimeException("User is not active");
+            }
+            
+            // Check if requested ID matches authenticated user ID (authorization)
+            if (!authenticatedUser.getId().equals(id) || !tokenUserId.equals(id)) {
+                log.warn("Authorization failed. Requested ID: {}, User ID: {}, Token ID: {}", 
+                         id, authenticatedUser.getId(), tokenUserId);
+                throw new RuntimeException("Request user id not matched with id in access token");
+            }
+            
+            return mapToProfileResponseDto(authenticatedUser);
+            
+        } catch (RuntimeException e) {
+            // Re-throw our custom runtime exceptions
+            log.error("Runtime error in getUserById: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            // Handle JWT parsing exceptions (ParseException, JOSEException, etc.)
+            log.error("JWT validation failed: {}", e.getMessage(), e);
+            throw new RuntimeException("User not found, Invalid Token");
+        }
+    }
+
+    @Transactional
+    public UserResponseDto updateUserProfile(Long id, UpdateProfileDto updateDto, String authHeader) {
+        // Check if authorization header is present
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("No access token provided");
+        }
+        
+        // Extract JWT token
+        String token = authHeader.substring(7); // Remove "Bearer " prefix
+        
+        try {
+            // Validate and parse JWT token
+            JWTClaimsSet claims = jwtService.validateAccessToken(token);
+            String email = claims.getStringClaim("email");
+            Long tokenUserId = Long.parseLong(claims.getSubject());
+            
+            // Find user by email from token
+            User authenticatedUser = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found, Invalid Token"));
+            
+            // Check if user is active
+            if (!UserStatus.ACTIVE.name().equals(authenticatedUser.getStatus())) {
+                throw new RuntimeException("User is not active");
+            }
+            
+            // Check if requested ID matches authenticated user ID (authorization)
+            if (!authenticatedUser.getId().equals(id) || !tokenUserId.equals(id)) {
+                throw new RuntimeException("Request user id not matched with id in access token");
+            }
+            
+            // Update only allowed fields (nickname and fullname)
+            authenticatedUser.setNickName(updateDto.getNickName());
+            authenticatedUser.setFullName(updateDto.getFullName());
+            authenticatedUser.setUpdatedOn(Instant.now());
+            
+            // If user is a Seller, update seller-specific fields
+            if (UserRole.SELLER.name().equalsIgnoreCase(authenticatedUser.getRole()) && 
+                authenticatedUser instanceof Seller) {
+                Seller seller = (Seller) authenticatedUser;
+                
+                if (updateDto.getPhoneNumber() != null) {
+                    seller.setMobileNumber(updateDto.getPhoneNumber());
+                }
+                if (updateDto.getBankName() != null) {
+                    seller.setBankName(updateDto.getBankName());
+                }
+                if (updateDto.getBankAccount() != null) {
+                    seller.setBankAccountNumber(updateDto.getBankAccount());
+                }
+                if (updateDto.getNationalIdNumber() != null) {
+                    seller.setNationalIdNumber(updateDto.getNationalIdNumber());
+                }
+            }
+            
+            User updatedUser = userRepository.save(authenticatedUser);
+            log.info("User profile updated successfully for user ID: {}", id);
+            
+            return mapToProfileResponseDto(updatedUser);
+            
+        } catch (RuntimeException e) {
+            // Re-throw our custom runtime exceptions
+            throw e;
+        } catch (Exception e) {
+            // Handle JWT parsing exceptions (ParseException, JOSEException, etc.)
+            throw new RuntimeException("User not found, Invalid Token");
+        }
+    }
+
+    private UserResponseDto mapToProfileResponseDto(User user) {
+        UserResponseDto response = new UserResponseDto();
+        response.setId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setFullName(user.getFullName());
+        response.setUserType(user.getRole());
+        response.setNickName(user.getNickName());
+        
+        // If user is a Seller, add seller-specific fields
+        if (UserRole.SELLER.name().equalsIgnoreCase(user.getRole())) {
+            // Cast to Seller since we know it's a Seller
+            if (user instanceof Seller) {
+                Seller seller = (Seller) user;
+                response.setPhoneNumber(seller.getMobileNumber());
+                response.setBankName(seller.getBankName());
+                response.setBankAccount(seller.getBankAccountNumber());
+                response.setNationalIdNumber(seller.getNationalIdNumber());
+            } else {
+                // Fallback: Query seller table directly
+                Optional<Seller> seller = sellerRepository.findById(user.getId());
+                if (seller.isPresent()) {
+                    Seller sellerData = seller.get();
+                    response.setPhoneNumber(sellerData.getMobileNumber());
+                    response.setBankName(sellerData.getBankName());
+                    response.setBankAccount(sellerData.getBankAccountNumber());
+                    response.setNationalIdNumber(sellerData.getNationalIdNumber());
+                }
+            }
+        }
+        
+        return response;
     }
 
     public enum UserRole {

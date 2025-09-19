@@ -89,13 +89,28 @@ public class ExceptionController {
 
         @ExceptionHandler(Exception.class)
         public ResponseEntity<MyErrorResponse> handleUnexpectedError(Exception e, HttpServletRequest request) {
+                String message = e.getMessage();
+                HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+                
+                // Handle user profile related errors
+                if (e instanceof RuntimeException && message != null) {
+                        if (message.equals("User not found, Invalid Token") || 
+                            message.equals("No access token provided")) {
+                                status = HttpStatus.UNAUTHORIZED;
+                        } else if (message.equals("User is not active") || 
+                                   message.equals("Request user id not matched with id in access token")) {
+                                status = HttpStatus.FORBIDDEN;
+                        }
+                }
+                
                 MyErrorResponse myErrorResponse = new MyErrorResponse(
-                                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                                "Something went wrong, please try again later.",
+                                status.value(),
+                                status.getReasonPhrase(),
+                                status == HttpStatus.INTERNAL_SERVER_ERROR ? 
+                                        "Something went wrong, please try again later." : message,
                                 request.getRequestURI());
                 myErrorResponse.setStackTrace(e.getMessage());
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(myErrorResponse);
+                return ResponseEntity.status(status).body(myErrorResponse);
         }
 
         @ExceptionHandler(MethodArgumentNotValidException.class)
