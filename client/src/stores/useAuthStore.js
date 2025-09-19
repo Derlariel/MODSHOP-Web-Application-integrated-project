@@ -41,7 +41,7 @@ export const useAuthStore = defineStore("auth", {
     async register(formData) {
       this.isSubmitting = true
       try {
-        const { res, data } = await request("/v2/users/register", {
+        const { res, data } = await request("/v2/auth/register", {
           method: "POST",
           body: formData,
         }, true)
@@ -63,7 +63,7 @@ export const useAuthStore = defineStore("auth", {
         const { valid } = validateEmailPassword({ email, password })
         if (!valid) throw new Error("Email or Password is incorrect.")
 
-        const { res, data } = await request("/v2/users/authentications", {
+        const { res, data } = await request("/v2/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
