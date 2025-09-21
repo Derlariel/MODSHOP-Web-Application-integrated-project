@@ -114,7 +114,9 @@ public class UserService {
         // Set common user fields
         user.setNickName(dto.getNickname());
         user.setEmail(dto.getEmail().trim().toLowerCase());
-        user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
+        //  disabled password hashing ชั่วคราวเ
+        // user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
+        user.setPasswordHash(dto.getPassword()); // Store plain text password temporarily
         user.setFullName(dto.getFullname());
         user.setRole(dto.getRole());
         user.setStatus(UserStatus.INACTIVE.name());
@@ -131,7 +133,9 @@ public class UserService {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) return false;
         User u = userOpt.get();
-        return passwordEncoder.matches(rawPassword, u.getPasswordHash());
+        // TODO: Temporarily disabled password hashing for development
+        // return passwordEncoder.matches(rawPassword, u.getPasswordHash());
+        return rawPassword.equals(u.getPasswordHash()); // Compare plain text passwords temporarily
     }
 
     @Transactional(readOnly = true)
@@ -144,7 +148,9 @@ public class UserService {
         User user = userOpt.get();
         
         // Check password
-        if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+        // TODO: Temporarily disabled password hashing for development
+        // if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+        if (!rawPassword.equals(user.getPasswordHash())) { // Compare plain text passwords temporarily
             return null; // Invalid password
         }
         

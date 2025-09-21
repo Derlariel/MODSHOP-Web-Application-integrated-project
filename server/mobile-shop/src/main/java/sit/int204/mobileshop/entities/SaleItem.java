@@ -25,6 +25,8 @@ public class SaleItem {
     @Column(name = "model", nullable = false, length = 60)
     private String model;
 
+    
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "brand_id", nullable = false)
