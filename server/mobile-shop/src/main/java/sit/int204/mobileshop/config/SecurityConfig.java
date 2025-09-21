@@ -19,6 +19,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import sit.int204.mobileshop.filters.JwtAuthFilter;
+import sit.int204.mobileshop.repositories.SellerRepository;
 import sit.int204.mobileshop.services.JwtService;
 import sit.int204.mobileshop.services.JwtUserDetailsService;
 import sit.int204.mobileshop.services.UserService;
@@ -44,8 +45,8 @@ public class SecurityConfig {
 
 
     @Bean
-    public JwtAuthFilter jwtAuthFilter(UserService userService, JwtService jwtService) {
-        return new JwtAuthFilter(userService, jwtService);
+    public JwtAuthFilter jwtAuthFilter(UserService userService, JwtService jwtService, SellerRepository sellerRepository) {
+        return new JwtAuthFilter(userService, jwtService, sellerRepository);
     }
 
     @Bean
