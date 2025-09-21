@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -72,6 +74,16 @@ public class SaleItemService {
                                                               Integer size,
                                                               String sortField,
                                                               String sortDirection) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            UserResponseDto principal = (UserResponseDto) authentication.getPrincipal();
+            if (!principal.getId().equals(sellerId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Request user id not matched with id in access token");
+            }
+        }
+
         if (sortField == null || sortField.isBlank()) sortField = "createdOn";
         Sort.Direction direction;
         try {

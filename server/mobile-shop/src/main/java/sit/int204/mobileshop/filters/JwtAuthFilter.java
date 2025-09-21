@@ -12,6 +12,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 import sit.int204.mobileshop.dtos.UserResponseDto;
+import sit.int204.mobileshop.entities.Seller;
+import sit.int204.mobileshop.repositories.SellerRepository;
 import sit.int204.mobileshop.services.JwtService;
 import sit.int204.mobileshop.services.UserService;
 
@@ -26,6 +28,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final UserService userService;
     private final JwtService jwtService;
+    private final SellerRepository sellerRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -95,16 +98,28 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "User not found");
                 return null;
             }
+
             if ("INACTIVE".equals(user.getStatus())) {
                 writeErrorResponse(response, HttpStatus.FORBIDDEN, "User account is inactive");
                 return null;
             }
+
+            if ("SELLER".equals(user.getUserType())) {
+                System.out.println("seller");
+                Seller seller = sellerRepository.getSellerById(userId);
+                if (seller == null) {
+                    writeErrorResponse(response, HttpStatus.FORBIDDEN, "Seller information is incomplete");
+                    return null;
+                }
+            }
+
             return user;
 
         } catch (Exception e) {
             writeErrorResponse(response, HttpStatus.INTERNAL_SERVER_ERROR, "Authentication service error");
             return null;
         }
+
     }
 
     private void setAuthenticationContext(UserResponseDto user, HttpServletRequest request) {
@@ -127,5 +142,5 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         ));
         response.getWriter().flush();
     }
-    
+
 }
