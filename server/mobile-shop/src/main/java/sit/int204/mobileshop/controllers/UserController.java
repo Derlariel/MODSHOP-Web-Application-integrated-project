@@ -66,7 +66,7 @@ public class UserController {
         // @PreAuthorize("isAuthenticated()") // Temporarily commented out
         public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id, 
                                                           @RequestHeader(value = "Authorization", required = false) String authHeader) {
-                UserResponseDto user = userService.getUserById(id, authHeader);
+                UserResponseDto user = userService.getUserById(id);
                 return ResponseEntity.ok(user);
         }
 

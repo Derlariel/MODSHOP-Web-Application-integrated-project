@@ -94,12 +94,11 @@ public class AuthController {
                                 req.getPassword());
                 
                 if (authResponse == null) {
-                        // Invalid credentials
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // 401
                 }
                 
                 if (authResponse.getAccessToken() == null) {
-                        // Account not activated
+                    System.out.println("accessToken is null");
                         return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // 403
                 }
                 
