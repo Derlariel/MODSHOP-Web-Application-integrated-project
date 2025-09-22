@@ -43,7 +43,7 @@ public class User {
     @NotNull
     @Lob
     @Column(name = "role", nullable = false)
-    private String role;
+    private String userType;
 
     @NotNull
     @ColumnDefault("'INACTIVE'")

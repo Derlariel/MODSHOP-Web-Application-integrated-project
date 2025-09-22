@@ -9,6 +9,4 @@ public class SaleItemImageRequest {
     private String fileName;
     private String status;
     private MultipartFile imageFile;
-
-
 }

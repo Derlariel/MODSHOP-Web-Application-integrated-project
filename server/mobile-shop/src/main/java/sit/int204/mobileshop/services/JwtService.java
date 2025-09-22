@@ -9,9 +9,12 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
@@ -187,7 +190,7 @@ public class JwtService {
         }
     }
 
-    public JWTClaimsSet validateAccessToken(String token) throws ParseException, JOSEException {
+    public JWTClaimsSet validateAccessToken(String token) {
         return validateAuthToken(token, "access_token");
     }
 
@@ -195,33 +198,42 @@ public class JwtService {
         return validateAuthToken(token, "refresh_token");
     }
 
-    private JWTClaimsSet validateAuthToken(String token, String expectedType) throws ParseException, JOSEException {
-        SignedJWT signedJWT = SignedJWT.parse(token);
+    private JWTClaimsSet validateAuthToken(String token, String expectedType) {
+        try {
+            System.out.println("token: " + token);
+            SignedJWT signedJWT = SignedJWT.parse(token);
+            System.out.println("signedJWT: " + signedJWT);
 
-        // Verify signature
-        if (!signedJWT.verify(verifier)) {
-            throw new JOSEException("Invalid token signature");
+            if (!signedJWT.verify(verifier)) {
+                System.out.println("Invalid token");
+                return null;
+            }
+
+            JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+
+            Date expirationTime = claimsSet.getExpirationTime();
+            if (expirationTime == null || expirationTime.before(new Date())) {
+                System.out.println("expired at " + expirationTime.getTime());
+                return null; // expired
+            }
+
+            String tokenType = claimsSet.getStringClaim("type");
+            if (!expectedType.equals(tokenType)) {
+                System.out.println("not type " + tokenType);
+                return null;
+            }
+
+            if (!issuer.equals(claimsSet.getIssuer())) {
+                System.out.println("not issuer " + claimsSet.getIssuer());
+                return null;
+            }
+
+            System.out.println("finish");
+            return claimsSet;
+
+        } catch (ParseException | JOSEException e) {
+            return null;
         }
-
-        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
-
-        // Check expiration
-        Date expirationTime = claimsSet.getExpirationTime();
-        if (expirationTime == null || expirationTime.before(new Date())) {
-            throw new JOSEException("Token has expired");
-        }
-
-        // Check token type
-        String tokenType = claimsSet.getStringClaim("type");
-        if (!expectedType.equals(tokenType)) {
-            throw new JOSEException("Invalid token type");
-        }
-
-        // Check issuer
-        if (!issuer.equals(claimsSet.getIssuer())) {
-            throw new JOSEException("Invalid token issuer");
-        }
-
-        return claimsSet;
     }
+
 }

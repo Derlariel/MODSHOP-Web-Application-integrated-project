@@ -1,12 +1,8 @@
 package sit.int204.mobileshop.services;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -19,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -69,6 +67,35 @@ public class SaleItemService {
 
     public List<SaleItem> getAllSaleItems() {
         return saleItemRepository.findAll();
+    }
+
+    public PageDto<SaleItemDto> getAllSaleItemsPageBySellerId(Long sellerId,
+                                                              Integer page,
+                                                              Integer size,
+                                                              String sortField,
+                                                              String sortDirection) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            UserResponseDto principal = (UserResponseDto) authentication.getPrincipal();
+            if (!principal.getId().equals(sellerId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Request user id not matched with id in access token");
+            }
+        }
+
+        if (sortField == null || sortField.isBlank()) sortField = "createdOn";
+        Sort.Direction direction;
+        try {
+            direction = Sort.Direction.fromString(sortDirection);
+        } catch (Exception e) {
+            direction = Sort.Direction.ASC;
+        }
+        if (page == null || page < 0) page = 0;
+        if (size == null || size <= 0) size = 10;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(new Sort.Order(direction, sortField)));
+        Page<SaleItem> pageResult =  saleItemRepository.findSaleItemsBySellerId(sellerId, pageable);
+        return listMapper.toPageDTO(pageResult, SaleItemDto.class, modelMapper);
     }
 
     public PageDto<SaleItemDto> getAllSaleItemsPage(

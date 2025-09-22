@@ -17,10 +17,12 @@ public class UserResponseDto {
     private String fullName;
     private String userType;
     private String nickName;
+
+    @JsonInclude
+    private String status;
     
     // Seller fields
     private String phoneNumber;
     private String bankName;
     private String bankAccount;
-    private String nationalIdNumber;
 }

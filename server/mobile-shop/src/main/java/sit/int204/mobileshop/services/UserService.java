@@ -7,18 +7,17 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sit.int204.mobileshop.dtos.AuthResponseDto;
-import sit.int204.mobileshop.dtos.RegisterUserDto;
-import sit.int204.mobileshop.dtos.UpdateProfileDto;
-import sit.int204.mobileshop.dtos.UserResponseDto;
-import sit.int204.mobileshop.entities.Seller;
-import sit.int204.mobileshop.entities.User;
-import sit.int204.mobileshop.exceptions.EmailAlreadyExistsException;
-import sit.int204.mobileshop.repositories.SellerRepository;
-import sit.int204.mobileshop.repositories.UserRepository;
+import org.springframework.web.server.ResponseStatusException;
+import sit.int204.mobileshop.dtos.*;
+import sit.int204.mobileshop.entities.*;
+import sit.int204.mobileshop.exceptions.*;
+import sit.int204.mobileshop.repositories.*;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -95,7 +94,7 @@ public class UserService {
 
     private User createAndSaveUser(RegisterUserDto dto) {
         User user;
-        
+
         // Create appropriate entity based on role
         if (UserRole.SELLER.name().equalsIgnoreCase(dto.getRole())) {
             Seller seller = new Seller();
@@ -114,9 +113,11 @@ public class UserService {
         // Set common user fields
         user.setNickName(dto.getNickname());
         user.setEmail(dto.getEmail().trim().toLowerCase());
-        user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
+        //  disabled password hashing ชั่วคราวเ
+        // user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
+        user.setPasswordHash(dto.getPassword()); // Store plain text password temporarily
         user.setFullName(dto.getFullname());
-        user.setRole(dto.getRole());
+        user.setUserType(dto.getRole());
         user.setStatus(UserStatus.INACTIVE.name());
 
         Instant now = Instant.now();
@@ -131,42 +132,44 @@ public class UserService {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) return false;
         User u = userOpt.get();
-        return passwordEncoder.matches(rawPassword, u.getPasswordHash());
+        // TODO: Temporarily disabled password hashing for development
+        // return passwordEncoder.matches(rawPassword, u.getPasswordHash());
+        return rawPassword.equals(u.getPasswordHash()); // Compare plain text passwords temporarily
     }
 
     @Transactional(readOnly = true)
     public AuthResponseDto authenticateWithJwt(String email, String rawPassword) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) {
-            return null; // User not found
+            return null;
         }
-        
+
         User user = userOpt.get();
         
         // Check password
-        if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+        // TODO: Temporarily disabled password hashing for development
+        // if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+        if (!rawPassword.equals(user.getPasswordHash())) { // Compare plain text passwords temporarily
             return null; // Invalid password
         }
-        
-        // Check if user is active
+
         if (!"ACTIVE".equals(user.getStatus())) {
-            // Return empty response for inactive user (should result in 403)
             return AuthResponseDto.builder().build();
         }
-        
+
         // Generate tokens
         String accessToken = jwtService.generateAccessToken(
-            user.getId(),
-            user.getEmail(),
-            user.getNickName(),
-            user.getRole()
+                user.getId(),
+                user.getEmail(),
+                user.getNickName(),
+                user.getUserType()
         );
-        
+
         String refreshToken = jwtService.generateRefreshToken(
-            user.getId(),
-            user.getEmail()
+                user.getId(),
+                user.getEmail()
         );
-        
+
         // Create response
         return AuthResponseDto.builder()
                 .accessToken(accessToken)
@@ -176,7 +179,7 @@ public class UserService {
                 .nickname(user.getNickName())
                 .userId(user.getId())
                 .email(user.getEmail())
-                .role(user.getRole())
+                .role(user.getUserType())
                 .build();
     }
 
@@ -207,7 +210,7 @@ public class UserService {
         responseDto.setId(user.getId());
         responseDto.setEmail(user.getEmail());
         responseDto.setFullName(user.getFullName());
-        responseDto.setUserType(user.getRole());
+        responseDto.setUserType(user.getUserType());
         responseDto.setNickName(user.getNickName());
         responseDto.setPhoneNumber(getPhoneNumber(user));
         return responseDto;
@@ -234,15 +237,11 @@ public class UserService {
             }
 
             activateUser(user);
-
-            log.info("User email verified successfully: {}", email);
             return ResponseEntity.ok(buildSuccessResponse(user));
 
         } catch (ParseException | JOSEException e) {
-            log.warn("Invalid verification token: {}", e.getMessage());
             return buildErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", "Invalid verification token");
         } catch (Exception e) {
-            log.error("Error during email verification", e);
             return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error",
                     "An error occurred during verification");
         }
@@ -280,7 +279,7 @@ public class UserService {
     }
 
     private String getPhoneNumber(User user) {
-        if (UserRole.SELLER.name().equalsIgnoreCase(user.getRole())) {
+        if (UserRole.SELLER.name().equalsIgnoreCase(user.getUserType())) {
             // Since Seller extends User, we can cast directly or use repository
             if (user instanceof Seller) {
                 return ((Seller) user).getMobileNumber();
@@ -311,97 +310,56 @@ public class UserService {
                     .body("An error occurred, or the verification link has expired. Please request a new verification email.");
         }
     }
+    public UserResponseDto getUserById(Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            UserResponseDto principal = (UserResponseDto) authentication.getPrincipal();
+            if (!principal.getId().equals(id)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Request user id not matched with id in access token");
+            }
+        }
 
-    // Profile management methods
-    @Transactional(readOnly = true)
-    public UserResponseDto getUserById(Long id, String authHeader) {
-        // Check if authorization header is present
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("No access token provided");
-        }
-        
-        // Extract JWT token
-        String token = authHeader.substring(7); // Remove "Bearer " prefix
-        
-        try {
-            // Validate and parse JWT token
-            log.debug("Validating JWT token for user profile access");
-            JWTClaimsSet claims = jwtService.validateAccessToken(token);
-            String email = claims.getStringClaim("email");
-            Long tokenUserId = Long.parseLong(claims.getSubject());
-            log.debug("JWT validated successfully. Email: {}, UserID: {}", email, tokenUserId);
-            
-            // Find user by email from token
-            User authenticatedUser = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found, Invalid Token"));
-            log.debug("User found in database: {}", authenticatedUser.getId());
-            
-            // Check if user is active
-            if (!UserStatus.ACTIVE.name().equals(authenticatedUser.getStatus())) {
-                log.warn("User {} is not active", authenticatedUser.getId());
-                throw new RuntimeException("User is not active");
-            }
-            
-            // Check if requested ID matches authenticated user ID (authorization)
-            if (!authenticatedUser.getId().equals(id) || !tokenUserId.equals(id)) {
-                log.warn("Authorization failed. Requested ID: {}, User ID: {}, Token ID: {}", 
-                         id, authenticatedUser.getId(), tokenUserId);
-                throw new RuntimeException("Request user id not matched with id in access token");
-            }
-            
-            return mapToProfileResponseDto(authenticatedUser);
-            
-        } catch (RuntimeException e) {
-            // Re-throw our custom runtime exceptions
-            log.error("Runtime error in getUserById: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            // Handle JWT parsing exceptions (ParseException, JOSEException, etc.)
-            log.error("JWT validation failed: {}", e.getMessage(), e);
-            throw new RuntimeException("User not found, Invalid Token");
-        }
+        Optional<User> userOpt = userRepository.getUsersById(id);
+        return modelMapper.map(userOpt.get(), UserResponseDto.class);
     }
 
     @Transactional
     public UserResponseDto updateUserProfile(Long id, UpdateProfileDto updateDto, String authHeader) {
-        // Check if authorization header is present
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new RuntimeException("No access token provided");
         }
-        
-        // Extract JWT token
+
         String token = authHeader.substring(7); // Remove "Bearer " prefix
-        
+
         try {
-            // Validate and parse JWT token
             JWTClaimsSet claims = jwtService.validateAccessToken(token);
             String email = claims.getStringClaim("email");
             Long tokenUserId = Long.parseLong(claims.getSubject());
-            
-            // Find user by email from token
+
             User authenticatedUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found, Invalid Token"));
-            
+
             // Check if user is active
             if (!UserStatus.ACTIVE.name().equals(authenticatedUser.getStatus())) {
                 throw new RuntimeException("User is not active");
             }
-            
+
             // Check if requested ID matches authenticated user ID (authorization)
             if (!authenticatedUser.getId().equals(id) || !tokenUserId.equals(id)) {
                 throw new RuntimeException("Request user id not matched with id in access token");
             }
-            
+
             // Update only allowed fields (nickname and fullname)
             authenticatedUser.setNickName(updateDto.getNickName());
             authenticatedUser.setFullName(updateDto.getFullName());
             authenticatedUser.setUpdatedOn(Instant.now());
-            
+
             // If user is a Seller, update seller-specific fields
-            if (UserRole.SELLER.name().equalsIgnoreCase(authenticatedUser.getRole()) && 
-                authenticatedUser instanceof Seller) {
+            if (UserRole.SELLER.name().equalsIgnoreCase(authenticatedUser.getUserType()) &&
+                    authenticatedUser instanceof Seller) {
                 Seller seller = (Seller) authenticatedUser;
-                
+
                 if (updateDto.getPhoneNumber() != null) {
                     seller.setMobileNumber(updateDto.getPhoneNumber());
                 }
@@ -411,16 +369,13 @@ public class UserService {
                 if (updateDto.getBankAccount() != null) {
                     seller.setBankAccountNumber(updateDto.getBankAccount());
                 }
-                if (updateDto.getNationalIdNumber() != null) {
-                    seller.setNationalIdNumber(updateDto.getNationalIdNumber());
-                }
             }
-            
+
             User updatedUser = userRepository.save(authenticatedUser);
             log.info("User profile updated successfully for user ID: {}", id);
-            
+
             return mapToProfileResponseDto(updatedUser);
-            
+
         } catch (RuntimeException e) {
             // Re-throw our custom runtime exceptions
             throw e;
@@ -435,18 +390,17 @@ public class UserService {
         response.setId(user.getId());
         response.setEmail(user.getEmail());
         response.setFullName(user.getFullName());
-        response.setUserType(user.getRole());
+        response.setUserType(user.getUserType());
         response.setNickName(user.getNickName());
-        
+
         // If user is a Seller, add seller-specific fields
-        if (UserRole.SELLER.name().equalsIgnoreCase(user.getRole())) {
+        if (UserRole.SELLER.name().equalsIgnoreCase(user.getUserType())) {
             // Cast to Seller since we know it's a Seller
             if (user instanceof Seller) {
                 Seller seller = (Seller) user;
                 response.setPhoneNumber(seller.getMobileNumber());
                 response.setBankName(seller.getBankName());
                 response.setBankAccount(seller.getBankAccountNumber());
-                response.setNationalIdNumber(seller.getNationalIdNumber());
             } else {
                 // Fallback: Query seller table directly
                 Optional<Seller> seller = sellerRepository.findById(user.getId());
@@ -455,11 +409,10 @@ public class UserService {
                     response.setPhoneNumber(sellerData.getMobileNumber());
                     response.setBankName(sellerData.getBankName());
                     response.setBankAccount(sellerData.getBankAccountNumber());
-                    response.setNationalIdNumber(sellerData.getNationalIdNumber());
                 }
             }
         }
-        
+
         return response;
     }
 

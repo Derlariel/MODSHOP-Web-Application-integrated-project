@@ -37,62 +37,80 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen w-full bg-gradient-to-br from-black to-gray-900 text-gray-100 pt-16">
+  <div class="min-h-screen w-full bg-gradient-to-br from-black to-gray-900 text-gray-100 pt-4">
     <div class="w-full h-full px-10 py-16">
-      <h1 class="text-5xl font-extrabold text-center mb-16 tracking-tight">
-        My Profile
-      </h1>
+      <!-- Navigation Path -->
+      <nav class="flex items-center text-sm text-gray-400 mb-8">
+        <router-link to="/sale-items" class="itbms-home hover:text-white transition-colors">Home</router-link>
+        <span class="mx-2">/</span>
+        <span class="text-white font-medium">Profile</span>
+      </nav>
 
-      <div v-if="profile" class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        <!-- LEFT COLUMN -->
-        <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-xl p-10 border border-gray-700 hover:shadow-2xl transition">
-          <h2 class="text-2xl font-bold mb-6 text-gray-200">General Info</h2>
-          <div class="space-y-6">
-            <div>
-              <p class="text-sm text-gray-400">Nickname</p>
-              <p class="text-xl font-semibold">{{ profile.nickName }}</p>
+      <div v-if="profile">
+        <!-- Seller: Two columns -->
+        <div v-if="profile.userType === 'SELLER'" class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          <!-- LEFT COLUMN -->
+          <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-xl p-10 border border-gray-700 hover:shadow-2xl transition">
+            <h2 class="text-2xl font-bold mb-6 text-gray-200">General Information</h2>
+            <div class="space-y-6">
+              <div>
+                <p class="text-sm text-gray-400">Nickname</p>
+                <p class="itbms-nickname text-xl font-semibold">{{ profile.nickName }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-400">Fullname</p>
+                <p class="itbms-fullname text-xl font-semibold">{{ profile.fullName }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-400">Email</p>
+                <p class="itbms-email text-xl font-semibold">{{ profile.email }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-400">User Type</p>
+                <p class="itbms-type text-xl font-semibold">{{ profile.userType }}</p>
+              </div>
             </div>
-            <div>
-              <p class="text-sm text-gray-400">Fullname</p>
-              <p class="text-xl font-semibold">{{ profile.fullName }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-400">Email</p>
-              <p class="text-xl font-semibold">{{ profile.email }}</p>
+          </div>
+          <!-- RIGHT COLUMN -->
+          <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-xl p-10 border border-gray-700 hover:shadow-2xl transition">
+            <h2 class="text-2xl font-bold mb-6 text-gray-200">Seller Information</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              <div>
+                <p class="text-sm text-gray-400">Mobile</p>
+                <p class="itbms-mobile text-lg font-semibold">{{ maskNumber(profile.phoneNumber) }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-400">Bank Name</p>
+                <p class="itbms-bankName text-lg font-semibold">{{ profile.bankName }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-400">Bank Account</p>
+                <p class="itbms-bankAccount text-lg font-semibold">{{ maskNumber(profile.bankAccount) }}</p>
+              </div>
             </div>
           </div>
         </div>
-
-        <!-- RIGHT COLUMN -->
-        <div
-          v-if="profile.userType === 'SELLER'"
-          class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-xl p-10 border border-gray-700 hover:shadow-2xl transition"
-        >
-          <h2 class="text-2xl font-bold mb-6 text-gray-200">Seller Information</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
-            <div>
-              <p class="text-sm text-gray-400">Mobile</p>
-              <p class="text-lg font-semibold">{{ maskNumber(profile.phoneNumber) }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-400">Bank Name</p>
-              <p class="text-lg font-semibold">{{ profile.bankName }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-400">Bank Account</p>
-              <p class="text-lg font-semibold">{{ maskNumber(profile.bankAccount) }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-400">National ID</p>
-              <p class="text-lg font-semibold">
-                {{ maskNumber(profile.nationalIdNumber || profile.nationalId) }}
-              </p>
-            </div>
-            <div class="sm:col-span-2">
-              <p class="text-sm text-gray-400">National ID Photo</p>
-              <p class="inline-block px-4 py-1 mt-1 text-sm bg-green-700/40 text-green-300 font-medium rounded-full">
-                Provided
-              </p>
+        <!-- Buyer: Centered box -->
+        <div v-else class="flex justify-center">
+          <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-xl p-10 border border-gray-700 hover:shadow-2xl transition w-full max-w-lg">
+            <h2 class="text-2xl font-bold mb-6 text-gray-200 text-center">Profile</h2>
+            <div class="space-y-6">
+              <div>
+                <p class="text-sm text-gray-400">Nickname</p>
+                <p class="itbms-nickname text-xl font-semibold">{{ profile.nickName }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-400">Fullname</p>
+                <p class="itbms-fullname text-xl font-semibold">{{ profile.fullName }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-400">Email</p>
+                <p class="itbms-email text-xl font-semibold">{{ profile.email }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-400">User Type</p>
+                <p class="itbms-type text-xl font-semibold">{{ profile.userType }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -102,10 +120,10 @@ onMounted(async () => {
         Loading profile...
       </div>
 
-      <div class="mt-16 text-center">
+      <div class="mt-4 text-center">
         <router-link
           to="/profile/edit"
-          class="inline-block px-10 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold text-lg shadow hover:shadow-2xl hover:scale-105 transition-all"
+          class="itbms-profile-button inline-block px-10 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold text-lg shadow hover:shadow-2xl hover:scale-105 transition-all"
         >
           Edit Profile
         </router-link>
