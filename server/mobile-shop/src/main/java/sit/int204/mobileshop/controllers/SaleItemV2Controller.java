@@ -81,14 +81,16 @@ public class SaleItemV2Controller {
 
     @PostMapping("")
     public ResponseEntity<SaleItemDetailDto> createSaleItem(
+
             @ModelAttribute SaleItemRequestDto dto,
             @RequestParam(value = "images", required = false) List<MultipartFile> images
     ) throws IOException {
+        System.out.println("controller");
         SaleItemDetailDto result = saleItemService.createSaleItem(dto, images);
         result.setSaleItemImages(saleItemImageService.getSaleItemImagesDto(result.getId()));
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
-
+//
 //    @PostMapping("")
 //    public ResponseEntity<SaleItemDetailDto> createSaleItem(
 //            @RequestPart("dto") SaleItemRequestDto dto,
