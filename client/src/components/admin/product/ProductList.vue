@@ -121,15 +121,14 @@ async function loadSellerProducts(page = currentPage.value) {
     sellerProducts.value = data.content || [];
     totalPages.value = data.totalPages || 0;
     currentPage.value = page;
-    
-    if (sellerProducts.value.length === 0 && totalPages.value === 0) {
-      router.push({ name: "error-page", query: { code: "NODATA" } });
-      return;
-    }
+    // No redirect or error for empty list; handled in template
   } catch (error) {
     console.error("Failed to load seller products:", error);
-    errorMessage.value = error.message || "Failed to load sale items. Please try again.";
-    showErrorModal.value = true;
+    // Only show error if it's not just 'no sale items'
+    if (!(sellerProducts.value.length === 0 && totalPages.value === 0)) {
+      errorMessage.value = error.message || "Failed to load sale items. Please try again.";
+      showErrorModal.value = true;
+    }
   }
 }
 
@@ -200,8 +199,9 @@ onMounted(async () => {
         />
 
         <SuccessModal :visible="showSuccessModal" :message="alertMessage" class="itbms-message" />
-        
-        <ErrorModal :visible="showErrorModal" :message="errorMessage" @close="showErrorModal = false" />
+
+        <!-- Only show ErrorModal if not empty list -->
+        <ErrorModal v-if="showErrorModal && !(products.length === 0 && totalPages === 0)" :message="errorMessage" @close="showErrorModal = false" />
 
         <div class="flex justify-end mb-6 space-x-4">
           <router-link
@@ -218,7 +218,22 @@ onMounted(async () => {
           </router-link>
         </div>
 
+        <!-- Show no sale item message if empty -->
+        <div v-if="products.length === 0 && totalPages === 0" class="text-center py-16">
+          <div class="max-w-md mx-auto">
+            <h3 class="text-xl font-semibold text-white mb-4">No sale item</h3>
+            <p class="text-gray-400 mb-6">You have no sale items yet. Start by adding your first sale item!</p>
+            <router-link
+              to="/sale-items/add"
+              class="inline-block bg-white text-black px-6 py-3 rounded hover:bg-gray-200 transition-colors duration-200 font-medium"
+            >
+              Add First Sale Item
+            </router-link>
+          </div>
+        </div>
+
         <ListModel
+          v-else
           :saleItems="products"
           :viewType="viewType"
           @update:viewType="viewType = $event"
