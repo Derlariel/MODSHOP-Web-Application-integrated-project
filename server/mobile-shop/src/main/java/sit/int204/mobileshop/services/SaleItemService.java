@@ -240,11 +240,7 @@ public class SaleItemService {
     public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem, List<MultipartFile> images) throws IOException {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserResponseDto principal = null;
-        if (authentication != null) {
-            principal = (UserResponseDto) authentication.getPrincipal();
-
-        }
+        UserResponseDto principal = (UserResponseDto) authentication.getPrincipal();
 
         Optional<Seller> seller = Optional.ofNullable(sellerRepository.getSellerById(principal.getId()));
         if (images != null && images.size() > MAX_IMAGES) {
@@ -383,17 +379,21 @@ public class SaleItemService {
         SaleItem updatedItem = saleItemRepository.save(existingItem);
         SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
 
-        // --- จัดการ images ---
-        List<SaleItemImage> images = saleItemImageRepository.findAllBySaleItemId(id);
+        // --- จัดการ images (optional) ---
         List<SaleItemImageRequest> newImages = saleItemWithImageInfo.getImageInfos();
-
-        if (newImages == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image list cannot be null.");
+        if (newImages != null && !newImages.isEmpty()) {
+            List<SaleItemImage> existingImages = saleItemImageRepository.findAllBySaleItemId(id);
+            processImages(id, existingImages, newImages);
         }
 
+        result.setBrandName(brand.getName());
+        return result;
+    }
+
+    private void processImages(Integer saleItemId, List<SaleItemImage> existingImages, List<SaleItemImageRequest> newImages) throws IOException {
         // map รูปเก่าตาม fileName -> object
         Map<String, SaleItemImage> existingImageMap =
-                images.stream().collect(Collectors.toMap(SaleItemImage::getFileName, img -> img));
+                existingImages.stream().collect(Collectors.toMap(SaleItemImage::getFileName, img -> img));
 
         // ตรวจ duplicate order
         Set<Integer> orders = new HashSet<>();
@@ -418,7 +418,6 @@ public class SaleItemService {
 
             switch (status) {
                 case "ONLINE":
-                    // ไม่ต้องทำอะไร
                     break;
 
                 case "NEW":
@@ -426,9 +425,7 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "Image file is required for NEW status at index " + i);
                     }
-
-                    // แก้ไข: ใช้ saveFile แทน saveUpdate
-                    SaleItemImage savedImage = fileService.saveFile(newImage.getImageFile(), id, newImage.getOrder());
+                    fileService.saveFile(newImage.getImageFile(), saleItemId, newImage.getOrder());
                     break;
 
                 case "MOVE":
@@ -437,14 +434,9 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "No existing image found for MOVE status at index " + i);
                     }
-
-                    // แก้ไข: อัปเดตใน database โดยตรง แทนการเรียก renameFileForOrder
                     existingImage.setImageViewOrder(newImage.getOrder());
                     existingImage.setUpdatedOn(Instant.now());
                     saleItemImageRepository.save(existingImage);
-
-                    // Update the map for subsequent operations
-                    existingImageMap.put(newImage.getFileName(), existingImage);
                     break;
 
                 case "DELETE":
@@ -453,10 +445,7 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "No existing image found for DELETE status at index " + i);
                     }
-
-                    // แก้ไข: ใช้ deleteSpecificImages แทน deleteByFileName
-                    List<String> fileToDelete = List.of(toDelete.getFileName());
-                    fileService.deleteSpecificImages(id, fileToDelete);
+                    fileService.deleteSpecificImages(saleItemId, List.of(toDelete.getFileName()));
                     break;
 
                 default:
@@ -465,13 +454,15 @@ public class SaleItemService {
             }
         }
 
-        // --- normalize order + อัปเดต database ---
-        List<SaleItemImage> remainingImages = saleItemImageRepository.findAllBySaleItemId(id)
+        normalizeImageOrder(saleItemId);
+    }
+
+    private void normalizeImageOrder(Integer saleItemId) {
+        List<SaleItemImage> remainingImages = saleItemImageRepository.findAllBySaleItemId(saleItemId)
                 .stream()
                 .sorted(Comparator.comparingInt(SaleItemImage::getImageViewOrder))
                 .toList();
 
-        // อัปเดต order ให้เป็นลำดับ 1, 2, 3, ...
         List<SaleItemImage> imagesToUpdate = new ArrayList<>();
         for (int j = 0; j < remainingImages.size(); j++) {
             SaleItemImage img = remainingImages.get(j);
@@ -486,12 +477,10 @@ public class SaleItemService {
 
         if (!imagesToUpdate.isEmpty()) {
             saleItemImageRepository.saveAll(imagesToUpdate);
-            log.info("Normalized order for " + imagesToUpdate.size() + " images");
         }
-
-        result.setBrandName(brand.getName());
-        return result;
     }
+
+
     public void deleteSaleItemByIdOld(Integer id) {
         saleItemRepository.delete(getSaleItemByIdOld(id));
     }
