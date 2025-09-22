@@ -33,7 +33,13 @@ async function handleSubmit() {
       email: email.value, 
       password: password.value 
     });
-    router.replace("/sale-items");
+    
+    // Redirect based on user role
+    if (auth.user && auth.user.role === "SELLER") {
+      router.replace("/sale-items/list");
+    } else {
+      router.replace("/sale-items");
+    }
   } catch (err) {
     errors.value.server = err?.message || "Email or Password is incorrect.";
   }

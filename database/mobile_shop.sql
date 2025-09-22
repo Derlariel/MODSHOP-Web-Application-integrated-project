@@ -141,7 +141,7 @@ INSERT INTO users (id, nickname, email, password_hash, fullname, role, status) V
 (2, 'Somkiat', 'itbkk.somkiat@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Somkiat Luckchart', 'BUYER', 'ACTIVE'),
 (3, 'Somsuan', 'itbkk.somsuan@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Somsuan Hundee', 'SELLER', 'ACTIVE'),
 (4, 'Somsuk', 'itbkk.somsuk@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Somsuk Fundee', 'SELLER', 'ACTIVE'),
-(5, 'Somsak', 'itbkk.somsak@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Soksak Saksit', 'SELLER', 'ACTIVE');
+(5, 'Somsak', 'itbkk.somsak@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Somsak Saksit', 'SELLER', 'ACTIVE');
 
 -- Insert seller details for SELLER users
 INSERT INTO sellers (user_id, mobile_number, bank_account_number, bank_name, national_id_number, national_id_photo_front, national_id_photo_back) VALUES
