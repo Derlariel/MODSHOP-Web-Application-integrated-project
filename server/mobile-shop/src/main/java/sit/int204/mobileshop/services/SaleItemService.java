@@ -26,12 +26,12 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import sit.int204.mobileshop.config.FileStorageProperties;
 import sit.int204.mobileshop.dtos.*;
-import sit.int204.mobileshop.entities.Brand;
-import sit.int204.mobileshop.entities.SaleItem;
-import sit.int204.mobileshop.entities.SaleItemImage;
+import sit.int204.mobileshop.entities.*;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
+import sit.int204.mobileshop.repositories.SellerRepository;
+import sit.int204.mobileshop.repositories.UserRepository;
 import sit.int204.mobileshop.specifications.SaleItemSpecs;
 import sit.int204.mobileshop.utils.ListMapper;
 
@@ -55,6 +55,12 @@ public class SaleItemService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private SellerRepository sellerRepository;
 
     @Autowired
     private ListMapper listMapper;
@@ -232,6 +238,15 @@ public class SaleItemService {
 
     @Transactional
     public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem, List<MultipartFile> images) throws IOException {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserResponseDto principal = null;
+        if (authentication != null) {
+            principal = (UserResponseDto) authentication.getPrincipal();
+
+        }
+
+        Optional<Seller> seller = Optional.ofNullable(sellerRepository.getSellerById(principal.getId()));
         if (images != null && images.size() > MAX_IMAGES) {
             throw new IllegalArgumentException("Cannot upload more than " + MAX_IMAGES + " images for a sale item.");
         }
@@ -240,6 +255,7 @@ public class SaleItemService {
 
         Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
         SaleItem item = mapToSaleItem(dtoItem, brand);
+        item.setSeller(seller.get());
         SaleItem savedItem = saleItemRepository.saveAndFlush(item);
         entityManager.refresh(savedItem);
 

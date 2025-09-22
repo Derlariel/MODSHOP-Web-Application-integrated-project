@@ -75,29 +75,29 @@ public class SellerV2Controller {
         }
     }
 
-    @PostMapping("/{id}/sale-items")
-    public ResponseEntity<SaleItemDetailDto> createSaleItemBySeller(
-            @PathVariable Long id,
-            @ModelAttribute SaleItemRequestDto dto,
-            @RequestParam(value = "images", required = false) List<MultipartFile> images,
-            Authentication authentication
-    ) throws IOException {
-        Jwt principal = (Jwt) authentication.getPrincipal();
-        String role = principal.getClaim("role");
-        Long userId = principal.getClaim("id");
-
-        if (!"SELLER".equalsIgnoreCase(role)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        if (!id.equals(userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        SaleItemDetailDto result = saleItemService.createSaleItem(dto, images);
-        result.setSaleItemImages(saleItemImageService.getSaleItemImagesDto(result.getId()));
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
-    }
+//    @PostMapping("/{id}/sale-items")
+//    public ResponseEntity<SaleItemDetailDto> createSaleItemBySeller(
+//            @PathVariable Long id,
+//            @ModelAttribute SaleItemRequestDto dto,
+//            @RequestParam(value = "images", required = false) List<MultipartFile> images,
+//            Authentication authentication
+//    ) throws IOException {
+//        Jwt principal = (Jwt) authentication.getPrincipal();
+//        String role = principal.getClaim("role");
+//        Long userId = principal.getClaim("id");
+//
+//        if (!"SELLER".equalsIgnoreCase(role)) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+//        }
+//
+//        if (!id.equals(userId)) {
+//            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+//        }
+//
+//        SaleItemDetailDto result = saleItemService.createSaleItem(dto, images);
+//        result.setSaleItemImages(saleItemImageService.getSaleItemImagesDto(result.getId()));
+//
+//        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+//    }
 
 }
