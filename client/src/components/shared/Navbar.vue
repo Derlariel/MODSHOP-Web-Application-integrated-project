@@ -76,8 +76,8 @@ const greeting = computed(() => {
         </router-link>
 
         <div class="flex items-center gap-4">
-          <router-link to="/profile" v-if="auth.isAuthenticated">
-              <span v-if="auth.isAuthenticated">{{ greeting }}</span>
+          <router-link to="/profile" v-if="auth.isAuthenticated" class="itbms-profile">
+              <span v-if="auth.isAuthenticated" class="itbms-nickname">{{ greeting }}</span>
           </router-link>
           <router-link to="/login" v-else
             class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md
@@ -87,7 +87,7 @@ const greeting = computed(() => {
           <button 
             v-if="auth.isAuthenticated"
             @click="auth.logout()"
-            class="text-sm opacity-70 hover:opacity-100"
+            class="itbms-logout text-sm opacity-70 hover:opacity-100"
           >
             Logout
           </button>
@@ -131,10 +131,14 @@ const greeting = computed(() => {
         Register
       </router-link>
 
+
+
       <div class="flex items-center justify-center gap-4">
-        <span v-if="auth.isAuthenticated">{{ greeting }}</span>
+        <router-link to="/profile" v-if="auth.isAuthenticated" class="itbms-profile">
+              <span v-if="auth.isAuthenticated" class="itbms-nickname">{{ greeting }}</span>
+          </router-link>
         <router-link to="/login" v-else 
-        class="block font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md 
+        class="itbms-login block font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md 
            hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 
            hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out "
   >
@@ -142,7 +146,7 @@ const greeting = computed(() => {
         <button
           v-if="auth.isAuthenticated"
           @click="auth.logout()"
-          class="text-sm opacity-70 hover:opacity-100"
+          class="itbms-logout text-sm opacity-70 hover:opacity-100"
         >
           Logout
         </button>

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useProductStore } from "@/stores/useProductStore";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 import ListModel from "@/components/shared/ListModel.vue";
 import FilterSort from "@/components/shared/FilterSort.vue";
@@ -20,6 +21,7 @@ const router = useRouter();
 const route = useRoute();
 
 const productStore = useProductStore();
+const auth = useAuthStore();
 
 const product = computed(() => productStore.allProducts);
 const totalPages = ref(0);
@@ -121,9 +123,7 @@ const add = () => {
   router.push({ name: "product-add" });
 };
 
-const salItemList = () => {
-  router.push({ name: "product-list" });
-}
+
 
 onMounted(async () => {
   // Check if filters were cleared due to NODATA error
@@ -224,10 +224,12 @@ watch(trigger, async () => {
             class="itbms-sale-item-add text-xs xs:text-sm md:text-sm bg-white text-black font-medium py-2 xs:py-2.5 md:py-2 px-4 xs:px-6 md:px-5 rounded-lg transition-colors duration-300 hover:bg-gray-200 whitespace-nowrap">
             Add Sale Item
           </button>
-          <button @click="salItemList"
-            class="itbms-item-list text-xs xs:text-sm md:text-sm bg-white text-black font-medium py-2 xs:py-2.5 md:py-2 px-4 xs:px-6 md:px-5 rounded-lg transition-colors duration-300 hover:bg-gray-200 whitespace-nowrap">
-            Sale Items List
-          </button>
+          <router-link :to="{ name: 'product-list' }">
+            <button
+              class="itbms-item-list text-xs xs:text-sm md:text-sm bg-white text-black font-medium py-2 xs:py-2.5 md:py-2 px-4 xs:px-6 md:px-5 rounded-lg transition-colors duration-300 hover:bg-gray-200 whitespace-nowrap">
+              Sale Items List
+            </button>
+          </router-link>
         </div>
 
         <!-- Filter and Sort Section -->
