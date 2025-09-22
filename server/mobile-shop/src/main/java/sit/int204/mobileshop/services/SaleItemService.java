@@ -173,6 +173,36 @@ public class SaleItemService {
         return dto;
     }
 
+//    @Transactional
+//    public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem, List<MultipartFile> images) throws IOException {
+//        if (images != null && images.size() > MAX_IMAGES) {
+//            throw new IllegalArgumentException("Cannot upload more than " + MAX_IMAGES + " images for a sale item.");
+//        }
+//
+//        validateSaleItemRequest(dtoItem);
+//
+//        Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
+//        SaleItem item = mapToSaleItem(dtoItem, brand);
+//        SaleItem savedItem = saleItemRepository.saveAndFlush(item);
+//        entityManager.refresh(savedItem);
+//
+//        if (images != null && !images.isEmpty()) {
+//            Integer order = 1;
+//            for (MultipartFile file : images) {
+//                if (!file.isEmpty()) {
+//                    fileService.saveFile(file, savedItem.getId(), order);
+//                    order++;
+//                }
+//            }
+//        }
+//
+//        SaleItemDetailDto saleItem = modelMapper.map(savedItem, SaleItemDetailDto.class);
+//        saleItem.setSaleItemImages(listMapper.mapList(saleItemImageRepository.findAllBySaleItemId(saleItem.getId()), SaleItemImageDto.class, modelMapper));
+//
+//        log.info("Created SaleItem with ID: " + savedItem.getId());
+//        return saleItem;
+//    }
+
     @Transactional
     public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem, List<MultipartFile> images) throws IOException {
         if (images != null && images.size() > MAX_IMAGES) {
@@ -197,11 +227,16 @@ public class SaleItemService {
         }
 
         SaleItemDetailDto saleItem = modelMapper.map(savedItem, SaleItemDetailDto.class);
-        saleItem.setSaleItemImages(listMapper.mapList(saleItemImageRepository.findAllBySaleItemId(saleItem.getId()), SaleItemImageDto.class, modelMapper));
+        saleItem.setSaleItemImages(listMapper.mapList(
+                saleItemImageRepository.findAllBySaleItemId(saleItem.getId()),
+                SaleItemImageDto.class,
+                modelMapper
+        ));
 
-        log.info("Created SaleItem with ID: " + savedItem.getId());
+        log.info("[SELLER CREATE] SaleItem with ID: " + savedItem.getId());
         return saleItem;
     }
+
 
     @Transactional
     public void deleteSaleItemById(Integer id) {
