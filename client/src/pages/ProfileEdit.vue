@@ -106,7 +106,6 @@ function cancel() {
         </h1>
 
       <div v-if="form" class="space-y-6">
-
         <BaseInput
           label="Nickname"
           v-model="form.nickName"
@@ -124,41 +123,35 @@ function cancel() {
           :error="!form.fullName ? 'This field is required' : ''"
         />
 
-        <BaseInput
-          label="Email"
-          v-model="form.email"
-          readonly
-          cypress="itbms-email"
-        />
+        <div class="bg-gray-700 px-4 py-3 rounded-lg text-gray-200 text-sm border border-gray-600">
+          <span class="font-medium text-gray-400">Email: </span> 
+          <span class="itbms-email">{{ form.email }}</span>
+        </div>
 
-        <BaseInput
-          label="User Type"
-          v-model="form.userType"
-          readonly
-          cypress="itbms-type"
-        />
+        <div class="bg-gray-700 px-4 py-3 rounded-lg text-gray-200 text-sm border border-gray-600">
+          <span class="font-medium text-gray-400">Type: </span> 
+          <span class="itbms-type">{{ form.userType }}</span>
+        </div>
 
         <!-- Seller-specific fields -->
         <div v-if="form.userType === 'SELLER'" class="space-y-6 pt-4 border-t border-gray-600">
           <h3 class="text-lg font-semibold text-gray-200 mb-4">Seller Information</h3>
-          <BaseInput
-            label="Mobile Number"
-            v-model="form.phoneNumber"
-            readonly
-            cypress="itbms-mobile"
-          />
-          <BaseInput
-            label="Bank Name"
-            v-model="form.bankName"
-            readonly
-            cypress="itbms-bankName"
-          />
-          <BaseInput
-            label="Bank Account"
-            v-model="form.bankAccount"
-            readonly
-            cypress="itbms-bankAccount"
-          />
+
+          <div class="bg-gray-700 px-4 py-3 rounded-lg text-gray-200 text-sm border border-gray-600">
+          <span class="font-medium text-gray-400">Mobile Number: </span> 
+          <span class="itbms-email">{{ form.phoneNumber }}</span>
+        </div>
+
+        <div class="bg-gray-700 px-4 py-3 rounded-lg text-gray-200 text-sm border border-gray-600">
+          <span class="font-medium text-gray-400">Bank Name: </span> 
+          <span class="itbms-email">{{ form.bankName }}</span>
+        </div>
+
+        <div class="bg-gray-700 px-4 py-3 rounded-lg text-gray-200 text-sm border border-gray-600">
+          <span class="font-medium text-gray-400">Bank Account: </span> 
+          <span class="itbms-email">{{ form.bankAccount }}</span>
+        </div>
+
         </div>
 
         <div class="flex items-center justify-center gap-4 pt-6">
