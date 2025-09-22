@@ -104,11 +104,20 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    logout() {
-      this.token = null
-      this.user = null
-      sessionStorage.removeItem("accessToken")
-      sessionStorage.removeItem("userClaims")
+    async logout() {
+      try {
+        await request("/v2/auth/logout", {
+          method: "POST",
+        })
+      } catch (error) {
+        console.error("Logout failed:", error)
+      } finally {
+        this.token = null
+        this.user = null
+        sessionStorage.removeItem("accessToken")
+        sessionStorage.removeItem("userClaims")
+        sessionStorage.setItem("logout-success", "true")
+      }
     },
 
     ensureNotExpired() {

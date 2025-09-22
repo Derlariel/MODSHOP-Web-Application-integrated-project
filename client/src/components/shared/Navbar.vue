@@ -1,10 +1,12 @@
 <script setup>
 import { Heart, ShoppingCart, User, Menu } from "lucide-vue-next";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { computed, ref } from "vue";
+import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 const route = useRoute();
+const router = useRouter();
 const isMobileMenuOpen = ref(false);
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
@@ -14,6 +16,19 @@ const auth = useAuthStore();
 const greeting = computed(() => {
   return auth.isAuthenticated ? `Hi, ${auth.nickname}` : "Login";
 });
+
+const showLogoutModal = ref(false);
+const handleLogout = () => {
+  showLogoutModal.value = true;
+};
+const confirmLogout = async () => {
+  showLogoutModal.value = false;
+  await auth.logout();
+  router.push("/login");
+};
+const cancelLogout = () => {
+  showLogoutModal.value = false;
+};
 </script>
 
 <template>
@@ -86,11 +101,20 @@ const greeting = computed(() => {
           > Login</router-link>
           <button 
             v-if="auth.isAuthenticated"
-            @click="auth.logout()"
+            @click="handleLogout"
             class="itbms-logout text-sm opacity-70 hover:opacity-100"
           >
             Logout
           </button>
+          <ConfirmModal
+            :visible="showLogoutModal"
+            title="Logout Confirmation"
+            message="Are you sure you want to logout?"
+            confirmText="Logout"
+            cancelText="Cancel"
+            @confirm="confirmLogout"
+            @cancel="cancelLogout"
+          />
         </div>
       </div>
 
@@ -145,11 +169,20 @@ const greeting = computed(() => {
         Login</router-link>
         <button
           v-if="auth.isAuthenticated"
-          @click="auth.logout()"
+          @click="handleLogout"
           class="itbms-logout text-sm opacity-70 hover:opacity-100"
         >
           Logout
         </button>
+        <ConfirmModal
+          :visible="showLogoutModal"
+          title="Logout Confirmation"
+          message="Are you sure you want to logout?"
+          confirmText="Logout"
+          cancelText="Cancel"
+          @confirm="confirmLogout"
+          @cancel="cancelLogout"
+        />
       </div>
     </div>
   </nav>

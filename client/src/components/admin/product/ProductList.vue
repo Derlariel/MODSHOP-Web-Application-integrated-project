@@ -140,9 +140,7 @@ async function initProducts() {
   }
 }
 
-// Handle pagination events
 const handlePageChange = async (page) => {
-  // Convert from 1-based (UI) to 0-based (backend)
   const backendPage = page - 1;
   isLoading.value = true;
   try {
@@ -188,7 +186,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-black text-white pt-24 pb-16 px-4">
+  <div class="min-h-screen bg-black text-white pt-24">
     <div class="max-w-7xl mx-auto">
       <div v-if="isLoading" class="text-center py-12">
         <div class="flex flex-wrap justify-center gap-4">
@@ -323,11 +321,13 @@ onMounted(async () => {
     </div>
 
     <!-- Pagination Component -->
+     <div class="max-w-7xl mx-auto m-12">
     <Pagination 
       v-if="!isLoading && totalPages > 1" 
       :totalPages="totalPages" 
       @sendPages="handlePageChange" 
     />
+    </div> 
   </div>
 </template>
 
