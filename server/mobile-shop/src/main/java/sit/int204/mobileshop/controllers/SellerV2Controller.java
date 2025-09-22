@@ -75,7 +75,7 @@ public class SellerV2Controller {
         }
     }
 
-    @PostMapping("/sellers/{id}/sale-items")
+    @PostMapping("/{id}/sale-items")
     public ResponseEntity<SaleItemDetailDto> createSaleItemBySeller(
             @PathVariable Long id,
             @ModelAttribute SaleItemRequestDto dto,

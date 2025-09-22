@@ -82,6 +82,23 @@ const routes = [
             path: "add",
             component: ProductAdd,
             name: "product-add",
+            beforeEnter: (to, from, next) => {
+              const auth = useAuthStore();
+
+              switch (true) {
+                case !auth.isAuthenticated || !auth.user:
+                  next({ name: "Login" });
+                  break;
+                case auth.user.role === "BUYER":
+                  next({ name: "product-gallery" });
+                  break;
+                case auth.user.role === "SELLER":
+                  next();
+                  break;
+                default:
+                  next({ name: "product-gallery" });
+              }
+            },
           },
           {
             path: ":productId",
