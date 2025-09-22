@@ -23,6 +23,7 @@ public class UserResponseDto {
     
     // Seller fields
     private String mobileNumber;
+    private String phoneNumber; 
     private String bankName;
     private String bankAccount;
 }

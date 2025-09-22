@@ -212,7 +212,14 @@ public class UserService {
         responseDto.setFullName(user.getFullName());
         responseDto.setUserType(user.getUserType());
         responseDto.setNickName(user.getNickName());
-        responseDto.setPhoneNumber(getPhoneNumber(user));
+        
+        // Set both phoneNumber and mobileNumber for sellers
+        String phoneNumber = getPhoneNumber(user);
+        responseDto.setPhoneNumber(phoneNumber);
+        if (UserRole.SELLER.name().equalsIgnoreCase(user.getUserType())) {
+            responseDto.setMobileNumber(phoneNumber);
+        }
+        
         return responseDto;
     }
 
@@ -321,7 +328,10 @@ public class UserService {
         }
 
         Optional<User> userOpt = userRepository.getUsersById(id);
-        return modelMapper.map(userOpt.get(), UserResponseDto.class);
+        User user = userOpt.get();
+        
+        // Use the existing mapping method that handles seller fields properly
+        return mapToProfileResponseDto(user);
     }
 
     @Transactional
@@ -398,7 +408,8 @@ public class UserService {
             // Cast to Seller since we know it's a Seller
             if (user instanceof Seller) {
                 Seller seller = (Seller) user;
-                response.setPhoneNumber(seller.getMobileNumber());
+                response.setMobileNumber(seller.getMobileNumber());
+                response.setPhoneNumber(seller.getMobileNumber()); // For backward compatibility
                 response.setBankName(seller.getBankName());
                 response.setBankAccount(seller.getBankAccountNumber());
             } else {
@@ -406,7 +417,8 @@ public class UserService {
                 Optional<Seller> seller = sellerRepository.findById(user.getId());
                 if (seller.isPresent()) {
                     Seller sellerData = seller.get();
-                    response.setPhoneNumber(sellerData.getMobileNumber());
+                    response.setMobileNumber(sellerData.getMobileNumber());
+                    response.setPhoneNumber(sellerData.getMobileNumber()); // For backward compatibility
                     response.setBankName(sellerData.getBankName());
                     response.setBankAccount(sellerData.getBankAccountNumber());
                 }

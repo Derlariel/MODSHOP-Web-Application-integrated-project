@@ -145,9 +145,9 @@ INSERT INTO users (id, nickname, email, password_hash, fullname, role, status) V
 
 -- Insert seller details for SELLER users
 INSERT INTO sellers (user_id, mobile_number, bank_account_number, bank_name, national_id_number, national_id_photo_front, national_id_photo_back) VALUES
-(3, '083-456-7890', '0371234567', 'Bankok Bank', '1000111100222', '1000111100222_front.png', '1000111100222_back.png'),
-(4, '084-567-8901', '2371234567', 'Saim Commercial Bank', '1000111100333', '1000111100333_front.png', '1000111100333_back.png'),
-(5, '085-678-9012', '373456789', 'Bankok Bank', '1000111100444', '1000111100444_front.png', '1000111100444_back.png');
+(3, '0834567890', '0371234567', 'Bankok Bank', '1000111100222', '1000111100222_front.png', '1000111100222_back.png'),
+(4, '0845678901', '2371234567', 'Saim Commercial Bank', '1000111100333', '1000111100333_front.png', '1000111100333_back.png'),
+(5, '0856789012', '373456789', 'Bankok Bank', '1000111100444', '1000111100444_front.png', '1000111100444_back.png');
 
 INSERT INTO sale_item (id, seller_id, brand_id, model, description, quantity, price, screen_size_inch, ram_gb, storage_gb, color, created_on, updated_on, rate) VALUES
 -- Apple products (brand_id = 2)
