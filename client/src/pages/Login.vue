@@ -34,6 +34,9 @@ async function handleSubmit() {
       password: password.value 
     });
     
+    // Set login success flag for showing success modal
+    sessionStorage.setItem("login-success", "true");
+    
     // Redirect based on user role
     if (auth.user && auth.user.role === "SELLER") {
       router.replace("/sale-items/list");

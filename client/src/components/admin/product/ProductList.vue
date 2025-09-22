@@ -121,10 +121,8 @@ async function loadSellerProducts(page = currentPage.value) {
     sellerProducts.value = data.content || [];
     totalPages.value = data.totalPages || 0;
     currentPage.value = page;
-    // No redirect or error for empty list; handled in template
   } catch (error) {
     console.error("Failed to load seller products:", error);
-    // Only show error if it's not just 'no sale items'
     if (!(sellerProducts.value.length === 0 && totalPages.value === 0)) {
       errorMessage.value = error.message || "Failed to load sale items. Please try again.";
       showErrorModal.value = true;
@@ -158,6 +156,15 @@ const handlePageChange = async (page) => {
 
 onMounted(async () => {
   await initProducts();
+
+  if (sessionStorage.getItem("login-success") === "true") {
+    alertMessage.value = "Login successful!";
+    showSuccessModal.value = true;
+    sessionStorage.removeItem("login-success");
+    setTimeout(() => {
+      showSuccessModal.value = false;
+    }, 3000);
+  }
 
   if (sessionStorage.getItem("add-success") === "true") {
     alertMessage.value = "The sale item has been successfully added.";
