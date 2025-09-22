@@ -1,4 +1,7 @@
-<script setup></script>
+<script setup>
+import { useAuthStore } from "@/stores/useAuthStore";
+const auth = useAuthStore();
+</script>
 
 <template>
   <div
@@ -31,7 +34,10 @@
               Shop Now!
             </button>
           </router-link>
-          <router-link :to="{ name: 'product-list' }">
+          <router-link
+            v-if="auth.isAuthenticated && auth.user && auth.user.role === 'SELLER'"
+            :to="{ name: 'product-list' }"
+          >
             <button
               class="itmbs-seller bg-[#3D5AFE] text-white px-6 py-2 rounded-full font-semibold w-full sm:w-auto"
             >
