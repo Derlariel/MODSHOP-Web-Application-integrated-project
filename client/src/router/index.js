@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "@/stores/useAuthStore";
 import LandingLayout from "@/layout/LandingLayout.vue";
 import DefaultLayout from "@/layout/DefaultLayout.vue";
 import HomePage from "@/pages/HomePage.vue";
@@ -59,6 +60,16 @@ const routes = [
             path: "list",
             component: ProductList,
             name: "product-list",
+            beforeEnter: (to, from, next) => {
+              const auth = useAuthStore();
+              // Check if user is logged in and is a SELLER
+              if (!auth.user || auth.user.role !== 'SELLER') {
+                // Redirect BUYER to sale-items gallery page
+                next({ name: 'product-gallery' });
+              } else {
+                next();
+              }
+            }
           },
           {
             path: "add",

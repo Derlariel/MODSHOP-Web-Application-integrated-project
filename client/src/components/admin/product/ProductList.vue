@@ -1,22 +1,33 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { useProductStore } from "@/stores/useProductStore";
+import { useAuthStore } from "@/stores/useAuthStore";
 import ListModel from "@/components/shared/ListModel.vue";
 import { useRouter } from "vue-router";
 import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
+import ErrorModal from "@/components/shared/modal/ErrorModal.vue";
 import SkeletonLoader from "@/components/shared/SkeletonLoader.vue";
+import Pagination from "@/components/shared/Pagination.vue";
 
 const router = useRouter();
-const productStore = useProductStore();
+const auth = useAuthStore();
 const isLoading = ref(true);
 const viewType = ref("list");
 const selectedProductId = ref(null);
 const showDeleteModal = ref(false);
 const showSuccessModal = ref(false);
+const showErrorModal = ref(false);
 const alertMessage = ref("");
+const errorMessage = ref("");
+const sellerProducts = ref([]);
 
-const products = computed(() => productStore.allProducts);
+// Pagination state
+const currentPage = ref(0); // Backend uses 0-based indexing
+const totalPages = ref(0);
+const pageSize = ref(10);
+
+// Use sellerProducts instead of productStore
+const products = computed(() => sellerProducts.value);
 
 const handleItemClick = (productId) => {
   router.push({
@@ -38,8 +49,24 @@ const handleDeleteClick = (productId) => {
 
 const confirmDelete = async () => {
   try {
-    await productStore.deleteProduct(selectedProductId.value);
-    await productStore.loadProducts();
+    // Delete product using API call directly
+    const response = await fetch(
+      `${import.meta.env.VITE_BASE_URL}/v1/sale-items/${selectedProductId.value}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to delete product');
+    }
+
+    // Reload seller's products after deletion
+    await loadSellerProducts();
 
     alertMessage.value = "The sale item has been deleted.";
     showSuccessModal.value = true;
@@ -50,6 +77,8 @@ const confirmDelete = async () => {
     }, 3000);
   } catch (error) {
     console.error("Failed to delete product:", error);
+    errorMessage.value = "Failed to delete the sale item. Please try again.";
+    showErrorModal.value = true;
   } finally {
     showDeleteModal.value = false;
   }
@@ -60,19 +89,73 @@ const cancelDelete = () => {
   selectedProductId.value = null;
 };
 
-async function initProducts() {
+// New function to load seller's products using PBI25 API
+async function loadSellerProducts(page = currentPage.value) {
   try {
-    await productStore.loadProducts();
-    if (products.value.length === 0) {
+    if (!auth.user || !auth.user.id) {
+      throw new Error('User not authenticated');
+    }
+
+    const response = await fetch(
+      `${import.meta.env.VITE_BASE_URL}/v2/sellers/${auth.user.id}/sale-items?page=${page}&size=${pageSize.value}`,
+      {
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized - Invalid token');
+      } else if (response.status === 403) {
+        throw new Error('Forbidden - User not active or access denied');
+      } else if (response.status === 400) {
+        throw new Error('Bad Request - Invalid parameters');
+      }
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    sellerProducts.value = data.content || [];
+    totalPages.value = data.totalPages || 0;
+    currentPage.value = page;
+    
+    if (sellerProducts.value.length === 0 && totalPages.value === 0) {
       router.push({ name: "error-page", query: { code: "NODATA" } });
       return;
     }
+  } catch (error) {
+    console.error("Failed to load seller products:", error);
+    errorMessage.value = error.message || "Failed to load sale items. Please try again.";
+    showErrorModal.value = true;
+  }
+}
+
+async function initProducts() {
+  try {
+    await loadSellerProducts();
   } catch (err) {
     console.error("Load products failed:", err);
   } finally {
     isLoading.value = false;
   }
 }
+
+// Handle pagination events
+const handlePageChange = async (page) => {
+  // Convert from 1-based (UI) to 0-based (backend)
+  const backendPage = page - 1;
+  isLoading.value = true;
+  try {
+    await loadSellerProducts(backendPage);
+  } catch (err) {
+    console.error("Page change failed:", err);
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 onMounted(async () => {
   await initProducts();
@@ -117,6 +200,8 @@ onMounted(async () => {
         />
 
         <SuccessModal :visible="showSuccessModal" :message="alertMessage" class="itbms-message" />
+        
+        <ErrorModal :visible="showErrorModal" :message="errorMessage" @close="showErrorModal = false" />
 
         <div class="flex justify-end mb-6 space-x-4">
           <router-link
@@ -214,6 +299,13 @@ onMounted(async () => {
         </ListModel>
       </div>
     </div>
+
+    <!-- Pagination Component -->
+    <Pagination 
+      v-if="!isLoading && totalPages > 1" 
+      :totalPages="totalPages" 
+      @sendPages="handlePageChange" 
+    />
   </div>
 </template>
 
