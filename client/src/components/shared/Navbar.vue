@@ -91,8 +91,11 @@ const cancelLogout = () => {
         </router-link>
 
         <div class="flex items-center gap-4">
-          <router-link to="/profile" v-if="auth.isAuthenticated" class="itbms-profile">
-              <span v-if="auth.isAuthenticated" class="itbms-nickname">{{ greeting }}</span>
+          <router-link to="/profile" v-if="auth.isAuthenticated">
+            <div class="flex flex-col items-center ">
+              <User class="itbms-profile-button w-5 h-5" />
+              <span v-if="auth.isAuthenticated" class="itbms-nickname text-sm">{{ greeting }}</span>
+            </div>
           </router-link>
           <router-link to="/login" v-else
             class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md
