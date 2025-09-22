@@ -29,9 +29,9 @@ const routes = [
       },
     ],
   },
-    { path: "/register", name: "Register", component: Register },
-    {path: "/login", name: "Login", component: Login},
-    {path: "/signin", name: "SignIn", component: Login},
+  { path: "/register", name: "Register", component: Register },
+  { path: "/login", name: "Login", component: Login },
+  { path: "/signin", name: "SignIn", component: Login },
   {
     path: "/",
     component: DefaultLayout,
@@ -44,12 +44,12 @@ const routes = [
       {
         path: "profile",
         name: "Profile",
-        component: Profile
+        component: Profile,
       },
       {
         path: "profile/edit",
         name: "ProfileEdit",
-        component: ProfileEdit
+        component: ProfileEdit,
       },
       {
         path: "sale-items",
@@ -62,21 +62,27 @@ const routes = [
             name: "product-list",
             beforeEnter: (to, from, next) => {
               const auth = useAuthStore();
-              // Check if user is logged in and is a SELLER
-              if (!auth.user || auth.user.role !== 'SELLER') {
-                // Redirect BUYER to sale-items gallery page
-                next({ name: 'product-gallery' });
-              } else {
-                next();
+
+              switch (true) {
+                case !auth.isAuthenticated || !auth.user:
+                  next({ name: "Login" });
+                  break;
+                case auth.user.role === "BUYER":
+                  next({ name: "product-gallery" });
+                  break;
+                case auth.user.role === "SELLER":
+                  next();
+                  break;
+                default:
+                  next({ name: "product-gallery" });
               }
-            }
+            },
           },
           {
             path: "add",
             component: ProductAdd,
             name: "product-add",
           },
-
           {
             path: ":productId",
             component: ProductDetail,
