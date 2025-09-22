@@ -59,6 +59,14 @@ const changed = computed(() => {
 
 async function save() {
   try {
+    if (form.value) {
+      if (typeof form.value.nickName === 'string') {
+        form.value.nickName = form.value.nickName.trim().replace(/\s+/g, ' ');
+      }
+      if (typeof form.value.fullName === 'string') {
+        form.value.fullName = form.value.fullName.trim().replace(/\s+/g, ' ');
+      }
+    }
     const res = await fetch(
       `${import.meta.env.VITE_BASE_URL}/v2/users/${auth.user.id}`,
       {
