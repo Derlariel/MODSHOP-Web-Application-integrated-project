@@ -1,12 +1,8 @@
 package sit.int204.mobileshop.services;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -19,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -69,6 +67,35 @@ public class SaleItemService {
 
     public List<SaleItem> getAllSaleItems() {
         return saleItemRepository.findAll();
+    }
+
+    public PageDto<SaleItemDto> getAllSaleItemsPageBySellerId(Long sellerId,
+                                                              Integer page,
+                                                              Integer size,
+                                                              String sortField,
+                                                              String sortDirection) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            UserResponseDto principal = (UserResponseDto) authentication.getPrincipal();
+            if (!principal.getId().equals(sellerId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Request user id not matched with id in access token");
+            }
+        }
+
+        if (sortField == null || sortField.isBlank()) sortField = "createdOn";
+        Sort.Direction direction;
+        try {
+            direction = Sort.Direction.fromString(sortDirection);
+        } catch (Exception e) {
+            direction = Sort.Direction.ASC;
+        }
+        if (page == null || page < 0) page = 0;
+        if (size == null || size <= 0) size = 10;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(new Sort.Order(direction, sortField)));
+        Page<SaleItem> pageResult =  saleItemRepository.findSaleItemsBySellerId(sellerId, pageable);
+        return listMapper.toPageDTO(pageResult, SaleItemDto.class, modelMapper);
     }
 
     public PageDto<SaleItemDto> getAllSaleItemsPage(
@@ -273,6 +300,8 @@ public class SaleItemService {
         return result;
     }
 
+    // แก้ไขใน SaleItemService - ส่วนที่เรียกใช้ FileService
+
     @Transactional
     public SaleItemDetailDto updateSaleItemByIdWithImages(Integer id, SaleItemWithImageInfo saleItemWithImageInfo) throws IOException {
         // 1. โหลดข้อมูลเก่า
@@ -346,14 +375,9 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "Image file is required for NEW status at index " + i);
                     }
-                    String newFileName = fileService.saveUpdate(newImage.getImageFile(), id, newImage.getOrder());
-                    SaleItemImage newSaleItemImage = new SaleItemImage();
-                    newSaleItemImage.setSaleItem(existingItem);
-                    newSaleItemImage.setFileName(newFileName);
-                    newSaleItemImage.setImageViewOrder(newImage.getOrder());
-                    newSaleItemImage.setCreatedOn(Instant.now());
-                    newSaleItemImage.setUpdatedOn(Instant.now());
-                    saleItemImageRepository.save(newSaleItemImage);
+
+                    // แก้ไข: ใช้ saveFile แทน saveUpdate
+                    SaleItemImage savedImage = fileService.saveFile(newImage.getImageFile(), id, newImage.getOrder());
                     break;
 
                 case "MOVE":
@@ -362,10 +386,14 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "No existing image found for MOVE status at index " + i);
                     }
-                    // ✅ MOVE = update order only
+
+                    // แก้ไข: อัปเดตใน database โดยตรง แทนการเรียก renameFileForOrder
                     existingImage.setImageViewOrder(newImage.getOrder());
                     existingImage.setUpdatedOn(Instant.now());
                     saleItemImageRepository.save(existingImage);
+
+                    // Update the map for subsequent operations
+                    existingImageMap.put(newImage.getFileName(), existingImage);
                     break;
 
                 case "DELETE":
@@ -374,14 +402,10 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "No existing image found for DELETE status at index " + i);
                     }
-                    try {
-                        if (fileService.deleteByFileName(toDelete.getFileName())) {
-                            System.out.println("File deleted: " + toDelete.getFileName());
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException("Error deleting file: " + toDelete.getFileName(), e);
-                    }
-                    saleItemImageRepository.delete(toDelete);
+
+                    // แก้ไข: ใช้ deleteSpecificImages แทน deleteByFileName
+                    List<String> fileToDelete = List.of(toDelete.getFileName());
+                    fileService.deleteSpecificImages(id, fileToDelete);
                     break;
 
                 default:
@@ -390,26 +414,33 @@ public class SaleItemService {
             }
         }
 
-        // --- normalize order ---
+        // --- normalize order + อัปเดต database ---
         List<SaleItemImage> remainingImages = saleItemImageRepository.findAllBySaleItemId(id)
                 .stream()
                 .sorted(Comparator.comparingInt(SaleItemImage::getImageViewOrder))
                 .toList();
 
+        // อัปเดต order ให้เป็นลำดับ 1, 2, 3, ...
+        List<SaleItemImage> imagesToUpdate = new ArrayList<>();
         for (int j = 0; j < remainingImages.size(); j++) {
             SaleItemImage img = remainingImages.get(j);
             int expectedOrder = j + 1;
+
             if (!img.getImageViewOrder().equals(expectedOrder)) {
                 img.setImageViewOrder(expectedOrder);
                 img.setUpdatedOn(Instant.now());
-                saleItemImageRepository.save(img);
+                imagesToUpdate.add(img);
             }
+        }
+
+        if (!imagesToUpdate.isEmpty()) {
+            saleItemImageRepository.saveAll(imagesToUpdate);
+            log.info("Normalized order for " + imagesToUpdate.size() + " images");
         }
 
         result.setBrandName(brand.getName());
         return result;
     }
-
     public void deleteSaleItemByIdOld(Integer id) {
         saleItemRepository.delete(getSaleItemByIdOld(id));
     }

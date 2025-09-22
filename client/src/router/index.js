@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "@/stores/useAuthStore";
 import LandingLayout from "@/layout/LandingLayout.vue";
 import DefaultLayout from "@/layout/DefaultLayout.vue";
 import HomePage from "@/pages/HomePage.vue";
@@ -12,6 +13,10 @@ import BrandManager from "@/components/admin/brand/BrandManager.vue";
 import BrandCreate from "@/components/admin/brand/BrandCreate.vue";
 import BrandEdit from "@/components/admin/brand/BrandEdit.vue";
 import About from "@/pages/About.vue";
+import Register from "@/pages/Register.vue";
+import Login from "@/pages/Login.vue";
+import Profile from "@/pages/Profile.vue";
+import ProfileEdit from "@/pages/ProfileEdit.vue";
 const routes = [
   {
     path: "/",
@@ -24,6 +29,9 @@ const routes = [
       },
     ],
   },
+  { path: "/register", name: "Register", component: Register },
+  { path: "/login", name: "Login", component: Login },
+  { path: "/signin", name: "SignIn", component: Login },
   {
     path: "/",
     component: DefaultLayout,
@@ -34,6 +42,16 @@ const routes = [
         component: MainPage,
       },
       {
+        path: "profile",
+        name: "Profile",
+        component: Profile,
+      },
+      {
+        path: "profile/edit",
+        name: "ProfileEdit",
+        component: ProfileEdit,
+      },
+      {
         path: "sale-items",
         name: "product-gallery",
         component: ProductManager,
@@ -42,13 +60,29 @@ const routes = [
             path: "list",
             component: ProductList,
             name: "product-list",
+            beforeEnter: (to, from, next) => {
+              const auth = useAuthStore();
+
+              switch (true) {
+                case !auth.isAuthenticated || !auth.user:
+                  next({ name: "Login" });
+                  break;
+                case auth.user.role === "BUYER":
+                  next({ name: "product-gallery" });
+                  break;
+                case auth.user.role === "SELLER":
+                  next();
+                  break;
+                default:
+                  next({ name: "product-gallery" });
+              }
+            },
           },
           {
             path: "add",
             component: ProductAdd,
             name: "product-add",
           },
-
           {
             path: ":productId",
             component: ProductDetail,

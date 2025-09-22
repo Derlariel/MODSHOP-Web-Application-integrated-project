@@ -121,6 +121,7 @@ const clearAllFilters = () => {
   selectedStorageSizes.value = [];
   searchKeyword.value = ""; // Clear search keyword
   searchInput.value = ""; // Clear input text
+  resetSort(); // Reset sort to default
   productStore.setActivePage(1);
   sessionStorage.setItem("activePage", 1);
 };

@@ -44,15 +44,20 @@ public class SaleItemImageService {
 
         for (MultipartFile image : images) {
             if (!image.isEmpty()) {
-                SaleItemImage savedImage = fileService.saveFile(image, saleItemId, nextOrder);
+                // แก้ไข: เรียกใช้ method ที่มีอยู่จริงใน FileService
+                // สร้าง SaleItemImageRequest สำหรับแต่ละไฟล์
+                sit.int204.mobileshop.dtos.SaleItemImageRequest request =
+                        new sit.int204.mobileshop.dtos.SaleItemImageRequest();
+                request.setImageFile(image);
+                request.setOrder(nextOrder);
+                request.setStatus("NEW");
 
-                // อัปเดต order เผื่อกรณี saveFile ไม่ได้เซ็ต
-                if (savedImage.getImageViewOrder() == null) {
-                    savedImage.setImageViewOrder(nextOrder);
-                    savedImage.setUpdatedOn(Instant.now());
-                    saleItemImageRepository.save(savedImage);
-                }
+                List<sit.int204.mobileshop.dtos.SaleItemImageRequest> requests =
+                        List.of(request);
 
+                List<SaleItemImage> savedImages = fileService.saveImagesWithOrder(requests, saleItemId);
+
+                // อัปเดต order สำหรับรูปถัดไป
                 nextOrder++;
             }
         }
@@ -60,27 +65,30 @@ public class SaleItemImageService {
         return true;
     }
 
-
     @Transactional
     public boolean updateImages(Integer saleItemId, List<Integer> updatedImageOrder,
                                 List<Integer> imagesToDelete, List<MultipartFile> newImages) {
         List<SaleItemImage> allImages = saleItemImageRepository
                 .findAllBySaleItemIdOrderByImageViewOrderAsc(saleItemId);
 
+        // ลบรูปที่ไม่ต้องการ
         if (imagesToDelete != null && !imagesToDelete.isEmpty()) {
             List<SaleItemImage> toDelete = allImages.stream()
                     .filter(img -> imagesToDelete.contains(img.getId()))
                     .toList();
 
             if (!toDelete.isEmpty()) {
-                fileService.deleteMultipleFiles(
-                        toDelete.stream().map(SaleItemImage::getFileName).toList()
-                );
-                saleItemImageRepository.deleteAll(toDelete);
+                // แก้ไข: ใช้ method ที่มีอยู่จริง
+                List<String> fileNamesToDelete = toDelete.stream()
+                        .map(SaleItemImage::getFileName)
+                        .toList();
+
+                fileService.deleteSpecificImages(saleItemId, fileNamesToDelete);
                 allImages.removeAll(toDelete);
             }
         }
 
+        // อัปเดต order ของรูปที่เหลือ
         if (updatedImageOrder != null && !updatedImageOrder.isEmpty()) {
             List<SaleItemImage> reordered = updateImageOrderOptimized(allImages, updatedImageOrder);
             if (!reordered.isEmpty()) saleItemImageRepository.saveAll(reordered);
@@ -88,6 +96,8 @@ public class SaleItemImageService {
             List<SaleItemImage> reordered = reorderImagesOptimized(allImages);
             if (!reordered.isEmpty()) saleItemImageRepository.saveAll(reordered);
         }
+
+        // เพิ่มรูปใหม่
         if (newImages != null && !newImages.isEmpty()) {
             addImagesToExistingSaleItem(saleItemId, newImages);
         }
@@ -105,6 +115,7 @@ public class SaleItemImageService {
             SaleItemImage image = imageMap.get(id);
             if (image != null && image.getImageViewOrder() != i + 1) {
                 image.setImageViewOrder(i + 1);
+                image.setUpdatedOn(Instant.now());
                 imagesToUpdate.add(image);
             }
         }
@@ -124,11 +135,12 @@ public class SaleItemImageService {
                 .toList();
 
         if (!imagesToDelete.isEmpty()) {
-            fileService.deleteMultipleFiles(
-                    imagesToDelete.stream().map(SaleItemImage::getFileName).toList()
-            );
+            // แก้ไข: ใช้ method ที่มีอยู่จริง
+            List<String> fileNamesToDelete = imagesToDelete.stream()
+                    .map(SaleItemImage::getFileName)
+                    .toList();
 
-            saleItemImageRepository.deleteAll(imagesToDelete);
+            fileService.deleteSpecificImages(saleItemId, fileNamesToDelete);
 
             List<SaleItemImage> remainingImages = saleItemImageRepository
                     .findAllBySaleItemIdOrderByImageViewOrderAsc(saleItemId);
@@ -147,9 +159,25 @@ public class SaleItemImageService {
             SaleItemImage img = images.get(i);
             if (img.getImageViewOrder() != i + 1) {
                 img.setImageViewOrder(i + 1);
+                img.setUpdatedOn(Instant.now());
                 updates.add(img);
             }
         }
         return updates;
+    }
+
+    @Transactional
+    public List<SaleItemImage> manageImagesComplete(Integer saleItemId,
+                                                    List<sit.int204.mobileshop.dtos.SaleItemImageRequest> imageRequests) {
+        return fileService.saveImagesWithOrder(imageRequests, saleItemId);
+    }
+
+    public List<String> getImageUrls(Integer saleItemId) {
+        return fileService.getImageUrls(saleItemId);
+    }
+
+    @Transactional
+    public void deleteAllImagesForSaleItem(Integer saleItemId) {
+        fileService.deleteImagesForSaleItem(saleItemId);
     }
 }

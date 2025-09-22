@@ -10,7 +10,7 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Check current user
+      - name: Check current user.
         run: whoami
 
       - name: Checkout code
@@ -33,4 +33,4 @@ jobs:
           docker compose build --no-cache
           docker compose up -d
           docker image prune -f
-          # docker builder prune -f
+          docker builder prune -f

@@ -1,7 +1,6 @@
 package sit.int204.mobileshop.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -9,35 +8,42 @@ import org.springframework.stereotype.Service;
 @Service
 public class MailService {
 
-    @Autowired
-    private JavaMailSender javaMailSender;
+    private final JavaMailSender mailSender;
 
-    @Autowired
-    private Environment environment;
+    @Value("${app.verifyUrl:http://localhost:8080/itb-mshop/v2/verify-email?token=}")
+    private String verifyBaseUrl;
 
-    protected void sendVerificationEmail(String email, String token) {
-        String teamCode = environment.getProperty("app.teamCode", "kk-1");
-        String verifyUrl = "http://intproj24.sit.kmutt.ac.th/" + teamCode + "/verify-email/?token=" + token;
-        String subject = "Please Verify Your Email - ITB-Mshop";
-        String body = """
-                Welcome to ITB-Mshop!
+    public MailService(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
 
-                Thank you for registering with us. To activate your account, please click the verification link below:
+    public void sendVerificationEmail(String email, String jwtToken) {
+        try {
+            final String verifyUrl = verifyBaseUrl + jwtToken;
 
-                %s
+            String subject = "Please Verify Your Email - ITB-Mshop";
+            String body = """
+                    Welcome to ITB-Mshop!
 
-                This link will expire in 1 hour for security purposes.
+                    Thank you for registering with us. To activate your account, please click the verification link below:
 
-                If you did not create an account with us, please ignore this email.
+                    %s
 
-                Best regards,
-                ITB-Mshop Team
-                """.formatted(verifyUrl);
+                    This link will expire in 1 hour for security purposes.
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject(subject);
-        message.setText(body);
-        this.javaMailSender.send(message);
+                    If you did not create an account with us, please ignore this email.
+
+                    Best regards,
+                    ITB-Mshop Team
+                    """.formatted(verifyUrl);
+
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setTo(email);
+            msg.setSubject(subject);
+            msg.setText(body);
+            mailSender.send(msg);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send verification email", e);
+        }
     }
 }
