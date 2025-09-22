@@ -402,6 +402,7 @@ public class UserService {
         response.setFullName(user.getFullName());
         response.setUserType(user.getUserType());
         response.setNickName(user.getNickName());
+        response.setStatus(user.getStatus()); 
 
         // If user is a Seller, add seller-specific fields
         if (UserRole.SELLER.name().equalsIgnoreCase(user.getUserType())) {
