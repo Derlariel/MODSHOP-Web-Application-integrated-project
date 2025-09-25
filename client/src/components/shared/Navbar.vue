@@ -41,7 +41,7 @@ const cancelLogout = () => {
       <!-- Logo -->
       <router-link to="/" class="flex items-center gap-2">
         <img src="@/assets/icon.png" alt="logo" class="w-8 h-8 rounded-md" />
-        <div class="text-xl tracking-wide text-white font-bold">MODSHOP</div>
+        <div class="text-xl tracking-wide text-white font-bold">MODSHOPJRA</div>
       </router-link>
 
       <!-- Desktop Nav -->
