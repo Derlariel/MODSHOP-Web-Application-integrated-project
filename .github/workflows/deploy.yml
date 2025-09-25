@@ -1,40 +1,3 @@
-# name: Deploy kk1
-
-# on:
-#   push:
-#     branches:
-#       - main
-
-# jobs:
-#   deploy:
-#     runs-on: self-hosted
-
-#     steps:
-#       - name: Check current user.
-#         run: whoami
-
-#       - name: Checkout code
-#         uses: actions/checkout@v3
-
-#       - name: Auto Deploy container application itb-mshop 
-#         run: |
-#           set -x  
-#           cd /home/sysadmin/2-2567_INT221_KK-1
-
-#           git pull https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git main
-
-#           rm -f ./secrets/db_password
-#           mkdir -p ./secrets
-#           echo "${{ secrets.DB_PASSWORD }}" > ./secrets/db_password
-#           # sudo chown 100:101 ./secrets/db_password
-#           # sudo chmod 400 ./secrets/db_password
-
-#           docker compose down -v
-#           docker compose build --no-cache
-#           docker compose up -d
-#           docker image prune -f
-#           docker builder prune -f
-
 name: Deploy kk1
 
 on:
@@ -47,7 +10,7 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Check current user
+      - name: Check current user.
         run: whoami
 
       - name: Checkout code
@@ -58,11 +21,7 @@ jobs:
           set -x  
           cd /home/sysadmin/2-2567_INT221_KK-1
 
-          # force sync repo โดยใช้ PAT
-          git fetch https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git main
-          git checkout -B main FETCH_HEAD
-          git reset --hard origin/main
-          git clean -fd
+          git pull https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git main
 
           rm -f ./secrets/db_password
           mkdir -p ./secrets
@@ -74,4 +33,4 @@ jobs:
           docker compose build --no-cache
           docker compose up -d
           docker image prune -f
-          docker builder prune -f
+   
