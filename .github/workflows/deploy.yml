@@ -60,7 +60,7 @@ jobs:
 
           # force sync repo โดยใช้ PAT
           git fetch https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git main
-          git checkout main || git checkout -b main
+          git checkout -B main FETCH_HEAD
           git reset --hard origin/main
           git clean -fd
 
