@@ -17,7 +17,7 @@ const saveBrand = async (brandData) => {
     router.push('/brands');
   } catch (error) {
     console.error('Error creating brand:', error);
-    errorMessage.value = 'The brand could not be added.';
+    errorMessage.value = 'The brand could not be added..';
   } finally {
     isLoading.value = false;
   }
