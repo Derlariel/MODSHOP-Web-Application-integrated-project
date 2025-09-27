@@ -11,6 +11,7 @@ services:
       - /home/dohttps/nginx/ssl/privkey.pem:/ssl/privkey.pem:ro
       - /home/dohttps/nginx/ssl/dhparam-2048.pem:/ssl/dhparam-2048.pem:ro
     ports:
+      - "80:80"
       - "443:443"
     networks:
       - backend-network
