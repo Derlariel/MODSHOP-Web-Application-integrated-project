@@ -90,6 +90,28 @@ CREATE TABLE sale_item (
     FOREIGN KEY (seller_id) REFERENCES users(id)
 );
 
+CREATE TABLE orders (
+	id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    buyer_id BIGINT NOT NULL,
+    status ENUM('PENDING','PAID','SHIPPED','CANCELLED') DEFAULT 'PENDING',
+    total_price INT NOT NULL ,
+	created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_orders_buyer FOREIGN KEY (buyer_id) REFERENCES users(id)
+);
+
+CREATE TABLE order_items (
+	id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT NOT NULL,
+    sale_item_id INT NOT NULL,
+    quantity INT NOT NULL,
+    price INT NOT NULL,
+    created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    CONSTRAINT fk_order_items_saleitem FOREIGN KEY (sale_item_id) REFERENCES sale_item(id)
+);
+
 DELIMITER //
 CREATE TRIGGER trim_sale_item_on_insert BEFORE INSERT ON sale_item
 FOR EACH ROW
@@ -137,17 +159,17 @@ INSERT INTO brand (id, name, website_url, is_active, country_of_origin) VALUES
 
 -- Insert sample users
 INSERT INTO users (id, nickname, email, password_hash, fullname, role, status) VALUES
-(1, 'Somchai', 'itbkk.somchai@ad.sit.kmutt.ac.th', 'itProj24*SOM', 'Somchai Jaidee', 'BUYER', 'ACTIVE'),
-(2, 'Somkiat', 'itbkk.somkiat@ad.sit.kmutt.ac.th', 'itProj24*SOM', 'Somkiat Luckchart', 'BUYER', 'ACTIVE'),
-(3, 'Somsuan', 'itbkk.somsuan@ad.sit.kmutt.ac.th', 'itProj24*SOM', 'Somsuan Hundee', 'SELLER', 'ACTIVE'),
-(4, 'Somsuk', 'itbkk.somsuk@ad.sit.kmutt.ac.th', 'itProj24*SOM', 'Somsuk Fundee', 'SELLER', 'ACTIVE'),
-(5, 'Somsak', 'itbkk.somsak@ad.sit.kmutt.ac.th', 'itProj24*SOM', 'Somsak Saksit', 'SELLER', 'ACTIVE');
+(1, 'Somchai', 'itbkk.somchai@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Somchai Jaidee', 'BUYER', 'ACTIVE'),
+(2, 'Somkiat', 'itbkk.somkiat@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Somkiat Luckchart', 'BUYER', 'ACTIVE'),
+(3, 'Somsuan', 'itbkk.somsuan@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Somsuan Hundee', 'SELLER', 'ACTIVE'),
+(4, 'Somsuk', 'itbkk.somsuk@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Somsuk Fundee', 'SELLER', 'ACTIVE'),
+(5, 'Somsak', 'itbkk.somsak@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Soksak Saksit', 'SELLER', 'ACTIVE');
 
 -- Insert seller details for SELLER users
 INSERT INTO sellers (user_id, mobile_number, bank_account_number, bank_name, national_id_number, national_id_photo_front, national_id_photo_back) VALUES
-(3, '0834567890', '0371234567', 'Bangkok Bank', '1000111100222', '1000111100222_front.png', '1000111100222_back.png'),
-(4, '0845678901', '2371234567', 'Siam Commercial Bank', '1000111100333', '1000111100333_front.png', '1000111100333_back.png'),
-(5, '0856789012', '373456789', 'Bangkok Bank', '1000111100444', '1000111100444_front.png', '1000111100444_back.png');
+(3, '083-456-7890', '0371234567', 'Bankok Bank', '1000111100222', '1000111100222_front.png', '1000111100222_back.png'),
+(4, '084-567-8901', '2371234567', 'Saim Commercial Bank', '1000111100333', '1000111100333_front.png', '1000111100333_back.png'),
+(5, '085-678-9012', '373456789', 'Bankok Bank', '1000111100444', '1000111100444_front.png', '1000111100444_back.png');
 
 INSERT INTO sale_item (id, seller_id, brand_id, model, description, quantity, price, screen_size_inch, ram_gb, storage_gb, color, created_on, updated_on, rate) VALUES
 -- Apple products (brand_id = 2)
@@ -244,4 +266,5 @@ CREATE INDEX idx_email_verification_tokens_user_id ON email_verification_tokens(
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_status ON users(status);
 
-
+select * from users;
+select id, email, length(password_hash), hex(password_hash) from users;
