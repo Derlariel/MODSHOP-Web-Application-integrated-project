@@ -238,6 +238,38 @@ CREATE TABLE sale_item_image (
   CONSTRAINT sale_item_image_ibfk_1 FOREIGN KEY (sale_item_id) REFERENCES sale_item (id) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE orders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,                        
+    order_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    shipping_address VARCHAR(255) NOT NULL,          
+    order_note VARCHAR(255),                          
+    order_status ENUM('COMPLETED', 'CANCELLED') DEFAULT 'COMPLETED',
+    CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE order_items (
+    order_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,                            
+    sale_item_id INT NOT NULL,                        
+    price INT NOT NULL,                               
+    quantity INT NOT NULL,
+    description VARCHAR(255),                         
+    CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
+    CONSTRAINT fk_order_items_sale_item FOREIGN KEY (sale_item_id) REFERENCES sale_item(id)
+);
+
+INSERT INTO orders (user_id, shipping_address, order_note, order_status) VALUES
+(1, '123/45 Sukhumvit Rd, Bangkok, Thailand', 'กรุณาส่งสินค้าวันจันทร์', 'PENDING'),
+(2, '456/78 Silom Rd, Bangkok, Thailand', NULL, 'PROCESSING');
+
+INSERT INTO order_items (order_id, sale_item_id, price, quantity, description) VALUES
+(1, 1, 42900.00, 1, 'iPhone 14 Pro Max สี Space Black'),
+(1, 16, 39600.00, 1, 'Galaxy S23 Ultra สีดำปีศาจ'),
+(2, 2, 29700.00, 2, 'iPhone 14 สี Midnight'),
+(2, 31, 33000.00, 1, 'Xiaomi 13 Pro สี Black');
+
+
 
 CREATE INDEX idx_email_verification_tokens_token ON email_verification_tokens(token);
 CREATE INDEX idx_email_verification_tokens_user_id ON email_verification_tokens(user_id);
