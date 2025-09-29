@@ -1,7 +1,9 @@
 package sit.int204.mobileshop.controllers;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -31,11 +33,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import sit.int204.mobileshop.dtos.AuthRequestDto;
-import sit.int204.mobileshop.dtos.AuthResponseDto;
-import sit.int204.mobileshop.dtos.RegisterUserDto;
+import sit.int204.mobileshop.dtos.*;
 import sit.int204.mobileshop.dtos.UpdateProfileDto;
-import sit.int204.mobileshop.dtos.UserResponseDto;
+import sit.int204.mobileshop.services.OrderService;
 import sit.int204.mobileshop.services.UserService;
 
 @RestController
@@ -50,7 +50,18 @@ public class UserController {
         @Autowired
         private UserService userService;
 
+        @Autowired
+        private OrderService orderService;
 
+
+        @GetMapping("/{id}/orders")
+        public ResponseEntity<Optional<PageDto<OrderResponseDto>>> getOrders(@PathVariable("id") Long userId,
+                                                                          @RequestParam(defaultValue = "0") Integer page,
+                                                                          @RequestParam(defaultValue = "10") Integer size,
+                                                                          @RequestParam(defaultValue = "id") String sortField,
+                                                                          @RequestParam(defaultValue = "asc") String sortDirection) {
+                return ResponseEntity.ofNullable(orderService.findByUserId(userId, page, size, sortField, sortDirection));
+        }
 
         /* End-point รับ user id ตาม principle ถึงแม้จะมี id อยู่ใน access token แล้วก็ตาม (id ใน token ใช้ verify ก่อนจะมาถึง controller)
         Return User (Buyer) หรือ Seller ที่ตรงกับจาก userType (จะเขียน code ง่ายขึ้น ถ้า Seller extends User)
