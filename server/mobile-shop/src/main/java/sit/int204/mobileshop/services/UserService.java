@@ -423,4 +423,35 @@ public class UserService {
     public enum UserStatus {
         ACTIVE, INACTIVE
     }
+
+    public AuthResponseDto refreshAccessToken(String refreshToken) {
+        try {
+            JWTClaimsSet claims = jwtService.validateRefreshToken(refreshToken);
+            Long userId = (Long) claims.getClaim("id");
+            String email = claims.getStringClaim("email");
+
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty() || !"ACTIVE".equals(userOpt.get().getStatus())) {
+                return null;
+            }
+            
+            User user = userOpt.get();
+            String newAccessToken = jwtService.generateAccessToken(
+                user.getId(),
+                user.getEmail(),
+                user.getNickName(),
+                user.getUserType()
+            );
+            
+            return AuthResponseDto.builder()
+                .accessToken(newAccessToken)
+                .tokenType("Bearer")
+                .expiresIn(30 * 60L)
+                .build();
+                
+        } catch (Exception e) {
+            log.error("Failed to refresh token", e);
+            return null;
+        }
+    }
 }

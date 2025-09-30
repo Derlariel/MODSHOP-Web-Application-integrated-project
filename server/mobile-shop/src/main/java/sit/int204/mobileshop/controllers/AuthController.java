@@ -1,9 +1,11 @@
 package sit.int204.mobileshop.controllers;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import sit.int204.mobileshop.dtos.AuthRequestDto;
@@ -31,16 +34,30 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
+    @Value("${app.cookie.secure:true}")
+    private boolean cookieSecure;
+
+    @Value("${app.cookie.same-site:None}")
+    private String cookieSameSite;
+
     
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletResponse response) {
+        // Remove access_token cookie
+        Cookie accessTokenCookie = new Cookie("access_token", "");
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(0); 
+        response.addCookie(accessTokenCookie);
+        
         // Remove refresh_token cookie
-        Cookie cookie = new Cookie("refresh_token", "");
-        cookie.setHttpOnly(true);
-        cookie.setPath("/v2/auth"); // Set path as needed
-        cookie.setMaxAge(0); // Expire immediately
-        response.addCookie(cookie);
+        Cookie refreshTokenCookie = new Cookie("refresh_token", "");
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0);
+        response.addCookie(refreshTokenCookie);
+        
         return ResponseEntity.noContent().build(); // 204 No Content
     }
 
@@ -88,7 +105,7 @@ public class AuthController {
                 @ApiResponse(responseCode = "401", description = "Invalid credentials", content = @Content),
                 @ApiResponse(responseCode = "403", description = "Account not activated", content = @Content)
         })
-        public ResponseEntity<AuthResponseDto> authenticate(@Valid @RequestBody AuthRequestDto req) {
+        public ResponseEntity<AuthResponseDto> authenticate(@Valid @RequestBody AuthRequestDto req, HttpServletResponse response) {
                 AuthResponseDto authResponse = userService.authenticateWithJwt(
                                 req.getEmail(),
                                 req.getPassword());
@@ -102,8 +119,84 @@ public class AuthController {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // 403
                 }
                 
+                // Set access token as HttpOnly cookie
+                Cookie accessTokenCookie = new Cookie("access_token", authResponse.getAccessToken());
+                accessTokenCookie.setHttpOnly(true);
+                accessTokenCookie.setSecure(cookieSecure); // Configurable for dev/prod
+                accessTokenCookie.setPath("/");
+                accessTokenCookie.setMaxAge(30 * 60); // 30 minutes
+                response.addCookie(accessTokenCookie);
+                
+                // Set refresh token as HttpOnly cookie
+                if (authResponse.getRefreshToken() != null) {
+                    Cookie refreshTokenCookie = new Cookie("refresh_token", authResponse.getRefreshToken());
+                    refreshTokenCookie.setHttpOnly(true);
+                    refreshTokenCookie.setSecure(cookieSecure); // Configurable for dev/prod
+                    refreshTokenCookie.setPath("/");
+                    refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+                    response.addCookie(refreshTokenCookie);
+                }
+                
+                // Return user info without tokens for frontend
+                AuthResponseDto responseWithoutTokens = AuthResponseDto.builder()
+                    .tokenType(authResponse.getTokenType())
+                    .expiresIn(authResponse.getExpiresIn())
+                    .nickname(authResponse.getNickname())
+                    .userId(authResponse.getUserId())
+                    .email(authResponse.getEmail())
+                    .role(authResponse.getRole())
+                    .build();
+                
                 // Authentication successful
-                return ResponseEntity.ok(authResponse); // 200
+                return ResponseEntity.ok(responseWithoutTokens); // 200
         }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Refresh access token", description = "Refresh access token using refresh token cookie")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
+        @ApiResponse(responseCode = "401", description = "Invalid refresh token")
+    })
+    public ResponseEntity<Map<String, String>> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = null;
+        
+        // Get refresh token from cookies
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("refresh_token".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
+        try {
+            // Validate refresh token and generate new access token
+            AuthResponseDto newTokens = userService.refreshAccessToken(refreshToken);
+            
+            if (newTokens == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            
+            // Set new access token as HttpOnly cookie
+            Cookie accessTokenCookie = new Cookie("access_token", newTokens.getAccessToken());
+            accessTokenCookie.setHttpOnly(true);
+            accessTokenCookie.setSecure(cookieSecure); // Configurable for dev/prod
+            accessTokenCookie.setPath("/");
+            accessTokenCookie.setMaxAge(30 * 60); // 30 minutes
+            response.addCookie(accessTokenCookie);
+            
+            Map<String, String> responseBody = new HashMap<>();
+            responseBody.put("message", "Token refreshed successfully");
+            return ResponseEntity.ok(responseBody);
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
 
 }

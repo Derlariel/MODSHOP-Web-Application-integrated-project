@@ -1,6 +1,12 @@
 const handleFetch = async (url, options, errorMessages) => {
   try {
-    const res = await fetch(url, options);
+
+    const requestOptions = {
+      ...options,
+      credentials: 'include', 
+    };
+    
+    const res = await fetch(url, requestOptions);
     if (res.status === 204) return null;
     if (!res.ok) {
       throw { message: errorMessages, status: res.status };
@@ -12,7 +18,9 @@ const handleFetch = async (url, options, errorMessages) => {
 };
 
 const getProducts = async (url) => {
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    credentials: 'include', 
+  });
   if (!res.ok) throw new Error(res.status);
   if (res.status === 204) return null;
 
@@ -20,13 +28,11 @@ const getProducts = async (url) => {
 };
 
 const getProductsPage = async (url, params = {}) => {
-  // Create a clean params object excluding empty/null values
   const cleanParams = {};
 
   Object.keys(params).forEach((key) => {
     const value = params[key];
     if (value !== null && value !== undefined && value !== "") {
-      // For arrays, only include if not empty
       if (Array.isArray(value)) {
         if (value.length > 0) {
           cleanParams[key] = value;
@@ -40,7 +46,9 @@ const getProductsPage = async (url, params = {}) => {
   const query = new URLSearchParams(cleanParams).toString();
   const fullUrl = query ? `${url}?${query}` : url;
 
-  const res = await fetch(fullUrl);
+  const res = await fetch(fullUrl, {
+    credentials: 'include',
+  });
   if (!res.ok) throw new Error(res.status);
   if (res.status === 204) return null;
 
@@ -63,18 +71,16 @@ const updateProductById = async (url, id, data) => {
     options = {
       method: "PUT",
       body: data,
-      headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
-      },
+      credentials: 'include',
     };
   } else {
     options = {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
       },
       body: JSON.stringify(data),
+      credentials: 'include',
     };
   }
 
@@ -85,9 +91,7 @@ async function addProduct(url, data) {
   const response = await fetch(url, {
     method: "POST",
     body: data,
-    headers: {
-      Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
-    },
+    credentials: 'include',
   });
 
   if (!response.ok) throw new Error("Failed to add product");

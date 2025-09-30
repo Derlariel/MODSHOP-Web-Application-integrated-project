@@ -17,19 +17,42 @@ const errorMessage = ref("")
 
 onMounted(async () => {
   try {
+    if (!auth.user || !auth.user.id) {
+      console.error("User not authenticated or missing ID")
+      const refreshed = await auth.refreshUserData()
+      if (!refreshed) {
+        showError.value = true
+        errorMessage.value = "User authentication required."
+        return
+      }
+    }
+    
+    console.log("Fetching profile for user ID:", auth.user.id)
+    
     const res = await fetch(
       `${import.meta.env.VITE_BASE_URL}/v2/users/${auth.user.id}`,
       {
+        credentials: 'include',
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
           "Content-Type": "application/json",
         },
       }
     )
+    
+    if (!res.ok) {
+      if (res.status === 401) {
+        console.error("Unauthorized - might need to login again")
+      }
+      throw new Error(`Failed to fetch profile: ${res.status}`)
+    }
+    
     const data = await res.json()
     form.value = { ...data }
     original.value = { ...data }
+    
+    console.log("Profile data:", data)
   } catch (err) {
+    console.error("Error loading profile:", err)
     showError.value = true
     errorMessage.value = "Failed to load profile data."
   }
@@ -38,13 +61,11 @@ onMounted(async () => {
 const changed = computed(() => {
   if (!form.value || !original.value) return false
   
-  // Check basic fields
   const basicChanged = (
     form.value.nickName !== original.value.nickName ||
     form.value.fullName !== original.value.fullName
   )
   
-  // Check seller-specific fields if user is a seller
   if (form.value.userType === 'SELLER') {
     const sellerChanged = (
       form.value.phoneNumber !== original.value.phoneNumber ||
@@ -71,8 +92,8 @@ async function save() {
       `${import.meta.env.VITE_BASE_URL}/v2/users/${auth.user.id}`,
       {
         method: "PUT",
+        credentials: 'include', // Include HttpOnly cookies
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(form.value),
