@@ -21,6 +21,9 @@ public class OrderItem {
     @JoinColumn(name = "sale_item_id", nullable = false)
     private SaleItem saleItem;
 
+    @Column(nullable = false)
+    private Integer no;
     private Integer quantity;
     private Integer price;
+    private String description;
 }
