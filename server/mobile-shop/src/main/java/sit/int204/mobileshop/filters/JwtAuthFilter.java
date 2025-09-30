@@ -61,7 +61,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             JWTClaimsSet claims = jwtService.validateAccessToken(token);
             Long userId = extractUserId(claims);
 
-            System.out.println("token: " + token);
 
             UserResponseDto user = getUserAndValidate(userId, response);
             if (user == null) return;

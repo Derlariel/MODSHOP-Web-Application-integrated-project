@@ -88,6 +88,18 @@ async function save() {
         form.value.fullName = form.value.fullName.trim().replace(/\s+/g, ' ');
       }
     }
+    
+    const updatePayload = {
+      nickName: form.value.nickName,
+      fullName: form.value.fullName
+    }
+    
+    if (form.value.userType === 'SELLER') {
+      updatePayload.phoneNumber = form.value.phoneNumber || form.value.mobileNumber
+      updatePayload.bankName = form.value.bankName
+      updatePayload.bankAccount = form.value.bankAccount || form.value.bankAccountNumber
+    }
+        
     const res = await fetch(
       `${import.meta.env.VITE_BASE_URL}/v2/users/${auth.user.id}`,
       {
@@ -96,7 +108,7 @@ async function save() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form.value),
+        body: JSON.stringify(updatePayload),
       }
     )
 
@@ -104,9 +116,12 @@ async function save() {
       showSuccess.value = true
       setTimeout(() => router.push("/profile"), 1500)
     } else {
-      throw new Error("Update failed")
+      const errorData = await res.text()
+      console.error('Update failed:', res.status, errorData)
+      throw new Error(`Update failed: ${res.status}`)
     }
   } catch (err) {
+    console.error('Error updating profile:', err)
     showError.value = true
     errorMessage.value = "Failed to update profile."
   }

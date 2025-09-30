@@ -280,58 +280,53 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDto updateUserProfile(Long id, UpdateProfileDto updateDto, String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("No access token provided");
+    public UserResponseDto updateUserProfile(Long id, UpdateProfileDto updateDto, Authentication authentication) {
+        
+        if (authentication == null || authentication.getPrincipal() == null) {
+            log.error("No authentication provided");
+            throw new RuntimeException("No authentication provided");
+        }
+        UserResponseDto authenticatedUserDto = (UserResponseDto) authentication.getPrincipal();
+        if (!authenticatedUserDto.getId().equals(id)) {
+            log.error("User ID mismatch: authenticated={}, requested={}", authenticatedUserDto.getId(), id);
+            throw new RuntimeException("Request user id not matched with authenticated user");
+        }
+        User userToUpdate = userRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("User not found with ID: {}", id);
+                    return new RuntimeException("User not found");
+                });
+
+        if (!UserStatus.ACTIVE.name().equals(userToUpdate.getStatus())) {
+            log.error("User is not active: {}", userToUpdate.getStatus());
+            throw new RuntimeException("User is not active");
         }
 
-        String token = authHeader.substring(7);
+        log.info("Updating user fields: nickName={}, fullName={}", updateDto.getNickName(), updateDto.getFullName());
 
-        try {
-            JWTClaimsSet claims = jwtService.validateAccessToken(token);
-            String email = claims.getStringClaim("email");
-            Long tokenUserId = Long.parseLong(claims.getSubject());
+        userToUpdate.setNickName(updateDto.getNickName());
+        userToUpdate.setFullName(updateDto.getFullName());
+        userToUpdate.setUpdatedOn(Instant.now());
 
-            User authenticatedUser = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found, Invalid Token"));
+        if (UserRole.SELLER.name().equalsIgnoreCase(userToUpdate.getUserType()) &&
+                userToUpdate instanceof Seller) {
+            Seller seller = (Seller) userToUpdate;
 
-            if (!UserStatus.ACTIVE.name().equals(authenticatedUser.getStatus())) {
-                throw new RuntimeException("User is not active");
+            if (updateDto.getPhoneNumber() != null) {
+                seller.setMobileNumber(updateDto.getPhoneNumber());
             }
-
-            if (!authenticatedUser.getId().equals(id) || !tokenUserId.equals(id)) {
-                throw new RuntimeException("Request user id not matched with id in access token");
+            if (updateDto.getBankName() != null) {
+                seller.setBankName(updateDto.getBankName());
             }
-
-            authenticatedUser.setNickName(updateDto.getNickName());
-            authenticatedUser.setFullName(updateDto.getFullName());
-            authenticatedUser.setUpdatedOn(Instant.now());
-
-            if (UserRole.SELLER.name().equalsIgnoreCase(authenticatedUser.getUserType()) &&
-                    authenticatedUser instanceof Seller) {
-                Seller seller = (Seller) authenticatedUser;
-
-                if (updateDto.getPhoneNumber() != null) {
-                    seller.setMobileNumber(updateDto.getPhoneNumber());
-                }
-                if (updateDto.getBankName() != null) {
-                    seller.setBankName(updateDto.getBankName());
-                }
-                if (updateDto.getBankAccount() != null) {
-                    seller.setBankAccountNumber(updateDto.getBankAccount());
-                }
+            if (updateDto.getBankAccount() != null) {
+                seller.setBankAccountNumber(updateDto.getBankAccount());
             }
-
-            User updatedUser = userRepository.save(authenticatedUser);
-            log.info("User profile updated successfully for user ID: {}", id);
-
-            return mapToProfileResponseDto(updatedUser);
-
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("User not found, Invalid Token");
         }
+
+        User updatedUser = userRepository.save(userToUpdate);
+        log.info("User profile updated successfully for user ID: {}", id);
+
+        return mapToProfileResponseDto(updatedUser);
     }
 
     private UserResponseDto mapToProfileResponseDto(User user) {
