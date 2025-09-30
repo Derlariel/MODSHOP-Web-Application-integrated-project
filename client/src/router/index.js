@@ -39,6 +39,8 @@ import Register from "@/pages/Register.vue";
 import Login from "@/pages/Login.vue";
 import Profile from "@/pages/Profile.vue";
 import ProfileEdit from "@/pages/ProfileEdit.vue";
+import Cart from "@/pages/CartPage.vue";
+import CartPage from "@/pages/CartPage.vue";
 const routes = [
   {
     path: "/",
@@ -125,6 +127,13 @@ const routes = [
         path: "about",
         name: "about",
         component: About,
+      },
+
+      {
+        path: "cart",
+        name : "CartPage",
+        component: CartPage,
+        beforeEnter: requireAuth,
       },
 
       {
