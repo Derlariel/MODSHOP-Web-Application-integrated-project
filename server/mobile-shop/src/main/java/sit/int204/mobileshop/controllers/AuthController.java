@@ -111,33 +111,30 @@ public class AuthController {
                                 req.getPassword());
                 
                 if (authResponse == null) {
-                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // 401
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); 
                 }
                 
                 if (authResponse.getAccessToken() == null) {
                     System.out.println("accessToken is null");
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // 403
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); 
                 }
                 
-                // Set access token as HttpOnly cookie
                 Cookie accessTokenCookie = new Cookie("access_token", authResponse.getAccessToken());
                 accessTokenCookie.setHttpOnly(true);
-                accessTokenCookie.setSecure(cookieSecure); // Configurable for dev/prod
+                accessTokenCookie.setSecure(cookieSecure); 
                 accessTokenCookie.setPath("/");
-                accessTokenCookie.setMaxAge(30 * 60); // 30 minutes
+                accessTokenCookie.setMaxAge(30 * 60); 
                 response.addCookie(accessTokenCookie);
                 
-                // Set refresh token as HttpOnly cookie
                 if (authResponse.getRefreshToken() != null) {
                     Cookie refreshTokenCookie = new Cookie("refresh_token", authResponse.getRefreshToken());
                     refreshTokenCookie.setHttpOnly(true);
-                    refreshTokenCookie.setSecure(cookieSecure); // Configurable for dev/prod
+                    refreshTokenCookie.setSecure(cookieSecure);
                     refreshTokenCookie.setPath("/");
-                    refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+                    refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); 
                     response.addCookie(refreshTokenCookie);
                 }
                 
-                // Return user info without tokens for frontend
                 AuthResponseDto responseWithoutTokens = AuthResponseDto.builder()
                     .tokenType(authResponse.getTokenType())
                     .expiresIn(authResponse.getExpiresIn())
@@ -147,8 +144,7 @@ public class AuthController {
                     .role(authResponse.getRole())
                     .build();
                 
-                // Authentication successful
-                return ResponseEntity.ok(responseWithoutTokens); // 200
+                return ResponseEntity.ok(responseWithoutTokens); 
         }
 
     @PostMapping("/refresh")
@@ -160,7 +156,6 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = null;
         
-        // Get refresh token from cookies
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("refresh_token".equals(cookie.getName())) {
@@ -175,19 +170,16 @@ public class AuthController {
         }
         
         try {
-            // Validate refresh token and generate new access token
             AuthResponseDto newTokens = userService.refreshAccessToken(refreshToken);
             
             if (newTokens == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
-            
-            // Set new access token as HttpOnly cookie
             Cookie accessTokenCookie = new Cookie("access_token", newTokens.getAccessToken());
             accessTokenCookie.setHttpOnly(true);
-            accessTokenCookie.setSecure(cookieSecure); // Configurable for dev/prod
+            accessTokenCookie.setSecure(cookieSecure); 
             accessTokenCookie.setPath("/");
-            accessTokenCookie.setMaxAge(30 * 60); // 30 minutes
+            accessTokenCookie.setMaxAge(30 * 60);
             response.addCookie(accessTokenCookie);
             
             Map<String, String> responseBody = new HashMap<>();

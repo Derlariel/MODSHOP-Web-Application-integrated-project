@@ -24,7 +24,9 @@ const handleLogout = () => {
 const confirmLogout = async () => {
   showLogoutModal.value = false;
   await auth.logout();
-  router.push("/login");
+  sessionStorage.setItem("logout-success", "true");
+  await router.replace("/sale-items");
+  window.location.reload();
 };
 const cancelLogout = () => {
   showLogoutModal.value = false;
