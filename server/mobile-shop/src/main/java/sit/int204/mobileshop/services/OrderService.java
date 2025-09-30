@@ -1,22 +1,29 @@
 package sit.int204.mobileshop.services;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import sit.int204.mobileshop.dtos.OrderResponseDto;
 import sit.int204.mobileshop.dtos.PageDto;
-import sit.int204.mobileshop.dtos.SaleItemDto;
+import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.entities.Order;
+import sit.int204.mobileshop.entities.OrderItem;
 import sit.int204.mobileshop.entities.SaleItem;
+import sit.int204.mobileshop.entities.User;
 import sit.int204.mobileshop.repositories.OrderRepository;
+import sit.int204.mobileshop.repositories.SaleItemRepository;
 import sit.int204.mobileshop.repositories.UserRepository;
 import sit.int204.mobileshop.utils.ListMapper;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class OrderService {
@@ -24,11 +31,16 @@ public class OrderService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final ListMapper listMapper;
-    public OrderService(OrderRepository orderRepository, UserRepository userRepository,  ModelMapper modelMapper, ListMapper listMapper) {
+    private final SaleItemService saleItemService;
+    private final SaleItemRepository saleItemRepository;
+
+    public OrderService(OrderRepository orderRepository, UserRepository userRepository, ModelMapper modelMapper, ListMapper listMapper, SaleItemService saleItemService, SaleItemRepository saleItemRepository) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.listMapper = listMapper;
+        this.saleItemService = saleItemService;
+        this.saleItemRepository = saleItemRepository;
     }
     public Optional<OrderResponseDto> findById(long id) {
         return Optional.ofNullable(modelMapper.map(this.orderRepository.findById(id), OrderResponseDto.class));
@@ -52,5 +64,37 @@ public class OrderService {
         Page<Order> pageResult =  orderRepository.findAllByUser(userRepository.findById(userId).get(),pageable);
         return Optional.ofNullable(listMapper.toPageDTO(pageResult, OrderResponseDto.class, modelMapper));
     }
+
+    @Transactional
+    public List<OrderResponseDto> createOrder(List<OrderResponseDto> orderDtos) {
+        User buyer = userRepository.findById(
+                ((UserResponseDto) SecurityContextHolder.getContext()
+                        .getAuthentication().getPrincipal()).getId()
+        ).orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Order> orders = orderDtos.stream().map(orderDto -> {
+            Order order = modelMapper.map(orderDto, Order.class);
+            order.setUser(buyer);
+
+            List<OrderItem> orderItems = orderDto.getOrderItems().stream().map(itemDto -> {
+                OrderItem item = modelMapper.map(itemDto, OrderItem.class);
+                SaleItem saleItem = saleItemService.getSaleItemByIdOld(Math.toIntExact(itemDto.getSaleItemId()));
+                saleItem.setQuantity(saleItem.getQuantity() - itemDto.getQuantity());
+                saleItemRepository.save(saleItem);
+
+                item.setSaleItem(saleItem);
+                item.setOrder(order);
+                return item;
+            }).toList();
+
+            order.setOrderItems(orderItems);
+            return order;
+        }).toList();
+
+        orderRepository.saveAll(orders);
+        return listMapper.mapList(orders, OrderResponseDto.class, modelMapper);
+    }
+
+
 
 }

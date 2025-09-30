@@ -1,4 +1,4 @@
-name: Deploy kk1 PBI24-25-26
+name: Deploy kk1
 
 on:
   push:
@@ -33,4 +33,4 @@ jobs:
           docker compose build --no-cache
           docker compose up -d
           docker image prune -f
-          docker builder prune -f
+   

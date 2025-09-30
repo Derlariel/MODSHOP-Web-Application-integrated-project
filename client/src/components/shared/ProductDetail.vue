@@ -7,12 +7,15 @@ import HistoryPath from "@/components/shared/HistoryPath.vue";
 import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
 import { checkUpToDate } from "@/utils/validate";
+import { useCartStore } from "@/stores/useCartStore";
 
 // const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
 const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
 
 const router = useRouter();
 const route = useRoute();
+const cart = useCartStore();
+const selectedQuantity = ref(1)
 const productId = Number(route.params.productId);
 const productStore = useProductStore();
 const isLoading = ref(true);
@@ -61,7 +64,27 @@ const confirm = async () => {
     router.push("/sale-items");
   }
 };
-const showSuccess = ref(false);
+
+const showAddSuccess = ref(false)
+
+const addToCart = () => {
+  if (product.value) {
+    cart.addToCart(
+      {
+        saleItemId: product.value.id,
+        sellerId: product.value.sellerId,
+        sellerNickname: product.value.sellerNickname,
+        name: `${product.value.brandName} ${product.value.model} ${product.value.ramGb}/${product.value.storageGb}GB ${product.value.color}`.trim(),
+        price: product.value.price,
+        stock: product.value.quantity
+      },
+      selectedQuantity.value
+    )
+
+    showAddSuccess.value = true
+  }
+}
+
 
 onMounted(async () => {
   isLoading.value = true;
@@ -102,6 +125,13 @@ onMounted(async () => {
         :visible="showSuccess"
         message="The sale item has been updated."
       />
+
+      <SuccessModal
+        :visible="showAddSuccess"
+        message="✅ Added to cart!"
+        @close="showAddSuccess = false"
+      />
+
       <ConfirmModal @confirm="confirm" :visible="showDelete" />
       <div class="max-w-[1200px] mx-auto px-6">
         <HistoryPath :previous="1" :name-path="title" /> 
@@ -142,6 +172,7 @@ onMounted(async () => {
                 Buy
               </button>
               <button
+              @click="addToCart"
                 class="w-full bg-neutral-800 text-white rounded-full py-3.5 font-medium text-sm hover:bg-neutral-700 transition-colors"
               >
                 Add to Bag
