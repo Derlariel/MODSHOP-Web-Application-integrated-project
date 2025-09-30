@@ -22,7 +22,8 @@ public class UserResponseDto {
     private String status;
     
     // Seller fields
-    private String phoneNumber;
+    private String mobileNumber;
+    private String phoneNumber; 
     private String bankName;
     private String bankAccount;
 }

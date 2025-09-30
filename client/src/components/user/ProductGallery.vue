@@ -162,6 +162,15 @@ onMounted(async () => {
     isModalOpen.value = true;
   }
 
+  if (sessionStorage.getItem("login-success") === "true") {
+    alertMessage.value = "Login successful!";
+    showSuccess.value = true;
+    sessionStorage.removeItem("login-success");
+    setTimeout(() => {
+      showSuccess.value = false;
+    }, 3000);
+  }
+
   if (sessionStorage.getItem("add-success") === "true") {
     alertMessage.value = "The sale item has been successfully added...";
     showSuccess.value = true;

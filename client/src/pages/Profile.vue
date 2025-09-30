@@ -66,7 +66,7 @@ onMounted(async () => {
                 <p class="itbms-email text-xl font-semibold">{{ profile.email }}</p>
               </div>
               <div>
-                <p class="text-sm text-gray-400">User Type</p>
+                <p class="text-sm text-gray-400">Type</p>
                 <p class="itbms-type text-xl font-semibold">{{ profile.userType }}</p>
               </div>
             </div>

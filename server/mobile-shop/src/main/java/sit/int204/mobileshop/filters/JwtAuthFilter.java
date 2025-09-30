@@ -18,6 +18,7 @@ import sit.int204.mobileshop.services.JwtService;
 import sit.int204.mobileshop.services.UserService;
 
 import java.io.IOException;
+import java.util.Collections;
 
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -46,6 +47,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = extractToken(authHeader);
             JWTClaimsSet claims = jwtService.validateAccessToken(token);
             Long userId = extractUserId(claims);
+
+            System.out.println("token: " + token);
 
             UserResponseDto user = getUserAndValidate(userId, response);
             if (user == null) return;
@@ -113,6 +116,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             }
 
+            System.out.println("getUserAndValidate");
             return user;
 
         } catch (Exception e) {
@@ -121,14 +125,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
     }
-
     private void setAuthenticationContext(UserResponseDto user, HttpServletRequest request) {
         UsernamePasswordAuthenticationToken authToken =
-                new UsernamePasswordAuthenticationToken(user, null, null);
+                new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
+
         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        System.out.println(">>> Authenticated user: " + user.getEmail());
         SecurityContextHolder.getContext().setAuthentication(authToken);
     }
-
     private void writeErrorResponse(HttpServletResponse response, HttpStatus status, String message)
             throws IOException {
 

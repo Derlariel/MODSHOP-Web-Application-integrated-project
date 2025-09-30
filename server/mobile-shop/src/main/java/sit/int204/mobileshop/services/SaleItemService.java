@@ -26,12 +26,12 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import sit.int204.mobileshop.config.FileStorageProperties;
 import sit.int204.mobileshop.dtos.*;
-import sit.int204.mobileshop.entities.Brand;
-import sit.int204.mobileshop.entities.SaleItem;
-import sit.int204.mobileshop.entities.SaleItemImage;
+import sit.int204.mobileshop.entities.*;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
+import sit.int204.mobileshop.repositories.SellerRepository;
+import sit.int204.mobileshop.repositories.UserRepository;
 import sit.int204.mobileshop.specifications.SaleItemSpecs;
 import sit.int204.mobileshop.utils.ListMapper;
 
@@ -55,6 +55,12 @@ public class SaleItemService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private SellerRepository sellerRepository;
 
     @Autowired
     private ListMapper listMapper;
@@ -200,8 +206,43 @@ public class SaleItemService {
         return dto;
     }
 
+//    @Transactional
+//    public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem, List<MultipartFile> images) throws IOException {
+//        if (images != null && images.size() > MAX_IMAGES) {
+//            throw new IllegalArgumentException("Cannot upload more than " + MAX_IMAGES + " images for a sale item.");
+//        }
+//
+//        validateSaleItemRequest(dtoItem);
+//
+//        Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
+//        SaleItem item = mapToSaleItem(dtoItem, brand);
+//        SaleItem savedItem = saleItemRepository.saveAndFlush(item);
+//        entityManager.refresh(savedItem);
+//
+//        if (images != null && !images.isEmpty()) {
+//            Integer order = 1;
+//            for (MultipartFile file : images) {
+//                if (!file.isEmpty()) {
+//                    fileService.saveFile(file, savedItem.getId(), order);
+//                    order++;
+//                }
+//            }
+//        }
+//
+//        SaleItemDetailDto saleItem = modelMapper.map(savedItem, SaleItemDetailDto.class);
+//        saleItem.setSaleItemImages(listMapper.mapList(saleItemImageRepository.findAllBySaleItemId(saleItem.getId()), SaleItemImageDto.class, modelMapper));
+//
+//        log.info("Created SaleItem with ID: " + savedItem.getId());
+//        return saleItem;
+//    }
+
     @Transactional
     public SaleItemDetailDto createSaleItem(SaleItemRequestDto dtoItem, List<MultipartFile> images) throws IOException {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserResponseDto principal = (UserResponseDto) authentication.getPrincipal();
+
+        Optional<Seller> seller = Optional.ofNullable(sellerRepository.getSellerById(principal.getId()));
         if (images != null && images.size() > MAX_IMAGES) {
             throw new IllegalArgumentException("Cannot upload more than " + MAX_IMAGES + " images for a sale item.");
         }
@@ -210,6 +251,7 @@ public class SaleItemService {
 
         Brand brand = brandService.getBrandById(dtoItem.getBrand().getId());
         SaleItem item = mapToSaleItem(dtoItem, brand);
+        item.setSeller(seller.get());
         SaleItem savedItem = saleItemRepository.saveAndFlush(item);
         entityManager.refresh(savedItem);
 
@@ -224,11 +266,16 @@ public class SaleItemService {
         }
 
         SaleItemDetailDto saleItem = modelMapper.map(savedItem, SaleItemDetailDto.class);
-        saleItem.setSaleItemImages(listMapper.mapList(saleItemImageRepository.findAllBySaleItemId(saleItem.getId()), SaleItemImageDto.class, modelMapper));
+        saleItem.setSaleItemImages(listMapper.mapList(
+                saleItemImageRepository.findAllBySaleItemId(saleItem.getId()),
+                SaleItemImageDto.class,
+                modelMapper
+        ));
 
-        log.info("Created SaleItem with ID: " + savedItem.getId());
+        log.info("[SELLER CREATE] SaleItem with ID: " + savedItem.getId());
         return saleItem;
     }
+
 
     @Transactional
     public void deleteSaleItemById(Integer id) {
@@ -332,17 +379,21 @@ public class SaleItemService {
         SaleItem updatedItem = saleItemRepository.save(existingItem);
         SaleItemDetailDto result = modelMapper.map(updatedItem, SaleItemDetailDto.class);
 
-        // --- จัดการ images ---
-        List<SaleItemImage> images = saleItemImageRepository.findAllBySaleItemId(id);
+        // --- จัดการ images (optional) ---
         List<SaleItemImageRequest> newImages = saleItemWithImageInfo.getImageInfos();
-
-        if (newImages == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Image list cannot be null.");
+        if (newImages != null && !newImages.isEmpty()) {
+            List<SaleItemImage> existingImages = saleItemImageRepository.findAllBySaleItemId(id);
+            processImages(id, existingImages, newImages);
         }
 
+        result.setBrandName(brand.getName());
+        return result;
+    }
+
+    private void processImages(Integer saleItemId, List<SaleItemImage> existingImages, List<SaleItemImageRequest> newImages) throws IOException {
         // map รูปเก่าตาม fileName -> object
         Map<String, SaleItemImage> existingImageMap =
-                images.stream().collect(Collectors.toMap(SaleItemImage::getFileName, img -> img));
+                existingImages.stream().collect(Collectors.toMap(SaleItemImage::getFileName, img -> img));
 
         // ตรวจ duplicate order
         Set<Integer> orders = new HashSet<>();
@@ -367,7 +418,6 @@ public class SaleItemService {
 
             switch (status) {
                 case "ONLINE":
-                    // ไม่ต้องทำอะไร
                     break;
 
                 case "NEW":
@@ -375,9 +425,7 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "Image file is required for NEW status at index " + i);
                     }
-
-                    // แก้ไข: ใช้ saveFile แทน saveUpdate
-                    SaleItemImage savedImage = fileService.saveFile(newImage.getImageFile(), id, newImage.getOrder());
+                    fileService.saveFile(newImage.getImageFile(), saleItemId, newImage.getOrder());
                     break;
 
                 case "MOVE":
@@ -386,14 +434,9 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "No existing image found for MOVE status at index " + i);
                     }
-
-                    // แก้ไข: อัปเดตใน database โดยตรง แทนการเรียก renameFileForOrder
                     existingImage.setImageViewOrder(newImage.getOrder());
                     existingImage.setUpdatedOn(Instant.now());
                     saleItemImageRepository.save(existingImage);
-
-                    // Update the map for subsequent operations
-                    existingImageMap.put(newImage.getFileName(), existingImage);
                     break;
 
                 case "DELETE":
@@ -402,10 +445,7 @@ public class SaleItemService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "No existing image found for DELETE status at index " + i);
                     }
-
-                    // แก้ไข: ใช้ deleteSpecificImages แทน deleteByFileName
-                    List<String> fileToDelete = List.of(toDelete.getFileName());
-                    fileService.deleteSpecificImages(id, fileToDelete);
+                    fileService.deleteSpecificImages(saleItemId, List.of(toDelete.getFileName()));
                     break;
 
                 default:
@@ -414,13 +454,15 @@ public class SaleItemService {
             }
         }
 
-        // --- normalize order + อัปเดต database ---
-        List<SaleItemImage> remainingImages = saleItemImageRepository.findAllBySaleItemId(id)
+        normalizeImageOrder(saleItemId);
+    }
+
+    private void normalizeImageOrder(Integer saleItemId) {
+        List<SaleItemImage> remainingImages = saleItemImageRepository.findAllBySaleItemId(saleItemId)
                 .stream()
                 .sorted(Comparator.comparingInt(SaleItemImage::getImageViewOrder))
                 .toList();
 
-        // อัปเดต order ให้เป็นลำดับ 1, 2, 3, ...
         List<SaleItemImage> imagesToUpdate = new ArrayList<>();
         for (int j = 0; j < remainingImages.size(); j++) {
             SaleItemImage img = remainingImages.get(j);
@@ -435,12 +477,10 @@ public class SaleItemService {
 
         if (!imagesToUpdate.isEmpty()) {
             saleItemImageRepository.saveAll(imagesToUpdate);
-            log.info("Normalized order for " + imagesToUpdate.size() + " images");
         }
-
-        result.setBrandName(brand.getName());
-        return result;
     }
+
+
     public void deleteSaleItemByIdOld(Integer id) {
         saleItemRepository.delete(getSaleItemByIdOld(id));
     }

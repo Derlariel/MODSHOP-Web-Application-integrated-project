@@ -90,6 +90,28 @@ CREATE TABLE sale_item (
     FOREIGN KEY (seller_id) REFERENCES users(id)
 );
 
+CREATE TABLE orders (
+	id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    buyer_id BIGINT NOT NULL,
+    status ENUM('PENDING','PAID','SHIPPED','CANCELLED') DEFAULT 'PENDING',
+    total_price INT NOT NULL ,
+	created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_orders_buyer FOREIGN KEY (buyer_id) REFERENCES users(id)
+);
+
+CREATE TABLE order_items (
+	id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT NOT NULL,
+    sale_item_id INT NOT NULL,
+    quantity INT NOT NULL,
+    price INT NOT NULL,
+    created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    CONSTRAINT fk_order_items_saleitem FOREIGN KEY (sale_item_id) REFERENCES sale_item(id)
+);
+
 DELIMITER //
 CREATE TRIGGER trim_sale_item_on_insert BEFORE INSERT ON sale_item
 FOR EACH ROW
@@ -244,4 +266,5 @@ CREATE INDEX idx_email_verification_tokens_user_id ON email_verification_tokens(
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_status ON users(status);
 
-
+select * from users;
+select id, email, length(password_hash), hex(password_hash) from users;

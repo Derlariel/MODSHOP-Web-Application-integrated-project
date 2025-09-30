@@ -1,5 +1,27 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/useAuthStore";
+
+function requireAuth(to, from, next) {
+  const auth = useAuthStore();
+  if (!auth.isAuthenticated || !auth.user) {
+    next({ name: "Login" });
+  } else {
+    next();
+  }
+}
+
+function requireSeller(to, from, next) {
+  const auth = useAuthStore();
+  if (!auth.isAuthenticated || !auth.user) {
+    next({ name: "Login" });
+  } else if (auth.user.role === "SELLER") {
+    next();
+  } else if (auth.user.role === "BUYER") {
+    next({ name: "product-gallery" });
+  } else {
+    next({ name: "product-gallery" });
+  }
+}
 import LandingLayout from "@/layout/LandingLayout.vue";
 import DefaultLayout from "@/layout/DefaultLayout.vue";
 import HomePage from "@/pages/HomePage.vue";
@@ -45,11 +67,13 @@ const routes = [
         path: "profile",
         name: "Profile",
         component: Profile,
+        beforeEnter: requireAuth,
       },
       {
         path: "profile/edit",
         name: "ProfileEdit",
         component: ProfileEdit,
+        beforeEnter: requireAuth,
       },
       {
         path: "sale-items",
@@ -60,28 +84,13 @@ const routes = [
             path: "list",
             component: ProductList,
             name: "product-list",
-            beforeEnter: (to, from, next) => {
-              const auth = useAuthStore();
-
-              switch (true) {
-                case !auth.isAuthenticated || !auth.user:
-                  next({ name: "Login" });
-                  break;
-                case auth.user.role === "BUYER":
-                  next({ name: "product-gallery" });
-                  break;
-                case auth.user.role === "SELLER":
-                  next();
-                  break;
-                default:
-                  next({ name: "product-gallery" });
-              }
-            },
+            beforeEnter: requireSeller,
           },
           {
             path: "add",
             component: ProductAdd,
             name: "product-add",
+            beforeEnter: requireSeller,
           },
           {
             path: ":productId",
