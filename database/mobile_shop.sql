@@ -260,8 +260,8 @@ CREATE TABLE order_items (
 );
 
 INSERT INTO orders (user_id, shipping_address, order_note, order_status) VALUES
-(1, '123/45 Sukhumvit Rd, Bangkok, Thailand', 'กรุณาส่งสินค้าวันจันทร์', 'PENDING'),
-(2, '456/78 Silom Rd, Bangkok, Thailand', NULL, 'PROCESSING');
+(1, '123/45 Sukhumvit Rd, Bangkok, Thailand', 'กรุณาส่งสินค้าวันจันทร์', 'COMPLETED'),
+(2, '456/78 Silom Rd, Bangkok, Thailand', NULL, 'COMPLETED');
 
 INSERT INTO order_items (order_id, sale_item_id, price, quantity, description) VALUES
 (1, 1, 42900.00, 1, 'iPhone 14 Pro Max สี Space Black'),

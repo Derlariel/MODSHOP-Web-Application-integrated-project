@@ -47,7 +47,8 @@ public class SecurityConfig {
     };
 
     private static final String[] PUBLIC_POST_ENDPOINTS = {
-            "/v2/auth/**"
+            "/v2/auth/**",
+            "/v2/orders/**",
 
     };
 
@@ -68,7 +69,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.POST, "/v2/sale-items").authenticated()
-
+                        .requestMatchers(HttpMethod.POST, "/v2/orders").authenticated()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { computed, ref } from "vue";
 import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useCartStore } from "@/stores/useCartStore";
 
 const route = useRoute();
 const router = useRouter();
@@ -13,8 +14,10 @@ const toggleMobileMenu = () => {
 };
 
 const auth = useAuthStore();
+const cart = useCartStore();
+
 const greeting = computed(() => {
-  return auth.isAuthenticated ? `Hi, ${auth.nickname}` : "Login";
+  return auth.isAuthenticated ? `${auth.nickname}` : "Login";
 });
 
 const showLogoutModal = ref(false);
@@ -41,7 +44,7 @@ const cancelLogout = () => {
       <!-- Logo -->
       <router-link to="/" class="flex items-center gap-2">
         <img src="@/assets/icon.png" alt="logo" class="w-8 h-8 rounded-md" />
-        <div class="text-xl tracking-wide text-white font-bold">MODSHOP</div>
+        <div class="text-xl tracking-wide text-white font-bold">MODSHOPJRA</div>
       </router-link>
 
       <!-- Desktop Nav -->
@@ -81,7 +84,17 @@ const cancelLogout = () => {
       <!-- Icons -->
       <div class="hidden lg:flex text-white items-center space-x-4">
         <Heart class="w-5 h-5 cursor-pointer hover:text-white" />
-        <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
+        
+        <router-link to="/cart" class="relative">
+          <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
+          <span
+            v-if="cart.totalItems > 0"
+            class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full"
+          >
+            {{ cart.totalItems }}
+          </span>
+        </router-link>
+        
         <router-link
           v-if="!auth.isAuthenticated"
           to="/register"
@@ -92,7 +105,7 @@ const cancelLogout = () => {
 
         <div class="flex items-center gap-4">
           <router-link to="/profile" v-if="auth.isAuthenticated">
-            <div class="flex flex-col items-center ">
+            <div class="flex space-x-1 items-center ">
               <User class="itbms-profile-button w-5 h-5" />
               <span v-if="auth.isAuthenticated" class="itbms-nickname text-sm">{{ greeting }}</span>
             </div>
