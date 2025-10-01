@@ -1,25 +1,30 @@
 package sit.int204.mobileshop.controllers;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import sit.int204.mobileshop.dtos.Order.OrderDto;
-import sit.int204.mobileshop.dtos.Order.OrderResponseDto;
+import org.springframework.web.bind.annotation.*;
+import sit.int204.mobileshop.dtos.OrderResponseDto;
 import sit.int204.mobileshop.services.OrderService;
+
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/v2/orders")
-@RequiredArgsConstructor
 public class OrderController {
-    private final OrderService orderService;
+    private OrderService orderService;
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Optional<OrderResponseDto>> findById(@PathVariable Long id) {
+        return ResponseEntity.ofNullable(this.orderService.findById(id));
+    }
 
     @PostMapping("")
-    public ResponseEntity<OrderResponseDto> createOrder(@RequestBody OrderDto orderDto){
-        OrderResponseDto response = orderService.createOrder(orderDto);
+    public ResponseEntity<List<OrderResponseDto>> createOrder(@RequestBody List<OrderResponseDto> orderDto){
+        List<OrderResponseDto> response = orderService.createOrder(orderDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

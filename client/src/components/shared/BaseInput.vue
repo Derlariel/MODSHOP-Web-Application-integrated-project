@@ -65,7 +65,7 @@ const onButtonClick = (e) => {
 };
 
 const buttonClasses = computed(() => {
-  const baseClasses = "flex-1 px-4 py-3 rounded-xl text-md transition-all duration-300 ease-out disabled:bg-gray-200/40 disabled:hover:bg-red-500 disabled:hover:text-white disabled:cursor-not-allowed";
+  const baseClasses = "flex-1 px-4 py-1 rounded-full text-md transition-all duration-300 ease-out disabled:bg-gray-200/40 disabled:hover:bg-red-500 disabled:hover:text-white disabled:cursor-not-allowed";
 
   if (props.variant === "primary") {
     return `${baseClasses} bg-white text-black shadow-md hover:opacity-70 cursor-pointer `;

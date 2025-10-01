@@ -41,11 +41,14 @@ public class SecurityConfig {
             "/sale-items-images/**",
             "/actuator/health",
             "/swagger-ui/**",
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            "/v2/orders/**",
+            "/v2/users/**"
     };
 
     private static final String[] PUBLIC_POST_ENDPOINTS = {
-            "/v2/auth/**"
+            "/v2/auth/**",
+            "/v2/orders/**",
 
     };
 
