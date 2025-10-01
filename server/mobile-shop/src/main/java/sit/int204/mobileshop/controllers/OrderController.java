@@ -3,6 +3,7 @@ package sit.int204.mobileshop.controllers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import sit.int204.mobileshop.dtos.OrderRequestDto;
 import sit.int204.mobileshop.dtos.OrderResponseDto;
 import sit.int204.mobileshop.services.OrderService;
 
@@ -23,7 +24,7 @@ public class OrderController {
     }
 
     @PostMapping("")
-    public ResponseEntity<List<OrderResponseDto>> createOrder(@RequestBody List<OrderResponseDto> orderDto){
+    public ResponseEntity<List<OrderResponseDto>> createOrder(@RequestBody List<OrderRequestDto> orderDto){
         List<OrderResponseDto> response = orderService.createOrder(orderDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

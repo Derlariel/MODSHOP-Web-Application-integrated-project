@@ -8,8 +8,8 @@ import lombok.Data;
 @Data
 public class OrderResponseDto {
     private Integer id;
-    private Integer buyerId;        
-    private Integer sellerId;      
+    private Integer buyerId;
+    private SellerDto sellerId;
     private Instant orderDate;
     private String shippingAddress;
     private String orderNote;

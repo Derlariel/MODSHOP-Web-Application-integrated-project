@@ -1,7 +1,10 @@
 package sit.int204.mobileshop.services;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -13,6 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import sit.int204.mobileshop.OrderStatus;
+import sit.int204.mobileshop.dtos.OrderRequestDto;
 import sit.int204.mobileshop.dtos.OrderResponseDto;
 import sit.int204.mobileshop.dtos.PageDto;
 import sit.int204.mobileshop.dtos.UserResponseDto;
@@ -20,6 +25,7 @@ import sit.int204.mobileshop.entities.Order;
 import sit.int204.mobileshop.entities.OrderItem;
 import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.entities.User;
+import sit.int204.mobileshop.exceptions.OutOfStockException;
 import sit.int204.mobileshop.repositories.OrderRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
 import sit.int204.mobileshop.repositories.UserRepository;
@@ -65,36 +71,76 @@ public class OrderService {
         return Optional.ofNullable(listMapper.toPageDTO(pageResult, OrderResponseDto.class, modelMapper));
     }
 
+//    @Transactional
+//    public List<OrderResponseDto> createOrder(List<OrderResponseDto> orderDtos) {
+//        User buyer = userRepository.findById(
+//                ((UserResponseDto) SecurityContextHolder.getContext()
+//                        .getAuthentication().getPrincipal()).getId()
+//        ).orElseThrow(() -> new RuntimeException("User not found"));
+//
+//        List<Order> orders = orderDtos.stream().map(orderDto -> {
+//            Order order = modelMapper.map(orderDto, Order.class);
+//            order.setUser(buyer);
+//
+//            List<OrderItem> orderItems = orderDto.getOrderItems().stream().map(itemDto -> {
+//                OrderItem item = modelMapper.map(itemDto, OrderItem.class);
+//                SaleItem saleItem = saleItemService.getSaleItemByIdOld(Math.toIntExact(itemDto.getSaleItemId()));
+//                saleItem.setQuantity(saleItem.getQuantity() - itemDto.getQuantity());
+//                saleItemRepository.save(saleItem);
+//
+//                item.setSaleItem(saleItem);
+//                item.setOrder(order);
+//                return item;
+//            }).toList();
+//
+//            order.setOrderItems(orderItems);
+//            return order;
+//        }).toList();
+//
+//        orderRepository.saveAll(orders);
+//        return listMapper.mapList(orders, OrderResponseDto.class, modelMapper);
+//    }
+//
+//
+
     @Transactional
-    public List<OrderResponseDto> createOrder(List<OrderResponseDto> orderDtos) {
+    public List<OrderResponseDto> createOrder(List<OrderRequestDto> orderDtos) {
         User buyer = userRepository.findById(
                 ((UserResponseDto) SecurityContextHolder.getContext()
                         .getAuthentication().getPrincipal()).getId()
         ).orElseThrow(() -> new RuntimeException("User not found"));
 
         List<Order> orders = orderDtos.stream().map(orderDto -> {
-            Order order = modelMapper.map(orderDto, Order.class);
+            Order order = new Order();
             order.setUser(buyer);
+            order.setShippingAddress(orderDto.getShippingAddress());
+            order.setOrderNote(orderDto.getOrderNote());
+            order.setOrderDate(Instant.now());
+            order.setOrderStatus(OrderStatus.COMPLETED);
 
-            List<OrderItem> orderItems = orderDto.getOrderItems().stream().map(itemDto -> {
-                OrderItem item = modelMapper.map(itemDto, OrderItem.class);
-                SaleItem saleItem = saleItemService.getSaleItemByIdOld(Math.toIntExact(itemDto.getSaleItemId()));
+            orderDto.getItems().forEach(itemDto -> {
+                SaleItem saleItem = saleItemRepository.findById(itemDto.getSaleItemId())
+                        .orElseThrow(() -> new RuntimeException("Sale item not found"));
+
+                if (saleItem.getQuantity() < itemDto.getQuantity()) {
+                    throw new OutOfStockException("Not enough stock");
+                }
                 saleItem.setQuantity(saleItem.getQuantity() - itemDto.getQuantity());
-                saleItemRepository.save(saleItem);
 
+                OrderItem item = new OrderItem();
                 item.setSaleItem(saleItem);
-                item.setOrder(order);
-                return item;
-            }).toList();
+                item.setQuantity(itemDto.getQuantity());
+                item.setPrice(saleItem.getPrice());
+                item.setDescription(itemDto.getDescription());
 
-            order.setOrderItems(orderItems);
+                order.addOrderItem(item);; // bidirectional sync
+            });
+
             return order;
-        }).toList();
+        }).collect(Collectors.toList());
 
         orderRepository.saveAll(orders);
         return listMapper.mapList(orders, OrderResponseDto.class, modelMapper);
     }
-
-
 
 }

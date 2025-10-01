@@ -8,7 +8,7 @@ import lombok.Data;
 @JsonPropertyOrder({ "no", "saleItemId", "price", "quantity", "description" })
 public class OrderItemDto {
     private Integer no;           
-    private Long saleItemId;
+    private Integer saleItemId;
     private Integer price;
     private Integer quantity;
     private String description;   
