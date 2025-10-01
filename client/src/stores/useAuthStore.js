@@ -30,7 +30,6 @@ export const useAuthStore = defineStore("auth", {
       try {
         const userClaims = sessionStorage.getItem("userClaims")
         const parsedUser = userClaims ? JSON.parse(userClaims) : null
-        console.log("Loading user from sessionStorage:", parsedUser)
         return parsedUser
       } catch (e) {
         console.error("Error parsing user claims from sessionStorage:", e)
@@ -74,8 +73,6 @@ export const useAuthStore = defineStore("auth", {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
         }, true)
-
-        console.log("login status:", res.status, "data:", data)
 
         if (res.status !== 200) {
           if (res.status === 403) {
