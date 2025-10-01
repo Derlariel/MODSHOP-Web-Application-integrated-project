@@ -3,6 +3,7 @@ package sit.int204.mobileshop.filters;
 import com.nimbusds.jwt.JWTClaimsSet;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -36,19 +37,30 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader(AUTHORIZATION_HEADER);
+        String authHeader = request.getHeader(AUTHORIZATION_HEADER);
+        String token = null;
+        
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("access_token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        if (token == null && hasValidAuthorizationHeader(authHeader)) {
+            token = extractToken(authHeader);
+        }
 
-        if (!hasValidAuthorizationHeader(authHeader)) {
+        if (token == null) {
             chain.doFilter(request, response);
             return;
         }
 
         try {
-            String token = extractToken(authHeader);
             JWTClaimsSet claims = jwtService.validateAccessToken(token);
             Long userId = extractUserId(claims);
 
-            System.out.println("token: " + token);
 
             UserResponseDto user = getUserAndValidate(userId, response);
             if (user == null) return;

@@ -54,8 +54,8 @@ const confirmDelete = async () => {
       `${import.meta.env.VITE_BASE_URL}/v1/sale-items/${selectedProductId.value}`,
       {
         method: 'DELETE',
+        credentials: 'include', // Include HttpOnly cookies
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
           "Content-Type": "application/json",
         },
       }
@@ -93,14 +93,21 @@ const cancelDelete = () => {
 async function loadSellerProducts(page = currentPage.value) {
   try {
     if (!auth.user || !auth.user.id) {
-      throw new Error('User not authenticated');
+      console.error('User not authenticated or missing ID')
+      // Try to refresh user data
+      const refreshed = await auth.refreshUserData()
+      if (!refreshed) {
+        throw new Error('User not authenticated');
+      }
     }
+
+    console.log('Loading products for seller ID:', auth.user.id)
 
     const response = await fetch(
       `${import.meta.env.VITE_BASE_URL}/v2/sellers/${auth.user.id}/sale-items?page=${page}&size=${pageSize.value}`,
       {
+        credentials: 'include', // Include HttpOnly cookies
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
           "Content-Type": "application/json",
         },
       }

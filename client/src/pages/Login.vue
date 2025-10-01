@@ -27,15 +27,7 @@ const canSubmit = computed(() => {
 });
 
 onMounted(() => {
-  // Check for logout success message
-  if (sessionStorage.getItem("logout-success") === "true") {
-    alertMessage.value = "Logout successful!";
-    showSuccessModal.value = true;
-    sessionStorage.removeItem("logout-success");
-    setTimeout(() => {
-      showSuccessModal.value = false;
-    }, 3000);
-  }
+  // No logout success handling here; it now shows on /sale-items
 });
 
 async function handleSubmit() {
