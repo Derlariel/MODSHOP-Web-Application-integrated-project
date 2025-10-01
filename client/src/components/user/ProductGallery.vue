@@ -162,6 +162,16 @@ onMounted(async () => {
     isModalOpen.value = true;
   }
 
+  // Show logout success message when redirected here after logout
+  if (sessionStorage.getItem("logout-success") === "true") {
+    alertMessage.value = "Logout successful!";
+    showSuccess.value = true;
+    sessionStorage.removeItem("logout-success");
+    setTimeout(() => {
+      showSuccess.value = false;
+    }, 3000);
+  }
+
   if (sessionStorage.getItem("login-success") === "true") {
     alertMessage.value = "Login successful!";
     showSuccess.value = true;

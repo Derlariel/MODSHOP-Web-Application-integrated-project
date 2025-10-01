@@ -1,39 +1,25 @@
 package sit.int204.mobileshop.controllers;
 
-import java.io.IOException;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import sit.int204.mobileshop.dtos.AuthRequestDto;
-import sit.int204.mobileshop.dtos.AuthResponseDto;
-import sit.int204.mobileshop.dtos.RegisterUserDto;
 import sit.int204.mobileshop.dtos.UpdateProfileDto;
 import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.services.UserService;
@@ -63,9 +49,8 @@ public class UserController {
                 @ApiResponse(responseCode = "403", description = "User is not active OR request user id not matched with id in access token", content = @Content)
         })
         @GetMapping("/{id}")
-        // @PreAuthorize("isAuthenticated()") // Temporarily commented out
         public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id, 
-                                                          @RequestHeader(value = "Authorization", required = false) String authHeader) {
+                                                          Authentication authentication) {
                 UserResponseDto user = userService.getUserById(id);
                 return ResponseEntity.ok(user);
         }
@@ -78,11 +63,10 @@ public class UserController {
                 @ApiResponse(responseCode = "403", description = "User is not active OR request user id not matched with id in access token", content = @Content)
         })
         @PutMapping("/{id}")
-        // @PreAuthorize("isAuthenticated()") // Temporarily commented out
         public ResponseEntity<UserResponseDto> updateProfile(@PathVariable Long id, 
                                                             @Valid @RequestBody UpdateProfileDto updateDto,
-                                                            @RequestHeader(value = "Authorization", required = false) String authHeader) {
-                UserResponseDto updatedUser = userService.updateUserProfile(id, updateDto, authHeader);
+                                                            Authentication authentication) {
+                UserResponseDto updatedUser = userService.updateUserProfile(id, updateDto, authentication);
                 return ResponseEntity.ok(updatedUser);
         }
 
