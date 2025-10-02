@@ -7,6 +7,7 @@ import HistoryPath from "@/components/shared/HistoryPath.vue";
 import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
 import { checkUpToDate } from "@/utils/validate";
+import ErrorModal from "@/components/shared/modal/ErrorModal.vue";
 import { useCartStore } from "@/stores/useCartStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -19,6 +20,8 @@ const cart = useCartStore();
 const auth = useAuthStore();
 const selectedQuantity = ref(1)
 const showSuccess = ref(false)
+const showError = ref(false)
+const errorMessage = ref("")
 const productId = Number(route.params.productId);
 const productStore = useProductStore();
 const isLoading = ref(true);
@@ -85,6 +88,15 @@ const showAddSuccess = ref(false)
 
 const addToCart = () => {
   if (product.value) {
+    // Prevent seller from adding own item to cart
+    if (
+      auth?.user?.role === "SELLER" &&
+      Number(product.value.sellerId) === Number(auth.user.id)
+    ) {
+      errorMessage.value = "You cannot add your own sale item to the cart.";
+      showError.value = true;
+      return;
+    }
     const ok = cart.addToCart(
       {
         saleItemId: product.value.id,
@@ -145,6 +157,12 @@ onMounted(async () => {
         :visible="showAddSuccess"
         message="✅ Added to cart!"
         @close="showAddSuccess = false"
+      />
+
+      <ErrorModal
+        :visible="showError"
+        :message="errorMessage"
+        @close="showError = false"
       />
 
       <ConfirmModal @confirm="confirm" :visible="showDelete" />

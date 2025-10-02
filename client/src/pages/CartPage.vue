@@ -9,6 +9,8 @@ import CardTitle from "@/components/UI/cart/CartTitle.vue"
 import { computed, ref } from "vue"
 import { createOrder } from "@/api/orderAPI"
 import { useAuthStore } from "@/stores/useAuthStore"
+import ErrorModal from "@/components/shared/modal/ErrorModal.vue"
+import SuccessModal from "@/components/shared/modal/SuccessModal.vue"
 
 const cart = useCartStore()
 const auth = useAuthStore()
@@ -96,9 +98,26 @@ const selectedTotalItems = computed(() =>
 )
 
 const placing = ref(false)
+const showError = ref(false)
+const errorMessage = ref("")
+const showSuccess = ref(false)
+const successMessage = ref("")
 async function placeOrder() {
   if (placing.value || selectedItems.value.size === 0) return
   if (!auth.isAuthenticated) return
+
+  // Block seller from placing orders for their own items
+  if (auth?.user?.role === "SELLER") {
+    const hasOwnItemSelected = Array.from(selectedItems.value).some(key => {
+      const [saleItemIdStr, sellerIdStr] = String(key).split("-")
+      return Number(sellerIdStr) === Number(auth.user.id)
+    })
+    if (hasOwnItemSelected) {
+      errorMessage.value = "You cannot place an order for your own sale items."
+      showError.value = true
+      return
+    }
+  }
 
   // group selected items by seller for payload
   const bySeller = {}
@@ -132,9 +151,11 @@ async function placeOrder() {
     await createOrder(orders)
     cart.removeItemsByKeys(orderedKeys)
     selectedItems.value.clear()
-    alert("Order placed successfully")
+    successMessage.value = "Order placed successfully"
+    showSuccess.value = true
   } catch (e) {
-    alert(e.message || "Failed to place order")
+    errorMessage.value = e?.message || "Failed to place order"
+    showError.value = true
   } finally {
     placing.value = false
   }
@@ -272,6 +293,18 @@ async function placeOrder() {
       cancelText="Cancel"
       @confirm="confirmRemove"
       @cancel="cancelRemove"
+    />
+
+    <ErrorModal
+      :visible="showError"
+      :message="errorMessage"
+      @close="showError = false"
+    />
+
+    <SuccessModal
+      :visible="showSuccess"
+      :message="successMessage"
+      @close="showSuccess = false"
     />
   </div>
 </template>
