@@ -40,8 +40,20 @@ export const useCartStore = defineStore("cart", () => {
     }
   }
 
+  const removeItem = (saleItemId, sellerId) => {
+    cart.value = cart.value.filter(
+      i => !(i.saleItemId === saleItemId && i.sellerId === sellerId)
+    )
+  }
+
   const clearCart = () => {
     cart.value = []
+  }
+
+  const removeItemsByKeys = (keys) => {
+    if (!Array.isArray(keys) || keys.length === 0) return
+    const set = new Set(keys)
+    cart.value = cart.value.filter(i => !set.has(i.saleItemId + "-" + i.sellerId))
   }
 
   const totalItems = computed(() =>
@@ -51,5 +63,5 @@ export const useCartStore = defineStore("cart", () => {
     cart.value.reduce((sum, i) => sum + i.quantity * i.price, 0)
   )
 
-  return { cart, addToCart, updateQuantity, clearCart , totalItems, totalPrice }
+  return { cart, addToCart, updateQuantity, removeItem, clearCart, removeItemsByKeys, totalItems, totalPrice }
 })

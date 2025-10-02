@@ -7,14 +7,18 @@ import CardHeader from "@/components/UI/cart/CardHeader.vue"
 import CardContent from "@/components/UI/cart/CardContent.vue"
 import CardTitle from "@/components/UI/cart/CartTitle.vue"
 import { computed, ref } from "vue"
+import { createOrder } from "@/api/orderAPI"
+import { useAuthStore } from "@/stores/useAuthStore"
 
 const cart = useCartStore()
+const auth = useAuthStore()
 
 // group cart by seller
 const groupedCart = computed(() =>
   cart.cart.reduce((acc, item) => {
-    if (!acc[item.sellerId]) acc[item.sellerId] = []
-    acc[item.sellerId].push(item)
+    const key = String(item.sellerId)
+    if (!acc[key]) acc[key] = []
+    acc[key].push(item)
     return acc
   }, {})
 )
@@ -22,7 +26,7 @@ const groupedCart = computed(() =>
 const showConfirm = ref(false)
 const pendingRemove = ref(null)
 
-const selectedItems = ref(new Set())
+const selectedItems = ref(new Set()) // keys: `${saleItemId}-${sellerId}`
 const allSelected = computed({
   get: () => cart.cart.length > 0 && selectedItems.value.size === cart.cart.length,
   set: (val) => {
@@ -43,6 +47,15 @@ function toggleItem(item) {
   }
 }
 
+function toggleSeller(sellerId, checked) {
+  const items = groupedCart.value[String(sellerId)] || []
+  if (checked) {
+    items.forEach(i => selectedItems.value.add(i.saleItemId + "-" + i.sellerId))
+  } else {
+    items.forEach(i => selectedItems.value.delete(i.saleItemId + "-" + i.sellerId))
+  }
+}
+
 function handleDecrease(item) {
   if (item.quantity <= 1) {
     showConfirm.value = true
@@ -54,7 +67,7 @@ function handleDecrease(item) {
 
 function confirmRemove() {
   if (pendingRemove.value) {
-    cart.updateQuantity(pendingRemove.value.saleItemId, pendingRemove.value.sellerId, 0)
+    cart.removeItem(pendingRemove.value.saleItemId, pendingRemove.value.sellerId)
   }
   showConfirm.value = false
   pendingRemove.value = null
@@ -72,7 +85,56 @@ const selectedTotalPrice = computed(() =>
   }, 0)
 )
 
-const selectedTotalItems = computed(() => selectedItems.value.size)
+const selectedTotalItems = computed(() =>
+  cart.cart.reduce((sum, i) => {
+    const key = i.saleItemId + "-" + i.sellerId
+    return selectedItems.value.has(key) ? sum + i.quantity : sum
+  }, 0)
+)
+
+const placing = ref(false)
+async function placeOrder() {
+  if (placing.value || selectedItems.value.size === 0) return
+  if (!auth.isAuthenticated) return
+
+  // group selected items by seller for payload
+  const bySeller = {}
+  const orderedKeys = []
+  for (const item of cart.cart) {
+    const key = item.saleItemId + "-" + item.sellerId
+    if (!selectedItems.value.has(key)) continue
+    orderedKeys.push(key)
+    const sid = String(item.sellerId)
+    if (!bySeller[sid]) bySeller[sid] = []
+    bySeller[sid].push({
+      no: undefined,
+      saleItemId: item.saleItemId,
+      price: item.price,
+      quantity: item.quantity,
+      description: item.name,
+    })
+  }
+
+  const orders = Object.entries(bySeller).map(([sellerId, items]) => ({
+    buyerId: auth.user?.id,
+    sellerId: Number(sellerId),
+    shippingAddress: "", // optional per BE; adjust when address feature ready
+    orderNote: "",
+    items,
+  }))
+
+  placing.value = true
+  try {
+    await createOrder(orders)
+    cart.removeItemsByKeys(orderedKeys)
+    selectedItems.value.clear()
+    alert("Order placed successfully")
+  } catch (e) {
+    alert(e.message || "Failed to place order")
+  } finally {
+    placing.value = false
+  }
+}
 </script>
 
 <template>
@@ -99,7 +161,15 @@ const selectedTotalItems = computed(() => selectedItems.value.size)
         <div v-for="(items, sellerId) in groupedCart" :key="sellerId" class="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Seller: {{ items[0].sellerNickname }}</CardTitle>
+              <div class="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  :checked="items.every(i => selectedItems.has(i.saleItemId + '-' + i.sellerId)) && items.length > 0"
+                  @change="(e) => toggleSeller(sellerId, e.target.checked)"
+                  class="w-5 h-5 accent-blue-500"
+                />
+                <CardTitle>Seller: {{ items[0].sellerNickname }}</CardTitle>
+              </div>
             </CardHeader>
 
             <CardContent class="space-y-4">
@@ -159,11 +229,11 @@ const selectedTotalItems = computed(() => selectedItems.value.size)
           </p>
           <baseInput
             isButton
-            buttonText="Proceed to Checkout"
+            buttonText="Place Order"
             variant="primary"
-            :disabled="selectedTotalItems === 0"
+            :disabled="selectedTotalItems === 0 || placing"
             class="w-full py-4 text-lg font-semibold rounded-xl"
-            @click="() => alert('Go to checkout...')"
+            @click="placeOrder"
           />
         </CardContent>
       </Card>
