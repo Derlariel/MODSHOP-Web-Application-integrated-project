@@ -175,7 +175,7 @@ onMounted(async () => {
               @click="addToCart"
                 class="w-full bg-neutral-800 text-white rounded-full py-3.5 font-medium text-sm hover:bg-neutral-700 transition-colors"
               >
-                Add to Bag
+                Add to Cart
               </button>
             </div>
 

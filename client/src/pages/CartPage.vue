@@ -1,6 +1,6 @@
 <script setup>
 import { useCartStore } from "@/stores/useCartStore"
-import baseInput from "@/components/shared/BaseInput.vue"
+import BaseInput from "@/components/shared/BaseInput.vue"
 import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue"
 import Card from "@/components/UI/cart/Card.vue"
 import CardHeader from "@/components/UI/cart/CardHeader.vue"
@@ -12,6 +12,9 @@ import { useAuthStore } from "@/stores/useAuthStore"
 
 const cart = useCartStore()
 const auth = useAuthStore()
+
+const shippingAddress = ref("")
+const orderNote = ref("")
 
 // group cart by seller
 const groupedCart = computed(() =>
@@ -118,8 +121,9 @@ async function placeOrder() {
   const orders = Object.entries(bySeller).map(([sellerId, items]) => ({
     buyerId: auth.user?.id,
     sellerId: Number(sellerId),
-    shippingAddress: "", // optional per BE; adjust when address feature ready
-    orderNote: "",
+    // address/note are optional for BE; send empty string if not provided
+    shippingAddress: shippingAddress.value || "",
+    orderNote: orderNote.value || "",
     items,
   }))
 
@@ -195,14 +199,14 @@ async function placeOrder() {
                 </div>
 
                 <div class="flex items-center space-x-3">
-                  <baseInput
+                  <BaseInput
                     isButton
                     buttonText="-"
                     variant="secondary"
                     @click="handleDecrease(item)"
                   />
                   <span class="px-4 font-bold text-lg">{{ item.quantity }}</span>
-                  <baseInput
+                  <BaseInput
                     isButton
                     buttonText="+"
                     variant="primary"
@@ -222,12 +226,33 @@ async function placeOrder() {
           <CardTitle>Cart Summary</CardTitle>
         </CardHeader>
         <CardContent>
+          <div class="mb-4">
+            <div class="text-gray-300 font-semibold mb-2">Ship To</div>
+            <div class="space-y-3">
+              <label class="block text-sm text-gray-400">Address (Address No, Street, Subdistrict, District, Province, Postal Code)</label>
+              <textarea
+                class="itbms-shipping-address w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white border-neutral-700"
+                rows="3"
+                v-model="shippingAddress"
+                placeholder="Enter shipping address"
+              ></textarea>
+
+              <label class="block text-sm text-gray-400">Note</label>
+              <textarea
+                class="itbms-order-note w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white border-neutral-700"
+                rows="2"
+                v-model="orderNote"
+                placeholder="Additional instructions or requests"
+              ></textarea>
+            </div>
+          </div>
+
           <p class="text-gray-300 text-lg">Selected Items: <b>{{ selectedTotalItems }}</b></p>
           <p class="text-gray-300 text-lg mb-6">
             Total Price:
             <b class="text-white">{{ selectedTotalPrice.toLocaleString() }} THB</b>
           </p>
-          <baseInput
+          <BaseInput
             isButton
             buttonText="Place Order"
             variant="primary"
