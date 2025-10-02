@@ -369,6 +369,8 @@ watch(
                     buttonText="Add to cart"
                     cypress="w-full rounded-full py-1 font-medium hover:bg-gray-200"
                     variant="primary"
+                    :disabled="product.quantity === 0"
+                    :title="product.quantity === 0 ? 'Out of stock' : ''"
                   />
                 </div>
               </div>

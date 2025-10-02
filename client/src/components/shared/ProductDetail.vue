@@ -69,7 +69,7 @@ const showAddSuccess = ref(false)
 
 const addToCart = () => {
   if (product.value) {
-    cart.addToCart(
+    const ok = cart.addToCart(
       {
         saleItemId: product.value.id,
         sellerId: product.value.sellerId,
@@ -80,8 +80,7 @@ const addToCart = () => {
       },
       selectedQuantity.value
     )
-
-    showAddSuccess.value = true
+    if (ok) showAddSuccess.value = true
   }
 }
 
@@ -172,8 +171,10 @@ onMounted(async () => {
                 Buy
               </button>
               <button
-              @click="addToCart"
-                class="w-full bg-neutral-800 text-white rounded-full py-3.5 font-medium text-sm hover:bg-neutral-700 transition-colors"
+                @click.stop="addToCart"
+                class="w-full bg-neutral-800 text-white rounded-full py-3.5 font-medium text-sm hover:bg-neutral-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="product.quantity === 0"
+                :title="product.quantity === 0 ? 'Out of stock' : ''"
               >
                 Add to Cart
               </button>

@@ -9,17 +9,29 @@ export const useCartStore = defineStore("cart", () => {
     localStorage.setItem("cart", JSON.stringify(val))
   }, { deep: true })
 
-  const addToCart =(newItem, qty = 1) => {
+  const addToCart = (newItem, qty = 1) => {
+    if (!newItem) return false
+    const stock = Number(newItem.stock ?? 0)
+    const addQty = Number(qty ?? 0)
+    if (stock <= 0 || addQty <= 0) {
+      return false
+    }
+
     const existing = cart.value.find(
       i => i.saleItemId === newItem.saleItemId && i.sellerId === newItem.sellerId
     )
     if (existing) {
-      existing.quantity = Math.min(existing.quantity + qty, existing.stock)
+      if (existing.quantity >= existing.stock) return false
+      existing.quantity = Math.min(existing.quantity + addQty, existing.stock)
+      return true
     } else {
+      const finalQty = Math.min(addQty, stock)
+      if (finalQty <= 0) return false
       cart.value.push({
         ...newItem,
-        quantity: Math.min(qty, newItem.stock)
+        quantity: finalQty
       })
+      return true
     }
   }
 
