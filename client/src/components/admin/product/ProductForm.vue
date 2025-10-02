@@ -81,8 +81,8 @@ watch(
       await brandStore.loadBrands();
       const availableBrands = brandStore.getBrands();
 
-      console.log("props.init:", newValue);
-      console.log("availableBrands:", availableBrands);
+  // console.log("props.init:", newValue); // DEBUG: initial product data
+  // console.log("availableBrands:", availableBrands); // DEBUG: available brands
 
       // Find the brand first
       let selectedBrand = null;
@@ -112,8 +112,8 @@ watch(
         brand: selectedBrand ? { id: selectedBrand.id, name: selectedBrand.name } : { id: null, name: null },
       });
 
-      console.log("temp after assignment:", temp);
-      console.log("temp.brand:", temp.brand);
+  // console.log("temp after assignment:", temp); // DEBUG: temp after assignment
+  // console.log("temp.brand:", temp.brand); // DEBUG: temp.brand
       
       isLoading.value = false;
     } catch (error) {
@@ -207,7 +207,7 @@ const submit = () => {
     return;
   }
 
-  console.log(errors.model)
+  // console.log(errors.model); // DEBUG: model errors
 
   emit("submit", {
     ...temp,
@@ -255,7 +255,7 @@ const trimField = (field) => {
 };
 
 onMounted(() => {
-  console.log("imageChage" ,props.imageChanged);
+  // console.log("imageChage" ,props.imageChanged); // DEBUG: imageChanged prop
   brandStore.loadBrands();
 });
 </script>

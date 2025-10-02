@@ -65,7 +65,6 @@ const getProductById = async (url, id) => {
 
 const updateProductById = async (url, id, data) => {
   let options;
-  console.log("CALLED updateProductById >>>", url, id);
 
   if (data instanceof FormData) {
     options = {

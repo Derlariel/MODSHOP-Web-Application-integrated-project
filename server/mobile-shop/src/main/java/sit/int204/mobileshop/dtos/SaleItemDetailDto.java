@@ -32,6 +32,9 @@ public class SaleItemDetailDto {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "Asia/Bangkok")
     private Instant updatedOn;
 
+    private Integer sellerId;
+    private String sellerNickname;
+
     public List<Integer> getImageIds() {
         return saleItemImages.stream().map(SaleItemImageDto::getId).toList();
     }

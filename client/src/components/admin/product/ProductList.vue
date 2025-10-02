@@ -203,14 +203,13 @@ onMounted(async () => {
 
       <div v-else>
         <ConfirmModal
-          :visible="showDeleteModal"
-          @confirm="confirmDelete"
-          @cancel="cancelDelete"
-          message="Do you want to delete this sale item?"
-          class="itbms-message"
+         :visible="showDeleteModal"
+         @confirm="confirmDelete"
+         @cancel="cancelDelete"
+         message="Do you want to delete this sale item?"
         />
 
-        <SuccessModal :visible="showSuccessModal" :message="alertMessage" class="itbms-message" />
+        <SuccessModal :visible="showSuccessModal" :message="alertMessage" />
 
         <!-- Only show ErrorModal if not empty list -->
         <ErrorModal v-if="showErrorModal && !(products.length === 0 && totalPages === 0)" :message="errorMessage" @close="showErrorModal = false" />

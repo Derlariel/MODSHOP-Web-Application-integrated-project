@@ -16,7 +16,7 @@ const brandStore = useBrandStore();
 const picSelect = ref([]); // Store emitted images from ProductPicture
 const imageChanged = ref(false);
 
-console.log("Product ID from route params:", params.productId);
+// console.log("Product ID from route params:", params.productId); // DEBUG: productId from route
 
 // helper ฟังก์ชันเทียบ array ของรูป
 const isSameImages = (a, b) => {
@@ -33,7 +33,7 @@ const isSameImages = (a, b) => {
 };
 
 const pic = (data) => {
-  console.log("images", data);
+  // console.log("images", data); // DEBUG: images emitted from ProductPicture
   picSelect.value = data;
 
   // เทียบกับรูปเดิมจาก backend
@@ -45,7 +45,7 @@ const pic = (data) => {
 };
 
 const edit = async (data) => {
-  console.log("Editing product with data:", data);
+  // console.log("Editing product with data:", data); // DEBUG: editing product data
 
   try {
     // Create FormData object
@@ -77,10 +77,10 @@ const edit = async (data) => {
     });
 
     // Debug FormData contents
-    console.log("FormData contents:");
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
+    // console.log("FormData contents:");
+    // for (let [key, value] of formData.entries()) {
+    //   console.log(`${key}:`, value);
+    // }
 
     // Send FormData to updateProduct
     await productStore.updateProduct(params.productId, formData);
