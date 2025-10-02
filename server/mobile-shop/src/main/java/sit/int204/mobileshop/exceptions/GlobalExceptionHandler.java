@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.SQLException;
 
@@ -26,6 +27,20 @@ public class GlobalExceptionHandler {
                 request.getRequestURI());
         myErrorResponse.setStackTrace(e.getMessage());
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(myErrorResponse);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<MyErrorResponse> handleResponseStatusException(
+            ResponseStatusException e , HttpServletRequest request
+    ){
+        HttpStatus status = (HttpStatus) e.getStatusCode();
+        MyErrorResponse myErrorResponse = new MyErrorResponse(
+                status.value(),
+                status.getReasonPhrase(),
+                e.getReason(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(status).body(myErrorResponse);
     }
 
     @ExceptionHandler(Exception.class)

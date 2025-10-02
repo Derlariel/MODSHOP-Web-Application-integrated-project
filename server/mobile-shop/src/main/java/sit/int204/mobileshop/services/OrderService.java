@@ -11,11 +11,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.web.server.ResponseStatusException;
 import sit.int204.mobileshop.OrderStatus;
 import sit.int204.mobileshop.dtos.OrderRequestDto;
 import sit.int204.mobileshop.dtos.OrderResponseDto;
@@ -108,7 +110,7 @@ public class OrderService {
         User buyer = userRepository.findById(
                 ((UserResponseDto) SecurityContextHolder.getContext()
                         .getAuthentication().getPrincipal()).getId()
-        ).orElseThrow(() -> new RuntimeException("User not found"));
+        ).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"User not found"));
 
         List<Order> orders = orderDtos.stream().map(orderDto -> {
             Order order = new Order();
@@ -120,10 +122,10 @@ public class OrderService {
 
             orderDto.getItems().forEach(itemDto -> {
                 SaleItem saleItem = saleItemRepository.findById(itemDto.getSaleItemId())
-                        .orElseThrow(() -> new RuntimeException("Sale item not found"));
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Sale item not found"));
 
                 if (saleItem.getQuantity() < itemDto.getQuantity()) {
-                    throw new OutOfStockException("Not enough stock");
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Out of stock" + itemDto.getSaleItemId());
                 }
                 saleItem.setQuantity(saleItem.getQuantity() - itemDto.getQuantity());
 
