@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useProductStore } from "@/stores/useProductStore";
 
 function requireAuth(to, from, next) {
   const auth = useAuthStore();
@@ -21,6 +22,21 @@ function requireSeller(to, from, next) {
   } else {
     next({ name: "product-gallery" });
   }
+}
+
+async function requireOwner(to, from, next) {
+  const auth = useAuthStore();
+  if (!auth.isAuthenticated || !auth.user || auth.user.role !== "SELLER") {
+    return next({ name: "product-gallery" });
+  }
+  try {
+    const productStore = useProductStore();
+    const detail = await productStore.fetchProductDetail(Number(to.params.productId));
+    if (detail && Number(detail.sellerId) === Number(auth.user.id)) {
+      return next();
+    }
+  } catch (e) {}
+  return next({ name: "product-gallery" });
 }
 import LandingLayout from "@/layout/LandingLayout.vue";
 import DefaultLayout from "@/layout/DefaultLayout.vue";
@@ -105,6 +121,7 @@ const routes = [
         path: "sale-items/:productId/edit",
         component: ProductEdit,
         name: "sale-items-edit",
+        beforeEnter: requireOwner,
       },
       {
         path: "brands",

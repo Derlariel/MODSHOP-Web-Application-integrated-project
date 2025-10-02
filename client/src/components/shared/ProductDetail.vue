@@ -8,6 +8,7 @@ import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
 import { checkUpToDate } from "@/utils/validate";
 import { useCartStore } from "@/stores/useCartStore";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 // const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
 const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
@@ -15,16 +16,19 @@ const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-imag
 const router = useRouter();
 const route = useRoute();
 const cart = useCartStore();
+const auth = useAuthStore();
 const selectedQuantity = ref(1)
+const showSuccess = ref(false)
 const productId = Number(route.params.productId);
 const productStore = useProductStore();
 const isLoading = ref(true);
 const product = ref(null);
 const isData = ref(true);
 
-console.log('detail', productStore.getActivePage);
+// console.log('detail', productStore.getActivePage); // DEBUG: product active page
 
 const submit = () => {
+  if (!canManage.value) return;
   router.push({
     name: "sale-items-edit",
     params: {
@@ -47,11 +51,23 @@ const title = computed(() => {
   return `${brandName} ${model} ${ramGb}/${storageGb}GB ${color}`.trim();
 });
 
+// Only SELLER (auth.user.role === 'SELLER') and the owner of the sale item can manage
+const canManage = computed(() => {
+  return !!(
+    auth?.user &&
+    auth.user.role === "SELLER" &&
+    product.value &&
+    Number(product.value.sellerId) === Number(auth.user.id)
+  );
+});
+
 const showDelete = ref(false)
 const deleteSaleItem = () => {
+  if (!canManage.value) return;
   showDelete.value = true
 }
 const confirm = async () => {
+  if (!canManage.value) return;
   try {
     await productStore.deleteProduct(productId);
     sessionStorage.setItem("delete-success", "true");
@@ -309,7 +325,7 @@ onMounted(async () => {
               </a>
             </div>
 
-            <div class="pt-8 flex flex-col sm:flex-row gap-4">
+            <div class="pt-8 flex flex-col sm:flex-row gap-4" v-if="canManage">
               <button
                 type="submit"
                 @click="submit"

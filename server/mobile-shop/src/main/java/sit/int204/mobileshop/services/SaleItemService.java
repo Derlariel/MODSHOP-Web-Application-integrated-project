@@ -202,6 +202,10 @@ public class SaleItemService {
 
         dto.setSaleItemImages(imageDtos);
         dto.setBrandName(item.getBrand().getName());
+        if (item.getSeller() != null) {
+            dto.setSellerId(item.getSeller().getId().intValue());
+            dto.setSellerNickname(item.getSeller().getNickName());
+        }
 
         return dto;
     }

@@ -69,7 +69,7 @@ async function initProducts() {
     await productStore.loadAllPages(filters.value);
     await productStore.loadProductsPage(filters.value);
     totalPages.value = productStore.allPages;
-    console.log(totalPages.value);
+    // console.log(totalPages.value);
 
     // Check if no products found and filters are applied
     if (product.value.length === 0) {
