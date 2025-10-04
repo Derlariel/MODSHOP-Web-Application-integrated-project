@@ -3,7 +3,6 @@ package sit.int204.mobileshop.services;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -12,7 +11,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int204.mobileshop.OrderStatus;
 import sit.int204.mobileshop.dtos.OrderRequestDto;
+import sit.int204.mobileshop.dtos.OrderItemDto;
 import sit.int204.mobileshop.dtos.OrderResponseDto;
 import sit.int204.mobileshop.dtos.PageDto;
+import sit.int204.mobileshop.dtos.SellerDto;
 import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.entities.Order;
 import sit.int204.mobileshop.entities.OrderItem;
 import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.entities.User;
-import sit.int204.mobileshop.exceptions.OutOfStockException;
 import sit.int204.mobileshop.repositories.OrderRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
 import sit.int204.mobileshop.repositories.UserRepository;
@@ -39,15 +38,13 @@ public class OrderService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final ListMapper listMapper;
-    private final SaleItemService saleItemService;
     private final SaleItemRepository saleItemRepository;
 
-    public OrderService(OrderRepository orderRepository, UserRepository userRepository, ModelMapper modelMapper, ListMapper listMapper, SaleItemService saleItemService, SaleItemRepository saleItemRepository) {
+    public OrderService(OrderRepository orderRepository, UserRepository userRepository, ModelMapper modelMapper, ListMapper listMapper, SaleItemRepository saleItemRepository) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.listMapper = listMapper;
-        this.saleItemService = saleItemService;
         this.saleItemRepository = saleItemRepository;
     }
     public Optional<OrderResponseDto> findById(long id) {
@@ -121,7 +118,7 @@ public class OrderService {
             order.setOrderStatus(OrderStatus.COMPLETED);
 
             orderDto.getItems().forEach(itemDto -> {
-                SaleItem saleItem = saleItemRepository.findById(itemDto.getSaleItemId())
+                SaleItem saleItem = saleItemRepository.findById(itemDto.getSaleItemId().intValue())
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Sale item not found"));
 
                 if (saleItem.getQuantity() < itemDto.getQuantity()) {
@@ -142,7 +139,45 @@ public class OrderService {
         }).collect(Collectors.toList());
 
         orderRepository.saveAll(orders);
-        return listMapper.mapList(orders, OrderResponseDto.class, modelMapper);
+
+        return orders.stream().map(order -> {
+            OrderResponseDto dto = new OrderResponseDto();
+            dto.setId(order.getId());
+            dto.setBuyerId(Math.toIntExact(order.getUser().getId()));
+            dto.setOrderDate(order.getOrderDate());
+            dto.setShippingAddress(order.getShippingAddress());
+            dto.setOrderNote(order.getOrderNote());
+            dto.setOrderStatus(order.getOrderStatus().name());
+
+            List<OrderItemDto> items = order.getOrderItems().stream().map(oi -> {
+                OrderItemDto oid = new OrderItemDto();
+                oid.setNo(oi.getNo());
+                if (oi.getSaleItem() != null && oi.getSaleItem().getId() != null) {
+                    oid.setSaleItemId(oi.getSaleItem().getId().longValue());
+                }
+                oid.setPrice(oi.getPrice());
+                oid.setQuantity(oi.getQuantity());
+                oid.setDescription(oi.getDescription());
+                return oid;
+            }).collect(Collectors.toList());
+            dto.setOrderItems(items);
+
+            if (!order.getOrderItems().isEmpty()) {
+                var firstItem = order.getOrderItems().get(0);
+                var seller = firstItem.getSaleItem() != null ? firstItem.getSaleItem().getSeller() : null;
+                if (seller != null) {
+                    SellerDto sellerDto = new SellerDto();
+                    sellerDto.setId(seller.getId());
+                    sellerDto.setEmail(seller.getEmail());
+                    sellerDto.setFullName(seller.getFullName());
+                    sellerDto.setUserType(seller.getUserType());
+                    sellerDto.setNickName(seller.getNickName());
+                    dto.setSeller(sellerDto);
+                }
+            }
+
+            return dto;
+        }).collect(Collectors.toList());
     }
 
 }
