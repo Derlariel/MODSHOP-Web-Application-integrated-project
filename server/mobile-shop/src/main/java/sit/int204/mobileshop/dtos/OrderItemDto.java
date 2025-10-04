@@ -18,5 +18,4 @@ public class OrderItemDto {
     private String model;
     private String color;
     private Integer storageGb;
-    private Integer lineTotal;
 }

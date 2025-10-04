@@ -79,12 +79,8 @@ public class OrderService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
             }
         }        final Sort.Direction dir = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
-        final String field = sortField == null ? "" : sortField.trim().toLowerCase();
-        final boolean sortByTotalAmount = "totalamount".equals(field);
 
-        Sort sort = "orderdate".equals(field)
-                ? Sort.by(new Sort.Order(dir, "orderDate"))
-                : Sort.by(Sort.Direction.DESC, "orderDate");
+        Sort sort = Sort.by(new Sort.Order(dir, "orderDate"));
         if (page == null || page < 0) page = 0;
         if (size == null || size <= 0) size = 10;
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -98,14 +94,6 @@ public class OrderService {
                 .map(this::buildOrderResponseDto)
                 .collect(Collectors.toList());
 
-        if (sortByTotalAmount) {
-            enriched.sort((a, b) -> {
-                int av = a.getTotalAmount() == null ? 0 : a.getTotalAmount();
-                int bv = b.getTotalAmount() == null ? 0 : b.getTotalAmount();
-                return dir.isAscending() ? Integer.compare(av, bv) : Integer.compare(bv, av);
-            });
-        }
-
         PageDto<OrderResponseDto> dtoPage = new PageDto<>();
         dtoPage.setContent(enriched);
         dtoPage.setFirst(pageResult.isFirst());
@@ -114,11 +102,7 @@ public class OrderService {
         dtoPage.setSize(pageResult.getSize());
         dtoPage.setTotalElements((int) pageResult.getTotalElements());
         dtoPage.setTotalPages(pageResult.getTotalPages());
-    String effectiveField = sortByTotalAmount ? "totalAmount" : "orderDate";
-    String effectiveDir = sortByTotalAmount
-        ? (dir.isAscending() ? "ASC" : "DESC")
-        : ("orderdate".equals(field) ? (dir.isAscending() ? "ASC" : "DESC") : "DESC");
-    dtoPage.setSort(effectiveField + ": " + effectiveDir);
+        dtoPage.setSort("orderDate: " + (dir.isAscending() ? "ASC" : "DESC"));
 
         return Optional.of(dtoPage);
     }
@@ -198,7 +182,7 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
-    // ---- Helpers using ModelMapper with post-processing ----
+    // ---- Helpers
     private OrderResponseDto buildOrderResponseDto(Order order) {
         OrderResponseDto dto = modelMapper.map(order, OrderResponseDto.class);
         
@@ -221,13 +205,6 @@ public class OrderService {
         List<OrderItemDto> items = order.getOrderItems() == null ? List.of()
                 : order.getOrderItems().stream().map(this::buildOrderItemDto).collect(Collectors.toList());
         dto.setOrderItems(items);
-
-        int totalAmount = items.stream()
-                .map(OrderItemDto::getLineTotal)
-                .filter(x -> x != null)
-                .mapToInt(Integer::intValue)
-                .sum();
-        dto.setTotalAmount(totalAmount);
 
         return dto;
     }
@@ -257,7 +234,6 @@ public class OrderService {
             }
         }
         
-        oid.setLineTotal(oi.getPrice() != null && oi.getQuantity() != null ? oi.getPrice() * oi.getQuantity() : null);
         return oid;
     }
 

@@ -15,8 +15,6 @@ public class OrderResponseDto {
     private String shippingAddress;
     private String orderNote;
     private String orderStatus;
-    // Total amount for this order (sum of item price * quantity)
-    private Integer totalAmount;
     private List<OrderItemDto> orderItems;
 
 }
