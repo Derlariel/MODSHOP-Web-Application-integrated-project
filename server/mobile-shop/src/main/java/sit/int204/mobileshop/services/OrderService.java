@@ -56,15 +56,23 @@ public class OrderService {
                                                             Integer size,
                                                             String sortField,
                                                             String sortDirection) {
-        // Authorization: only the owner can view their orders
         Object principalObj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principalObj instanceof UserResponseDto principal) {
             if (!principal.getId().equals(userId)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
             }
         }
-        // Force sorting by orderDate desc to satisfy PBI requirement
-        Sort sort = Sort.by(Sort.Direction.DESC, "orderDate");
+        String normalizedField = (sortField == null || sortField.isBlank()) ? "orderDate" : sortField;
+        String normalizedDir = (sortDirection == null || sortDirection.isBlank()) ? "DESC" : sortDirection;
+        final Sort.Direction dir = "ASC".equalsIgnoreCase(normalizedDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        boolean sortByTotalAmount = "totalAmount".equalsIgnoreCase(normalizedField);
+        Sort sort;
+        if ("orderDate".equalsIgnoreCase(normalizedField) || "id".equalsIgnoreCase(normalizedField)) {
+            sort = Sort.by(new Sort.Order(dir, normalizedField));
+        } else {
+            sort = Sort.by(Sort.Direction.DESC, "orderDate");
+        }
         if (page == null || page < 0) page = 0;
         if (size == null || size <= 0) size = 10;
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -74,7 +82,6 @@ public class OrderService {
 
     Page<Order> pageResult = orderRepository.findAllByUserAndOrderStatus(user, OrderStatus.COMPLETED, pageable);
 
-        // Map to DTOs with enrichment and filter only COMPLETED
     List<OrderResponseDto> enriched = pageResult.getContent().stream()
                 .map(order -> {
                     OrderResponseDto dto = new OrderResponseDto();
@@ -130,6 +137,15 @@ public class OrderService {
                     return dto;
                 }).collect(Collectors.toList());
 
+        // In-memory sort for computed fields (e.g., totalAmount)
+        if (sortByTotalAmount) {
+            enriched.sort((a, b) -> {
+                int av = a.getTotalAmount() == null ? 0 : a.getTotalAmount();
+                int bv = b.getTotalAmount() == null ? 0 : b.getTotalAmount();
+                return dir.isAscending() ? Integer.compare(av, bv) : Integer.compare(bv, av);
+            });
+        }
+
         PageDto<OrderResponseDto> dtoPage = new PageDto<>();
         dtoPage.setContent(enriched);
         dtoPage.setFirst(pageResult.isFirst());
@@ -138,7 +154,8 @@ public class OrderService {
         dtoPage.setSize(pageResult.getSize());
         dtoPage.setTotalElements((int) pageResult.getTotalElements());
         dtoPage.setTotalPages(pageResult.getTotalPages());
-        dtoPage.setSort("orderDate: DESC");
+    dtoPage.setSort((sortByTotalAmount ? "totalAmount" : ("id".equalsIgnoreCase(normalizedField) ? "id" : "orderDate"))
+        + ": " + (dir.isAscending() ? "ASC" : "DESC"));
 
         return Optional.of(dtoPage);
     }
