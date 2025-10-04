@@ -61,18 +61,13 @@ public class OrderService {
             if (!principal.getId().equals(userId)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
             }
-        }
-        String normalizedField = (sortField == null || sortField.isBlank()) ? "orderDate" : sortField;
-        String normalizedDir = (sortDirection == null || sortDirection.isBlank()) ? "DESC" : sortDirection;
-        final Sort.Direction dir = "ASC".equalsIgnoreCase(normalizedDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        }        final Sort.Direction dir = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        final String field = sortField == null ? "" : sortField.trim().toLowerCase();
+        final boolean sortByTotalAmount = "totalamount".equals(field);
 
-        boolean sortByTotalAmount = "totalAmount".equalsIgnoreCase(normalizedField);
-        Sort sort;
-        if ("orderDate".equalsIgnoreCase(normalizedField) || "id".equalsIgnoreCase(normalizedField)) {
-            sort = Sort.by(new Sort.Order(dir, normalizedField));
-        } else {
-            sort = Sort.by(Sort.Direction.DESC, "orderDate");
-        }
+        Sort sort = "orderdate".equals(field)
+                ? Sort.by(new Sort.Order(dir, "orderDate"))
+                : Sort.by(Sort.Direction.DESC, "orderDate");
         if (page == null || page < 0) page = 0;
         if (size == null || size <= 0) size = 10;
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -88,11 +83,11 @@ public class OrderService {
                     dto.setId(order.getId());
                     dto.setBuyerId(Math.toIntExact(order.getUser().getId()));
                     dto.setOrderDate(order.getOrderDate());
+                    dto.setPaymentDate(order.getOrderDate());
                     dto.setShippingAddress(order.getShippingAddress());
                     dto.setOrderNote(order.getOrderNote());
                     dto.setOrderStatus(order.getOrderStatus().name());
 
-                    // Seller summary (from first item)
                     if (!order.getOrderItems().isEmpty() && order.getOrderItems().get(0).getSaleItem() != null) {
                         var seller = order.getOrderItems().get(0).getSaleItem().getSeller();
                         if (seller != null) {
@@ -112,14 +107,12 @@ public class OrderService {
                         oid.setNo(oi.getNo());
                         if (oi.getSaleItem() != null) {
                             oid.setSaleItemId(oi.getSaleItem().getId().longValue());
-                            // enrich from sale item
                             if (oi.getSaleItem().getBrand() != null) {
                                 oid.setBrandName(oi.getSaleItem().getBrand().getName());
                             }
                             oid.setModel(oi.getSaleItem().getModel());
                             oid.setColor(oi.getSaleItem().getColor());
                             oid.setStorageGb(oi.getSaleItem().getStorageGb());
-                            // first image as thumbnail if exists
                             var images = saleItemImageRepository.findAllBySaleItemIdOrderByImageViewOrderAsc(oi.getSaleItem().getId());
                             if (images != null && !images.isEmpty()) {
                                 oid.setImage(images.get(0).getFileName());
@@ -137,7 +130,6 @@ public class OrderService {
                     return dto;
                 }).collect(Collectors.toList());
 
-        // In-memory sort for computed fields (e.g., totalAmount)
         if (sortByTotalAmount) {
             enriched.sort((a, b) -> {
                 int av = a.getTotalAmount() == null ? 0 : a.getTotalAmount();
@@ -154,8 +146,12 @@ public class OrderService {
         dtoPage.setSize(pageResult.getSize());
         dtoPage.setTotalElements((int) pageResult.getTotalElements());
         dtoPage.setTotalPages(pageResult.getTotalPages());
-    dtoPage.setSort((sortByTotalAmount ? "totalAmount" : ("id".equalsIgnoreCase(normalizedField) ? "id" : "orderDate"))
-        + ": " + (dir.isAscending() ? "ASC" : "DESC"));
+    // Report effective sort applied
+    String effectiveField = sortByTotalAmount ? "totalAmount" : "orderDate";
+    String effectiveDir = sortByTotalAmount
+        ? (dir.isAscending() ? "ASC" : "DESC")
+        : ("orderdate".equals(field) ? (dir.isAscending() ? "ASC" : "DESC") : "DESC");
+    dtoPage.setSort(effectiveField + ": " + effectiveDir);
 
         return Optional.of(dtoPage);
     }
@@ -235,6 +231,7 @@ public class OrderService {
             dto.setId(order.getId());
             dto.setBuyerId(Math.toIntExact(order.getUser().getId()));
             dto.setOrderDate(order.getOrderDate());
+            dto.setPaymentDate(order.getOrderDate());
             dto.setShippingAddress(order.getShippingAddress());
             dto.setOrderNote(order.getOrderNote());
             dto.setOrderStatus(order.getOrderStatus().name());
