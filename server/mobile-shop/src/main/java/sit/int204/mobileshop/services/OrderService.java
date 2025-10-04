@@ -29,23 +29,23 @@ import sit.int204.mobileshop.entities.SaleItem;
 import sit.int204.mobileshop.entities.User;
 import sit.int204.mobileshop.repositories.OrderRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
+import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.UserRepository;
-import sit.int204.mobileshop.utils.ListMapper;
 
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
-    private final ListMapper listMapper;
     private final SaleItemRepository saleItemRepository;
+    private final SaleItemImageRepository saleItemImageRepository;
 
-    public OrderService(OrderRepository orderRepository, UserRepository userRepository, ModelMapper modelMapper, ListMapper listMapper, SaleItemRepository saleItemRepository) {
+    public OrderService(OrderRepository orderRepository, UserRepository userRepository, ModelMapper modelMapper, SaleItemRepository saleItemRepository, SaleItemImageRepository saleItemImageRepository) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
-        this.listMapper = listMapper;
         this.saleItemRepository = saleItemRepository;
+        this.saleItemImageRepository = saleItemImageRepository;
     }
     public Optional<OrderResponseDto> findById(long id) {
         return Optional.ofNullable(modelMapper.map(this.orderRepository.findById(id), OrderResponseDto.class));
@@ -56,18 +56,91 @@ public class OrderService {
                                                             Integer size,
                                                             String sortField,
                                                             String sortDirection) {
-        if (sortField == null || sortField.isBlank()) sortField = "id";
-        Sort.Direction direction;
-        try {
-            direction = Sort.Direction.fromString(sortDirection);
-        } catch (Exception e) {
-            direction = Sort.Direction.ASC;
+        // Authorization: only the owner can view their orders
+        Object principalObj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principalObj instanceof UserResponseDto principal) {
+            if (!principal.getId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+            }
         }
+        // Force sorting by orderDate desc to satisfy PBI requirement
+        Sort sort = Sort.by(Sort.Direction.DESC, "orderDate");
         if (page == null || page < 0) page = 0;
         if (size == null || size <= 0) size = 10;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(new Sort.Order(direction, sortField)));
-        Page<Order> pageResult =  orderRepository.findAllByUser(userRepository.findById(userId).get(),pageable);
-        return Optional.ofNullable(listMapper.toPageDTO(pageResult, OrderResponseDto.class, modelMapper));
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    Page<Order> pageResult = orderRepository.findAllByUserAndOrderStatus(user, OrderStatus.COMPLETED, pageable);
+
+        // Map to DTOs with enrichment and filter only COMPLETED
+    List<OrderResponseDto> enriched = pageResult.getContent().stream()
+                .map(order -> {
+                    OrderResponseDto dto = new OrderResponseDto();
+                    dto.setId(order.getId());
+                    dto.setBuyerId(Math.toIntExact(order.getUser().getId()));
+                    dto.setOrderDate(order.getOrderDate());
+                    dto.setShippingAddress(order.getShippingAddress());
+                    dto.setOrderNote(order.getOrderNote());
+                    dto.setOrderStatus(order.getOrderStatus().name());
+
+                    // Seller summary (from first item)
+                    if (!order.getOrderItems().isEmpty() && order.getOrderItems().get(0).getSaleItem() != null) {
+                        var seller = order.getOrderItems().get(0).getSaleItem().getSeller();
+                        if (seller != null) {
+                            SellerDto sellerDto = new SellerDto();
+                            sellerDto.setId(seller.getId());
+                            sellerDto.setEmail(seller.getEmail());
+                            sellerDto.setFullName(seller.getFullName());
+                            sellerDto.setUserType(seller.getUserType());
+                            sellerDto.setNickName(seller.getNickName());
+                            dto.setSeller(sellerDto);
+                        }
+                    }
+
+                    int totalAmount = 0;
+                    List<OrderItemDto> items = order.getOrderItems().stream().map(oi -> {
+                        OrderItemDto oid = new OrderItemDto();
+                        oid.setNo(oi.getNo());
+                        if (oi.getSaleItem() != null) {
+                            oid.setSaleItemId(oi.getSaleItem().getId().longValue());
+                            // enrich from sale item
+                            if (oi.getSaleItem().getBrand() != null) {
+                                oid.setBrandName(oi.getSaleItem().getBrand().getName());
+                            }
+                            oid.setModel(oi.getSaleItem().getModel());
+                            oid.setColor(oi.getSaleItem().getColor());
+                            oid.setStorageGb(oi.getSaleItem().getStorageGb());
+                            // first image as thumbnail if exists
+                            var images = saleItemImageRepository.findAllBySaleItemIdOrderByImageViewOrderAsc(oi.getSaleItem().getId());
+                            if (images != null && !images.isEmpty()) {
+                                oid.setImage(images.get(0).getFileName());
+                            }
+                        }
+                        oid.setPrice(oi.getPrice());
+                        oid.setQuantity(oi.getQuantity());
+                        oid.setDescription(oi.getDescription());
+                        oid.setLineTotal(oi.getPrice() * oi.getQuantity());
+                        return oid;
+                    }).collect(Collectors.toList());
+                    dto.setOrderItems(items);
+                    totalAmount = items.stream().mapToInt(x -> x.getLineTotal() == null ? 0 : x.getLineTotal()).sum();
+                    dto.setTotalAmount(totalAmount);
+                    return dto;
+                }).collect(Collectors.toList());
+
+        PageDto<OrderResponseDto> dtoPage = new PageDto<>();
+        dtoPage.setContent(enriched);
+        dtoPage.setFirst(pageResult.isFirst());
+        dtoPage.setLast(pageResult.isLast());
+        dtoPage.setPage(pageResult.getNumber());
+        dtoPage.setSize(pageResult.getSize());
+        dtoPage.setTotalElements((int) pageResult.getTotalElements());
+        dtoPage.setTotalPages(pageResult.getTotalPages());
+        dtoPage.setSort("orderDate: DESC");
+
+        return Optional.of(dtoPage);
     }
 
 //    @Transactional
