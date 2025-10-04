@@ -48,7 +48,24 @@ public class OrderService {
         this.saleItemImageRepository = saleItemImageRepository;
     }
     public Optional<OrderResponseDto> findById(long id) {
-        return Optional.ofNullable(modelMapper.map(this.orderRepository.findById(id), OrderResponseDto.class));
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+        Object principalObj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principalObj instanceof UserResponseDto principal) {
+            Long principalId = principal.getId();
+            boolean isBuyer = order.getUser() != null && order.getUser().getId() != null
+                    && order.getUser().getId().equals(principalId);
+            boolean isSeller = order.getOrderItems() != null && order.getOrderItems().stream()
+                    .anyMatch(oi -> oi.getSaleItem() != null
+                            && oi.getSaleItem().getSeller() != null
+                            && oi.getSaleItem().getSeller().getId() != null
+                            && oi.getSaleItem().getSeller().getId().equals(principalId));
+            if (!isBuyer && !isSeller) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+            }
+        }
+
+        return Optional.of(buildOrderResponseDto(order));
     }
 
     public Optional<PageDto<OrderResponseDto>> findByUserId(long userId,
@@ -78,57 +95,8 @@ public class OrderService {
     Page<Order> pageResult = orderRepository.findAllByUserAndOrderStatus(user, OrderStatus.COMPLETED, pageable);
 
     List<OrderResponseDto> enriched = pageResult.getContent().stream()
-                .map(order -> {
-                    OrderResponseDto dto = new OrderResponseDto();
-                    dto.setId(order.getId());
-                    dto.setBuyerId(Math.toIntExact(order.getUser().getId()));
-                    dto.setOrderDate(order.getOrderDate());
-                    dto.setPaymentDate(order.getOrderDate());
-                    dto.setShippingAddress(order.getShippingAddress());
-                    dto.setOrderNote(order.getOrderNote());
-                    dto.setOrderStatus(order.getOrderStatus().name());
-
-                    if (!order.getOrderItems().isEmpty() && order.getOrderItems().get(0).getSaleItem() != null) {
-                        var seller = order.getOrderItems().get(0).getSaleItem().getSeller();
-                        if (seller != null) {
-                            SellerDto sellerDto = new SellerDto();
-                            sellerDto.setId(seller.getId());
-                            sellerDto.setEmail(seller.getEmail());
-                            sellerDto.setFullName(seller.getFullName());
-                            sellerDto.setUserType(seller.getUserType());
-                            sellerDto.setNickName(seller.getNickName());
-                            dto.setSeller(sellerDto);
-                        }
-                    }
-
-                    int totalAmount = 0;
-                    List<OrderItemDto> items = order.getOrderItems().stream().map(oi -> {
-                        OrderItemDto oid = new OrderItemDto();
-                        oid.setNo(oi.getNo());
-                        if (oi.getSaleItem() != null) {
-                            oid.setSaleItemId(oi.getSaleItem().getId().longValue());
-                            if (oi.getSaleItem().getBrand() != null) {
-                                oid.setBrandName(oi.getSaleItem().getBrand().getName());
-                            }
-                            oid.setModel(oi.getSaleItem().getModel());
-                            oid.setColor(oi.getSaleItem().getColor());
-                            oid.setStorageGb(oi.getSaleItem().getStorageGb());
-                            var images = saleItemImageRepository.findAllBySaleItemIdOrderByImageViewOrderAsc(oi.getSaleItem().getId());
-                            if (images != null && !images.isEmpty()) {
-                                oid.setImage(images.get(0).getFileName());
-                            }
-                        }
-                        oid.setPrice(oi.getPrice());
-                        oid.setQuantity(oi.getQuantity());
-                        oid.setDescription(oi.getDescription());
-                        oid.setLineTotal(oi.getPrice() * oi.getQuantity());
-                        return oid;
-                    }).collect(Collectors.toList());
-                    dto.setOrderItems(items);
-                    totalAmount = items.stream().mapToInt(x -> x.getLineTotal() == null ? 0 : x.getLineTotal()).sum();
-                    dto.setTotalAmount(totalAmount);
-                    return dto;
-                }).collect(Collectors.toList());
+                .map(this::buildOrderResponseDto)
+                .collect(Collectors.toList());
 
         if (sortByTotalAmount) {
             enriched.sort((a, b) -> {
@@ -146,7 +114,6 @@ public class OrderService {
         dtoPage.setSize(pageResult.getSize());
         dtoPage.setTotalElements((int) pageResult.getTotalElements());
         dtoPage.setTotalPages(pageResult.getTotalPages());
-    // Report effective sort applied
     String effectiveField = sortByTotalAmount ? "totalAmount" : "orderDate";
     String effectiveDir = sortByTotalAmount
         ? (dir.isAscending() ? "ASC" : "DESC")
@@ -218,7 +185,7 @@ public class OrderService {
                 item.setPrice(saleItem.getPrice());
                 item.setDescription(itemDto.getDescription());
 
-                order.addOrderItem(item);; // bidirectional sync
+                order.addOrderItem(item);;
             });
 
             return order;
@@ -226,45 +193,72 @@ public class OrderService {
 
         orderRepository.saveAll(orders);
 
-        return orders.stream().map(order -> {
-            OrderResponseDto dto = new OrderResponseDto();
-            dto.setId(order.getId());
-            dto.setBuyerId(Math.toIntExact(order.getUser().getId()));
-            dto.setOrderDate(order.getOrderDate());
-            dto.setPaymentDate(order.getOrderDate());
-            dto.setShippingAddress(order.getShippingAddress());
-            dto.setOrderNote(order.getOrderNote());
-            dto.setOrderStatus(order.getOrderStatus().name());
+        return orders.stream()
+                .map(this::buildOrderResponseDto)
+                .collect(Collectors.toList());
+    }
 
-            List<OrderItemDto> items = order.getOrderItems().stream().map(oi -> {
-                OrderItemDto oid = new OrderItemDto();
-                oid.setNo(oi.getNo());
-                if (oi.getSaleItem() != null && oi.getSaleItem().getId() != null) {
-                    oid.setSaleItemId(oi.getSaleItem().getId().longValue());
-                }
-                oid.setPrice(oi.getPrice());
-                oid.setQuantity(oi.getQuantity());
-                oid.setDescription(oi.getDescription());
-                return oid;
-            }).collect(Collectors.toList());
-            dto.setOrderItems(items);
-
-            if (!order.getOrderItems().isEmpty()) {
-                var firstItem = order.getOrderItems().get(0);
-                var seller = firstItem.getSaleItem() != null ? firstItem.getSaleItem().getSeller() : null;
-                if (seller != null) {
-                    SellerDto sellerDto = new SellerDto();
-                    sellerDto.setId(seller.getId());
-                    sellerDto.setEmail(seller.getEmail());
-                    sellerDto.setFullName(seller.getFullName());
-                    sellerDto.setUserType(seller.getUserType());
-                    sellerDto.setNickName(seller.getNickName());
-                    dto.setSeller(sellerDto);
-                }
+    // ---- Helpers using ModelMapper with post-processing ----
+    private OrderResponseDto buildOrderResponseDto(Order order) {
+        OrderResponseDto dto = modelMapper.map(order, OrderResponseDto.class);
+        
+        dto.setPaymentDate(order.getOrderDate()); 
+        
+        if (order.getOrderItems() != null && !order.getOrderItems().isEmpty()) {
+            var firstItem = order.getOrderItems().get(0);
+            var seller = firstItem.getSaleItem() != null ? firstItem.getSaleItem().getSeller() : null;
+            if (seller != null) {
+                SellerDto sellerDto = new SellerDto();
+                sellerDto.setId(seller.getId());
+                sellerDto.setEmail(seller.getEmail());
+                sellerDto.setFullName(seller.getFullName());
+                sellerDto.setUserType(seller.getUserType());
+                sellerDto.setNickName(seller.getNickName());
+                dto.setSeller(sellerDto);
             }
+        }
 
-            return dto;
-        }).collect(Collectors.toList());
+        List<OrderItemDto> items = order.getOrderItems() == null ? List.of()
+                : order.getOrderItems().stream().map(this::buildOrderItemDto).collect(Collectors.toList());
+        dto.setOrderItems(items);
+
+        int totalAmount = items.stream()
+                .map(OrderItemDto::getLineTotal)
+                .filter(x -> x != null)
+                .mapToInt(Integer::intValue)
+                .sum();
+        dto.setTotalAmount(totalAmount);
+
+        return dto;
+    }
+
+    private OrderItemDto buildOrderItemDto(OrderItem oi) {
+        OrderItemDto oid = new OrderItemDto();
+        
+        oid.setNo(oi.getNo());
+        oid.setPrice(oi.getPrice());
+        oid.setQuantity(oi.getQuantity());
+        oid.setDescription(oi.getDescription());
+        
+        if (oi.getSaleItem() != null) {
+            if (oi.getSaleItem().getId() != null) {
+                oid.setSaleItemId(oi.getSaleItem().getId().longValue());
+            }
+            if (oi.getSaleItem().getBrand() != null) {
+                oid.setBrandName(oi.getSaleItem().getBrand().getName());
+            }
+            oid.setModel(oi.getSaleItem().getModel());
+            oid.setColor(oi.getSaleItem().getColor());
+            oid.setStorageGb(oi.getSaleItem().getStorageGb());
+            
+            var images = saleItemImageRepository.findAllBySaleItemIdOrderByImageViewOrderAsc(oi.getSaleItem().getId());
+            if (images != null && !images.isEmpty()) {
+                oid.setImage(images.get(0).getFileName());
+            }
+        }
+        
+        oid.setLineTotal(oi.getPrice() != null && oi.getQuantity() != null ? oi.getPrice() * oi.getQuantity() : null);
+        return oid;
     }
 
 }
