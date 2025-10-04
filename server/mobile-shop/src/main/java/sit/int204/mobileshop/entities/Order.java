@@ -34,7 +34,6 @@ public class Order {
     private User user;
 
     public Integer getBuyerId() { return Math.toIntExact(user.getId()); }
-    public Integer getSellerId() { return Math.toIntExact(user.getId()); }
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")

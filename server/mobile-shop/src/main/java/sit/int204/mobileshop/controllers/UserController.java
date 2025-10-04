@@ -50,8 +50,8 @@ public class UserController {
     public ResponseEntity<Optional<PageDto<OrderResponseDto>>> getOrders(@PathVariable("id") Long userId,
                                                                          @RequestParam(defaultValue = "0") Integer page,
                                                                          @RequestParam(defaultValue = "10") Integer size,
-                                                                         @RequestParam(defaultValue = "id") String sortField,
-                                                                         @RequestParam(defaultValue = "asc") String sortDirection) {
+                                                                         @RequestParam(defaultValue = "orderDate") String sortField,
+                                                                         @RequestParam(defaultValue = "desc") String sortDirection) {
         return ResponseEntity.ofNullable(orderService.findByUserId(userId, page, size, sortField, sortDirection));
     }
 
