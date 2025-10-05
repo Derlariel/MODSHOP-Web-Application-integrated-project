@@ -90,7 +90,7 @@ const cancelLogout = () => {
         <router-link to="/cart" class="relative">
           <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
           <span
-            v-if="cart.totalItems > 0"
+            v-if="auth.isAuthenticated && cart.totalItems > 0"
             class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full"
           >
             {{ cart.totalItems }}

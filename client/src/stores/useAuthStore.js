@@ -26,14 +26,16 @@ async function request(path, options = {}, skipAuth = false) {
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     isSubmitting: false,
+    _syncInitialized: false,
     user: (() => {
       try {
-        const userClaims = sessionStorage.getItem("userClaims")
+        // Persist minimal user claims in localStorage for UX (no tokens stored)
+        const userClaims = localStorage.getItem("userClaims")
         const parsedUser = userClaims ? JSON.parse(userClaims) : null
         return parsedUser
       } catch (e) {
         console.error("Error parsing user claims from sessionStorage:", e)
-        sessionStorage.removeItem("userClaims")
+        localStorage.removeItem("userClaims")
         return null
       }
     })(),
@@ -43,6 +45,24 @@ export const useAuthStore = defineStore("auth", {
     nickname: (s) => (s.user && s.user.nickname) || "",
   },
   actions: {
+    initPersistence() {
+      if (this._syncInitialized) return
+      this._syncInitialized = true
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'userClaims') {
+          try {
+            if (e.newValue) {
+              const parsed = JSON.parse(e.newValue)
+              this.user = parsed
+            } else {
+              this.user = null
+            }
+          } catch (err) {
+            console.error('Failed to sync userClaims from storage:', err)
+          }
+        }
+      })
+    },
     async register(formData) {
       this.isSubmitting = true
       try {
@@ -95,7 +115,7 @@ export const useAuthStore = defineStore("auth", {
 
         
 
-        sessionStorage.setItem("userClaims", JSON.stringify(this.user))
+  localStorage.setItem("userClaims", JSON.stringify(this.user))
 
         return this.user
       } finally {
@@ -112,7 +132,7 @@ export const useAuthStore = defineStore("auth", {
         console.error("Logout failed:", error)
       } finally {
         this.user = null
-        sessionStorage.removeItem("userClaims")
+        localStorage.removeItem("userClaims")
         sessionStorage.setItem("logout-success", "true")
       }
     },
@@ -120,7 +140,7 @@ export const useAuthStore = defineStore("auth", {
     ensureNotExpired() {
       if (!this.user) {
         this.user = null
-        sessionStorage.removeItem("userClaims")
+        localStorage.removeItem("userClaims")
       }
     },
 
@@ -141,15 +161,21 @@ export const useAuthStore = defineStore("auth", {
             email: data.email || this.user.email,
             role: data.userType || data.role || this.user.role,
           }
-          sessionStorage.setItem("userClaims", JSON.stringify(this.user))
+          localStorage.setItem("userClaims", JSON.stringify(this.user))
 
           return true
         } else {
           console.error("Failed to refresh user data:", res.status)
+          // If server says not authorized/invalid, clear local persisted state for security
+          this.user = null
+          localStorage.removeItem("userClaims")
           return false
         }
       } catch (error) {
         console.error("Error refreshing user data:", error)
+        // network or other errors shouldn't keep stale identity around
+        this.user = null
+        localStorage.removeItem("userClaims")
         return false
       }
     },

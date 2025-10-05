@@ -85,10 +85,16 @@ const confirm = async () => {
 };
 
 const showAddSuccess = ref(false)
+const isCoolingDown = ref(false)
 
 const addToCart = () => {
+  if (!auth.isAuthenticated || !auth.user) {
+    router.push({ name: "Login" });
+    return;
+  }
+
   if (product.value) {
-    // Prevent seller from adding own item to cart
+    if (isCoolingDown.value) return;
     if (
       auth?.user?.role === "SELLER" &&
       Number(product.value.sellerId) === Number(auth.user.id)
@@ -108,7 +114,16 @@ const addToCart = () => {
       },
       selectedQuantity.value
     )
-    if (ok) showAddSuccess.value = true
+    if (ok) {
+      showAddSuccess.value = true
+      isCoolingDown.value = true
+      setTimeout(() => {
+        isCoolingDown.value = false
+      }, 1000)
+    } else {
+      errorMessage.value = "Cannot add to cart. The item may be out of stock.";
+      showError.value = true;
+    }
   }
 }
 
@@ -207,8 +222,8 @@ onMounted(async () => {
               <button
                 @click.stop="addToCart"
                 class="w-full bg-neutral-800 text-white rounded-full py-3.5 font-medium text-sm hover:bg-neutral-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                :disabled="product.quantity === 0"
-                :title="product.quantity === 0 ? 'Out of stock' : ''"
+                :disabled="product.quantity === 0 || isCoolingDown"
+                :title="product.quantity === 0 ? 'Out of stock' : (isCoolingDown ? 'Please wait...' : '')"
               >
                 Add to Cart
               </button>

@@ -1,8 +1,9 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch, reactive } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useProductStore } from "@/stores/useProductStore";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useCartStore } from "@/stores/useCartStore";
 
 import ListModel from "@/components/shared/ListModel.vue";
 import FilterSort from "@/components/shared/FilterSort.vue";
@@ -11,7 +12,6 @@ import Pagination from "@/components/shared/Pagination.vue";
 import ErrorModal from "@/components/shared/modal/ErrorModal.vue";
 import DEFAULT_IMAGE from "@/assets/default.jpg";
 import SkeletonLoader from "@/components/shared/SkeletonLoader.vue";
-import BaseInput from "@/components/shared/BaseInput.vue";
 
 // const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
 // const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
@@ -22,6 +22,7 @@ const route = useRoute();
 
 const productStore = useProductStore();
 const auth = useAuthStore();
+const cart = useCartStore();
 
 const product = computed(() => productStore.allProducts);
 const totalPages = ref(0);
@@ -29,9 +30,13 @@ const totalPages = ref(0);
 const isLoading = ref(true);
 const isModalOpen = ref(false);
 const showSuccess = ref(false);
+const showError = ref(false);
 const alertMessage = ref("");
+const errorMessage = ref("");
 const adminMode = ref(false);
 const noProductsFromFilter = ref(false);
+// cooldown[itemId] === true means the Add to cart button is temporarily disabled for that item
+const cooldown = reactive({});
 
 const filters = ref({
   page: 0,
@@ -43,7 +48,7 @@ const filters = ref({
   size: 10,
   sortField: "createdOn",
   sortDirection: "asc",
-  q: "", // Add search keyword as 'q' to match backend
+  q: "",
 });
 
 const trigger = ref(0);
@@ -118,13 +123,68 @@ const add = () => {
   router.push({ name: "product-add" });
 };
 
+const handleAddToCart = async (item) => {
+  // Redirect unauthenticated users to login
+  if (!auth.isAuthenticated || !auth.user) {
+    router.push({ name: "Login" });
+    return;
+  }
+
+  // If this item is cooling down, ignore rapid clicks
+  if (cooldown[item?.id]) return;
+  let detail
+  try {
+    detail = await productStore.fetchProductDetail(item.id)
+  } catch (e) {
+    errorMessage.value = "Unable to add to cart at the moment.";
+    showError.value = true;
+    return;
+  }
+
+  // Prevent sellers from adding their own items
+  if (
+    auth?.user?.role === "SELLER" &&
+    Number(detail?.sellerId) === Number(auth.user.id)
+  ) {
+    errorMessage.value = "You cannot add your own sale item to the cart.";
+    showError.value = true;
+    return;
+  }
+
+  const name = `${detail.brandName} ${detail.model} ${detail.ramGb}/${detail.storageGb}GB ${detail.color}`.trim()
+
+  const ok = cart.addToCart(
+    {
+      saleItemId: detail.id,
+      sellerId: detail.sellerId,
+      sellerNickname: detail.sellerNickname,
+      name,
+      price: detail.price,
+      stock: detail.quantity,
+    },
+    1
+  );
+
+  if (ok) {
+    alertMessage.value = "✅ Added to cart!";
+    showSuccess.value = true;
+    // start 2s cooldown for this item
+    cooldown[detail.id] = true;
+    setTimeout(() => {
+      cooldown[detail.id] = false;
+    }, 2000);
+    setTimeout(() => (showSuccess.value = false), 2000);
+  } else {
+    errorMessage.value = "Cannot add to cart. The item may be out of stock.";
+    showError.value = true;
+  }
+};
+
 onMounted(async () => {
-  // Check if filters were cleared due to NODATA error
 
   const filtersCleared = sessionStorage.getItem("filters-cleared-from-error");
   if (filtersCleared) {
     sessionStorage.removeItem("filters-cleared-from-error");
-    // Don't load products yet, let the cleared filters trigger reload
     return;
   }
 
@@ -269,6 +329,12 @@ watch(
         @close="handleModalClose"
       />
 
+      <ErrorModal
+        :visible="showError"
+        :message="errorMessage"
+        @close="showError = false"
+      />
+
       <!-- Loading Skeletons -->
       <div v-if="isLoading" class="flex items-center justify-center">
         <SkeletonLoader />
@@ -364,14 +430,14 @@ watch(
                 <div
                   class="pt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 >
-                  <BaseInput
-                    isButton
-                    buttonText="Add to cart"
-                    cypress="w-full rounded-full py-1 font-medium hover:bg-gray-200"
-                    variant="primary"
-                    :disabled="product.quantity === 0"
-                    :title="product.quantity === 0 ? 'Out of stock' : ''"
-                  />
+                  <button
+                    class="w-full rounded-full py-1 font-medium bg-white text-black hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="product.quantity === 0 || cooldown[product.id]"
+                    :title="product.quantity === 0 ? 'Out of stock' : (cooldown[product.id] ? 'Please wait...' : '')"
+                    @click.stop.prevent="handleAddToCart(product)"
+                  >
+                    Add to cart
+                  </button>
                 </div>
               </div>
             </div>
