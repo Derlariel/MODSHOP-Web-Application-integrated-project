@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch, reactive } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useProductStore } from "@/stores/useProductStore";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -35,6 +35,8 @@ const alertMessage = ref("");
 const errorMessage = ref("");
 const adminMode = ref(false);
 const noProductsFromFilter = ref(false);
+// cooldown[itemId] === true means the Add to cart button is temporarily disabled for that item
+const cooldown = reactive({});
 
 const filters = ref({
   page: 0,
@@ -127,6 +129,9 @@ const handleAddToCart = async (item) => {
     router.push({ name: "Login" });
     return;
   }
+
+  // If this item is cooling down, ignore rapid clicks
+  if (cooldown[item?.id]) return;
   let detail
   try {
     detail = await productStore.fetchProductDetail(item.id)
@@ -163,6 +168,11 @@ const handleAddToCart = async (item) => {
   if (ok) {
     alertMessage.value = "✅ Added to cart!";
     showSuccess.value = true;
+    // start 2s cooldown for this item
+    cooldown[detail.id] = true;
+    setTimeout(() => {
+      cooldown[detail.id] = false;
+    }, 2000);
     setTimeout(() => (showSuccess.value = false), 2000);
   } else {
     errorMessage.value = "Cannot add to cart. The item may be out of stock.";
@@ -422,8 +432,8 @@ watch(
                 >
                   <button
                     class="w-full rounded-full py-1 font-medium bg-white text-black hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    :disabled="product.quantity === 0"
-                    :title="product.quantity === 0 ? 'Out of stock' : ''"
+                    :disabled="product.quantity === 0 || cooldown[product.id]"
+                    :title="product.quantity === 0 ? 'Out of stock' : (cooldown[product.id] ? 'Please wait...' : '')"
                     @click.stop.prevent="handleAddToCart(product)"
                   >
                     Add to cart
