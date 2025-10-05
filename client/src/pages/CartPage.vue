@@ -215,7 +215,12 @@ async function placeOrder() {
 
                   <div>
                     <div class="font-semibold text-lg">{{ item.name }}</div>
-                    <div class="text-sm text-gray-400">{{ item.price }} THB</div>
+                    <div class="text-sm text-gray-400">
+                      {{ (item.price * item.quantity).toLocaleString() }} THB
+                      <span class="text-xs text-gray-500">
+                        ({{ item.price.toLocaleString() }} THB / pc)
+                      </span>
+                    </div>
                   </div>
                 </div>
 
