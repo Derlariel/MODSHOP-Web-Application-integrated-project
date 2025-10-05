@@ -43,7 +43,7 @@ const filters = ref({
   size: 10,
   sortField: "createdOn",
   sortDirection: "asc",
-  q: "", // Add search keyword as 'q' to match backend
+  q: "",
 });
 
 const trigger = ref(0);
@@ -116,6 +116,14 @@ function handleModalClose() {
 
 const add = () => {
   router.push({ name: "product-add" });
+};
+
+const handleAddToCart = (product) => {
+  if (!auth.isAuthenticated || !auth.user) {
+    router.push({ name: "Login" });
+    return;
+  }
+  detail(product.id);
 };
 
 onMounted(async () => {
@@ -371,6 +379,7 @@ watch(
                     variant="primary"
                     :disabled="product.quantity === 0"
                     :title="product.quantity === 0 ? 'Out of stock' : ''"
+                    @click.stop="handleAddToCart(product)"
                   />
                 </div>
               </div>

@@ -87,6 +87,11 @@ const confirm = async () => {
 const showAddSuccess = ref(false)
 
 const addToCart = () => {
+  if (!auth.isAuthenticated || !auth.user) {
+    router.push({ name: "Login" });
+    return;
+  }
+
   if (product.value) {
     // Prevent seller from adding own item to cart
     if (
