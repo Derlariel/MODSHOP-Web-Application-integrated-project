@@ -85,7 +85,10 @@ const cancelLogout = () => {
 
       <!-- Icons -->
       <div class="hidden lg:flex text-white items-center space-x-4">
-        <Heart class="w-5 h-5 cursor-pointer hover:text-white" />
+        
+        <router-link to="your-orders">
+          <span class="" >Your Orders</span>
+        </router-link>
         
         <router-link to="/cart" class="relative">
           <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
