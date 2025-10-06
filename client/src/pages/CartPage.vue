@@ -140,7 +140,6 @@ async function placeOrder() {
   const orders = Object.entries(bySeller).map(([sellerId, items]) => ({
     buyerId: auth.user?.id,
     sellerId: Number(sellerId),
-    // address/note are optional for BE; send empty string if not provided
     shippingAddress: shippingAddress.value || "",
     orderNote: orderNote.value || "",
     items,
@@ -151,7 +150,7 @@ async function placeOrder() {
     await createOrder(orders)
     cart.removeItemsByKeys(orderedKeys)
     selectedItems.value.clear()
-    successMessage.value = "Order placed successfully"
+    successMessage.value = "Your order has been successfully processed."
     showSuccess.value = true
   } catch (e) {
     errorMessage.value = e?.message || "Failed to place order"
@@ -255,7 +254,7 @@ async function placeOrder() {
           <div class="mb-4">
             <div class="text-gray-300 font-semibold mb-2">Ship To</div>
             <div class="space-y-3">
-              <label class="block text-sm text-gray-400">Address (Address No, Street, Subdistrict, District, Province, Postal Code)</label>
+              <label class="block text-sm text-gray-400">Address<span class="text-red-500">*</span> (Address No, Street, Subdistrict, District, Province, Postal Code)</label>
               <textarea
                 class="itbms-shipping-address w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white border-neutral-700"
                 rows="3"
@@ -282,7 +281,7 @@ async function placeOrder() {
             isButton
             buttonText="Place Order"
             variant="primary"
-            :disabled="selectedTotalItems === 0 || placing"
+            :disabled="selectedTotalItems === 0 || placing || !shippingAddress.trim()"
             class="w-full py-4 text-lg font-semibold rounded-xl"
             @click="placeOrder"
           />
