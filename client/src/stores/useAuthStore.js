@@ -105,17 +105,17 @@ export const useAuthStore = defineStore("auth", {
           )
         }
 
-        
         this.user = {
-          nickname: data.nickname || "",
+          nickname: data.nickName || data.nickname || "",
           id: data.user_id || data.id,
           email: data.email,
           role: data.role,
+          fullName: data.fullName || data.fullname || data.full_name || "",
         }
 
-        
+        localStorage.setItem("userClaims", JSON.stringify(this.user))
 
-  localStorage.setItem("userClaims", JSON.stringify(this.user))
+        try { await this.refreshUserData() } catch {}
 
         return this.user
       } finally {
@@ -160,6 +160,7 @@ export const useAuthStore = defineStore("auth", {
             nickname: data.nickName || data.nickname || this.user.nickname,
             email: data.email || this.user.email,
             role: data.userType || data.role || this.user.role,
+            fullName: data.fullName || data.fullname || data.full_name || this.user.fullName,
           }
           localStorage.setItem("userClaims", JSON.stringify(this.user))
 

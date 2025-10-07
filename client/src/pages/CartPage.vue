@@ -18,6 +18,18 @@ const auth = useAuthStore()
 const shippingAddress = ref("")
 const orderNote = ref("")
 
+const buyerName = computed(() => {
+  const u = auth.user || {}
+  return (u.fullName && String(u.fullName).trim()) || ""
+})
+
+const shipToPreview = computed(() => {
+  const name = buyerName.value
+  const addr = (shippingAddress.value || "").trim()
+  if (!name && !addr) return ""
+  return addr ? `${name}, ${addr}` : name
+})
+
 // group cart by seller
 const groupedCart = computed(() =>
   cart.cart.reduce((acc, item) => {
@@ -254,6 +266,11 @@ async function placeOrder() {
           <div class="mb-4">
             <div class="text-gray-300 font-semibold mb-2">Ship To</div>
             <div class="space-y-3">
+              <div class="text-sm text-gray-400">
+                <span class="text-gray-300">Ship to:</span>
+                <span class="text-white font-medium"> {{ buyerName }} </span>
+                <span v-if="shippingAddress && shippingAddress.trim()">, {{ shippingAddress }}</span>
+              </div>
               <label class="block text-sm text-gray-400">Address<span class="text-red-500">*</span> (Address No, Street, Subdistrict, District, Province, Postal Code)</label>
               <textarea
                 class="itbms-shipping-address w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white border-neutral-700"

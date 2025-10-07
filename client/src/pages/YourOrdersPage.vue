@@ -26,6 +26,8 @@ const groupedOrders = computed(() => {
   });
   return grouped;
 });
+
+
 </script>
 
 <template>
@@ -104,7 +106,10 @@ const groupedOrders = computed(() => {
               </div>
 
               <p class="mt-2 text-sm text-gray-300 itbms-shipping-address">
-                <b>Shipped To:</b> {{ order.shippingAddress }}
+                <b>Shipped To: </b> 
+                <span v-if="order.shippingAddress">
+                  {{ userStore.user?.fullName ? userStore.user.fullName + ', ' : '' }}{{ order.shippingAddress }}
+                </span>
               </p>
               <p class="mt-1 text-sm text-gray-300 itbms-order-note">
                 <b>Note:</b> {{ order.orderNote || "—" }}
