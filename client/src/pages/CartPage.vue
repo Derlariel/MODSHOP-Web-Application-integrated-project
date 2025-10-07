@@ -264,10 +264,9 @@ async function placeOrder() {
         </CardHeader>
         <CardContent>
           <div class="mb-4">
-            <div class="text-gray-300 font-semibold mb-2">Ship To</div>
             <div class="space-y-3">
               <div class="text-sm text-gray-400">
-                <span class="text-gray-300">Ship to:</span>
+                <span class="text-gray-300">Ship to: </span>
                 <span class="text-white font-medium"> {{ buyerName }} </span>
                 <span v-if="shippingAddress && shippingAddress.trim()">, {{ shippingAddress }}</span>
               </div>

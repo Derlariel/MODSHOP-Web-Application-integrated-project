@@ -278,7 +278,7 @@ defineExpose({
               <div class="flex items-center gap-1.5">
                 <label for="page-size" class="text-xs md:text-sm font-medium whitespace-nowrap">Show</label>
                 <select name="page-size" id="page-size" v-model="size"
-                  class="itbms-page-size bg-gray-400/70 text-black/70  border-black rounded-md text-xs md:text-sm cursor-pointer focus:outline-none px-1.5 md:px-2 py-0.5 md:py-1">
+                  class="itbms-page-size bg-white text-black/70  border-black border-1 rounded-md text-xs md:text-sm cursor-pointer focus:outline-none px-1.5 md:px-2 py-0.5 md:py-1">
                   <option value="5">5</option>
                   <option value="10">10</option>
                   <option value="20">20</option>
@@ -287,21 +287,21 @@ defineExpose({
 
               <!-- Sort Buttons -->
               <div class="flex items-center gap-1 md:gap-1.5 ml-1.5 md:ml-2">
-                <button @click="resetSort" title="No Sort" :class="['itbms-brand-none bg-gray-400/70 text-black/70 rounded-md px-1.5 py-0.5 md:px-2 md:py-1 hover:bg-gray-400 transition',
-                  sortField === 'createdOn' ? 'bg-gray-600 text-white font-medium' : '']">
+                <button @click="resetSort" title="No Sort" :class="['itbms-brand-none  text-black/70 rounded-md px-1.5 py-0.5 md:px-2 md:py-1 hover:bg-black/80 hover:text-white/80 transition',
+                  sortField === 'createdOn' ? 'bg-black text-white font-medium' : ' bg-white text-black border-1 border-black ']">
                   <Menu class="w-3 h-3 md:w-4 md:h-4" />
                   <span class="ml-0.5 text-xs font-bold hidden sm:inline">DEFAULT</span>
                 </button>
 
-                <button @click="sortByBrandAsc" title="Sort A-Z" :class="['itbms-brand-asc bg-gray-400/70 text-black/70 rounded-md px-1.5 py-0.5 md:px-2 md:py-1 hover:bg-gray-400 transition',
-                  sortField === 'brand.name' && sortDirection === 'asc' ? 'bg-gray-600 text-white font-medium' : '']">
+                <button @click="sortByBrandAsc" title="Sort A-Z" :class="['itbms-brand-asc  text-black/70 rounded-md px-1.5 py-0.5 md:px-2 md:py-1 hover:bg-black/80 hover:text-white/80 transition',
+                  sortField === 'brand.name' && sortDirection === 'asc' ? 'bg-black text-white font-medium' : ' bg-white text-black border-1 border-black ']">
                   <SortAsc class="w-3 h-3 md:w-4 md:h-4" />
                   <span class="ml-0.5 text-xs font-bold hidden sm:inline">A-Z</span>
                 </button>
 
                 <button @click="sortByBrandDesc" title="Sort Z-A"
-                  :class="['itbms-brand-desc bg-gray-400/70 text-black/70 rounded-md px-1.5 py-0.5 md:px-2 md:py-1 hover:bg-gray-400 transition',
-                    sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-gray-600 text-white font-medium' : '']">
+                  :class="['itbms-brand-desc  text-black/70 rounded-md px-1.5 py-0.5 md:px-2 md:py-1 hover:bg-black/80 hover:text-white/80 transition',
+                    sortField === 'brand.name' && sortDirection === 'desc' ? 'bg-black text-white font-medium' : ' bg-white text-black border-1  border-black ']">
                   <SortDesc class="w-3 h-3 md:w-4 md:h-4" />
                   <span class="ml-0.5 text-xs font-bold hidden sm:inline">Z-A</span>
                 </button>
