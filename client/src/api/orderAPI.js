@@ -29,3 +29,10 @@ export async function createOrder(orders) {
     body: JSON.stringify(orders),
   });
 }
+
+export async function getOrders(userId, page = 0, size = 10, sort = "orderDate,desc") {
+  const query = `?page=${page}&size=${size}&sort=${sort}`;
+  return await request(`/v2/users/${userId}/orders${query}`, {
+    method: "GET",
+  });
+}
