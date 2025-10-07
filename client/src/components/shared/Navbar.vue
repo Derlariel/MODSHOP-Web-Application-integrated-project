@@ -27,7 +27,9 @@ const handleLogout = () => {
 const confirmLogout = async () => {
   showLogoutModal.value = false;
   await auth.logout();
-  router.push("/login");
+  sessionStorage.setItem("logout-success", "true");
+  await router.replace("/sale-items");
+  window.location.reload();
 };
 const cancelLogout = () => {
   showLogoutModal.value = false;
@@ -83,12 +85,15 @@ const cancelLogout = () => {
 
       <!-- Icons -->
       <div class="hidden lg:flex text-white items-center space-x-4">
-        <Heart class="w-5 h-5 cursor-pointer hover:text-white" />
+        
+        <router-link to="your-orders">
+          <span class="" >Your Orders</span>
+        </router-link>
         
         <router-link to="/cart" class="relative">
           <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
           <span
-            v-if="cart.totalItems > 0"
+            v-if="auth.isAuthenticated && cart.totalItems > 0"
             class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full"
           >
             {{ cart.totalItems }}

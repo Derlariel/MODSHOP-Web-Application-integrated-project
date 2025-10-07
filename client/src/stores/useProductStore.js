@@ -98,7 +98,7 @@ export const useProductStore = defineStore("product", {
     async loadAllPages(params) {
       try {
         const data = await getProductsPage(`${BASE_URL}/v2/sale-items`, params);
-        console.log("data.totalPages " + data.totalPages);
+        // console.log("data.totalPages " + data.totalPages);
         this.totalPages = data.totalPages;
         return data;
       } catch (err) {
@@ -148,15 +148,13 @@ export const useProductStore = defineStore("product", {
     },
 
     async updateProduct(productId, formData) {
-      console.log("Updating product with ID:", productId);
-      console.log("FormData content:", formData)
       try {
         const updated = await updateProductById(
           `${BASE_URL}/v2/sale-items`,
-           productId,
-          formData  
+          productId,
+          formData
         );
-        const index = this.products.findIndex((p) => p.id === product.id);
+        const index = this.products.findIndex((p) => p.id === productId);
         if (index !== -1) this.products[index] = updated;
       } catch (err) {
         console.error("Failed to update product", err);

@@ -7,24 +7,32 @@ import HistoryPath from "@/components/shared/HistoryPath.vue";
 import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
 import { checkUpToDate } from "@/utils/validate";
+import ErrorModal from "@/components/shared/modal/ErrorModal.vue";
 import { useCartStore } from "@/stores/useCartStore";
-
+import { useAuthStore } from "@/stores/useAuthStore";
+import BaseInput from "./BaseInput.vue";
 // const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
-const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
+const BASE_URL =
+  "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
 
 const router = useRouter();
 const route = useRoute();
 const cart = useCartStore();
-const selectedQuantity = ref(1)
+const auth = useAuthStore();
+const selectedQuantity = ref(1);
+const showSuccess = ref(false);
+const showError = ref(false);
+const errorMessage = ref("");
 const productId = Number(route.params.productId);
 const productStore = useProductStore();
 const isLoading = ref(true);
 const product = ref(null);
 const isData = ref(true);
 
-console.log('detail', productStore.getActivePage);
+// console.log('detail', productStore.getActivePage); // DEBUG: product active page
 
 const submit = () => {
+  if (!canManage.value) return;
   router.push({
     name: "sale-items-edit",
     params: {
@@ -34,30 +42,42 @@ const submit = () => {
 };
 
 const title = computed(() => {
-  if (!product.value) return '';
+  if (!product.value) return "";
 
   const {
-    brandName = '',
-    model = '',
-    ramGb = '',
-    storageGb = '',
-    color = ''
+    brandName = "",
+    model = "",
+    ramGb = "",
+    storageGb = "",
+    color = "",
   } = product.value;
 
   return `${brandName} ${model} ${ramGb}/${storageGb}GB ${color}`.trim();
 });
 
-const showDelete = ref(false)
+// Only SELLER (auth.user.role === 'SELLER') and the owner of the sale item can manage
+const canManage = computed(() => {
+  return !!(
+    auth?.user &&
+    auth.user.role === "SELLER" &&
+    product.value &&
+    Number(product.value.sellerId) === Number(auth.user.id)
+  );
+});
+
+const showDelete = ref(false);
 const deleteSaleItem = () => {
-  showDelete.value = true
-}
+  if (!canManage.value) return;
+  showDelete.value = true;
+};
 const confirm = async () => {
+  if (!canManage.value) return;
   try {
     await productStore.deleteProduct(productId);
     sessionStorage.setItem("delete-success", "true");
     router.push("/sale-items");
     sessionStorage.setItem("activePage", 1);
-    productStore.setActivePage(1)
+    productStore.setActivePage(1);
   } catch (error) {
     sessionStorage.setItem("error-message", "true");
     console.log(sessionStorage.getItem("error-message"));
@@ -65,26 +85,60 @@ const confirm = async () => {
   }
 };
 
-const showAddSuccess = ref(false)
+const showAddSuccess = ref(false);
+const isCoolingDown = ref(false);
 
 const addToCart = () => {
+  if (!auth.isAuthenticated || !auth.user) {
+    router.push({ name: "Login" });
+    return;
+  }
+
   if (product.value) {
-    cart.addToCart(
+    if (isCoolingDown.value) return;
+    if (
+      auth?.user?.role === "SELLER" &&
+      Number(product.value.sellerId) === Number(auth.user.id)
+    ) {
+      errorMessage.value = "You cannot add your own sale item to the cart.";
+      showError.value = true;
+      return;
+    }
+    const ok = cart.addToCart(
       {
         saleItemId: product.value.id,
         sellerId: product.value.sellerId,
         sellerNickname: product.value.sellerNickname,
         name: `${product.value.brandName} ${product.value.model} ${product.value.ramGb}/${product.value.storageGb}GB ${product.value.color}`.trim(),
         price: product.value.price,
-        stock: product.value.quantity
+        stock: product.value.quantity,
       },
       selectedQuantity.value
-    )
-
-    showAddSuccess.value = true
+    );
+    if (ok) {
+      showAddSuccess.value = true;
+      isCoolingDown.value = true;
+      setTimeout(() => {
+        isCoolingDown.value = false;
+      }, 1000);
+    } else {
+      errorMessage.value = "Cannot add to cart. The item may be out of stock.";
+      showError.value = true;
+    }
   }
-}
+};
 
+const incrementQuantity = () => {
+  if (product.value && selectedQuantity.value < product.value.quantity) {
+    selectedQuantity.value++;
+  }
+};
+
+const decrementQuantity = () => {
+  if (selectedQuantity.value > 1) {
+    selectedQuantity.value--;
+  }
+};
 
 onMounted(async () => {
   isLoading.value = true;
@@ -100,8 +154,8 @@ onMounted(async () => {
       return;
     }
   } catch (e) {
-    router.push("/sale-items")
-    sessionStorage.setItem("error-message", "true")
+    router.push("/sale-items");
+    sessionStorage.setItem("error-message", "true");
   }
 
   if (sessionStorage.getItem("edit-success") === "true") {
@@ -114,8 +168,6 @@ onMounted(async () => {
 
   isLoading.value = false;
 });
-
-
 </script>
 
 <template>
@@ -132,9 +184,15 @@ onMounted(async () => {
         @close="showAddSuccess = false"
       />
 
+      <ErrorModal
+        :visible="showError"
+        :message="errorMessage"
+        @close="showError = false"
+      />
+
       <ConfirmModal @confirm="confirm" :visible="showDelete" />
       <div class="max-w-[1200px] mx-auto px-6">
-        <HistoryPath :previous="1" :name-path="title" /> 
+        <HistoryPath :previous="1" :name-path="title" />
         <div class="itbms-row grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           <ProductPicture :editMode="false" :images="product.saleItemImages" />
 
@@ -166,16 +224,41 @@ onMounted(async () => {
             </div>
 
             <div class="space-y-4">
+              <div class="flex items-center justify-center gap-4">
+                <button
+                  @click="decrementQuantity"
+                  class="w-10 h-10 flex items-center justify-center bg-neutral-800 text-white rounded-full hover:bg-neutral-700 transition-colors disabled:opacity-50"
+                  :disabled="selectedQuantity <= 1"
+                >
+                  −
+                </button>
+
+                <span class="text-2xl font-semibold min-w-[2rem] text-center">
+                  {{ selectedQuantity }}
+                </span>
+
+                <button
+                  @click="incrementQuantity"
+                  class="w-10 h-10 flex items-center justify-center bg-neutral-800 text-white rounded-full hover:bg-neutral-700 transition-colors disabled:opacity-50"
+                  :disabled="product && selectedQuantity >= product.quantity"
+                >
+                  +
+                </button>
+              </div>
+
               <button
-                class="w-full bg-white text-black rounded-full py-3.5 font-medium text-sm hover:bg-gray-200 transition-colors"
+                @click.stop="addToCart"
+                class="w-full bg-white text-black rounded-full py-3.5 font-medium text-sm hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="product.quantity === 0 || isCoolingDown"
+                :title="
+                  product.quantity === 0
+                    ? 'Out of stock'
+                    : isCoolingDown
+                    ? 'Please wait...'
+                    : ''
+                "
               >
-                Buy
-              </button>
-              <button
-              @click="addToCart"
-                class="w-full bg-neutral-800 text-white rounded-full py-3.5 font-medium text-sm hover:bg-neutral-700 transition-colors"
-              >
-                Add to Bag
+                Add to Cart
               </button>
             </div>
 
@@ -308,7 +391,7 @@ onMounted(async () => {
               </a>
             </div>
 
-            <div class="pt-8 flex flex-col sm:flex-row gap-4">
+            <div class="pt-8 flex flex-col sm:flex-row gap-4" v-if="canManage">
               <button
                 type="submit"
                 @click="submit"

@@ -6,26 +6,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import sit.int204.mobileshop.OrderStatus;
 
 @Getter
 @Setter
@@ -44,7 +34,6 @@ public class Order {
     private User user;
 
     public Integer getBuyerId() { return Math.toIntExact(user.getId()); }
-    public Integer getSellerId() { return Math.toIntExact(user.getId()); }
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
@@ -60,10 +49,9 @@ public class Order {
     @Column(name = "order_note")
     private String orderNote;
 
-    @ColumnDefault("'COMPLETED'")
-    @Lob
-    @Column(name = "order_status")
-    private String orderStatus;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "order_status",nullable = false)
+    private OrderStatus orderStatus;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new LinkedList<>();
