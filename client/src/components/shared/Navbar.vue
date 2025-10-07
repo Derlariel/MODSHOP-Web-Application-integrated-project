@@ -1,19 +1,39 @@
 <script setup>
 import { Heart, ShoppingCart, User, Menu } from "lucide-vue-next";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { computed, ref } from "vue";
+import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useCartStore } from "@/stores/useCartStore";
 
 const route = useRoute();
+const router = useRouter();
 const isMobileMenuOpen = ref(false);
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
 
 const auth = useAuthStore();
+const cart = useCartStore();
+
 const greeting = computed(() => {
-  return auth.isAuthenticated ? `Hi, ${auth.nickname}` : "Login";
+  return auth.isAuthenticated ? `${auth.nickname}` : "Login";
 });
+
+const showLogoutModal = ref(false);
+const handleLogout = () => {
+  showLogoutModal.value = true;
+};
+const confirmLogout = async () => {
+  showLogoutModal.value = false;
+  await auth.logout();
+  sessionStorage.setItem("logout-success", "true");
+  await router.replace("/sale-items");
+  window.location.reload();
+};
+const cancelLogout = () => {
+  showLogoutModal.value = false;
+};
 </script>
 
 <template>
@@ -26,7 +46,7 @@ const greeting = computed(() => {
       <!-- Logo -->
       <router-link to="/" class="flex items-center gap-2">
         <img src="@/assets/icon.png" alt="logo" class="w-8 h-8 rounded-md" />
-        <div class="text-xl tracking-wide text-white font-bold">MODSHOP</div>
+        <div class="text-xl tracking-wide text-white font-bold">MODSHOPJRA</div>
       </router-link>
 
       <!-- Desktop Nav -->
@@ -65,8 +85,21 @@ const greeting = computed(() => {
 
       <!-- Icons -->
       <div class="hidden lg:flex text-white items-center space-x-4">
-        <Heart class="w-5 h-5 cursor-pointer hover:text-white" />
-        <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
+        
+        <router-link to="your-orders">
+          <span class="" >Your Orders</span>
+        </router-link>
+        
+        <router-link to="/cart" class="relative">
+          <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
+          <span
+            v-if="auth.isAuthenticated && cart.totalItems > 0"
+            class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full"
+          >
+            {{ cart.totalItems }}
+          </span>
+        </router-link>
+        
         <router-link
           v-if="!auth.isAuthenticated"
           to="/register"
@@ -76,8 +109,11 @@ const greeting = computed(() => {
         </router-link>
 
         <div class="flex items-center gap-4">
-          <router-link to="/profile" v-if="auth.isAuthenticated" class="itbms-profile">
-              <span v-if="auth.isAuthenticated" class="itbms-nickname">{{ greeting }}</span>
+          <router-link to="/profile" v-if="auth.isAuthenticated">
+            <div class="flex space-x-1 items-center ">
+              <User class="itbms-profile-button w-5 h-5" />
+              <span v-if="auth.isAuthenticated" class="itbms-nickname text-sm">{{ greeting }}</span>
+            </div>
           </router-link>
           <router-link to="/login" v-else
             class="font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md
@@ -86,11 +122,20 @@ const greeting = computed(() => {
           > Login</router-link>
           <button 
             v-if="auth.isAuthenticated"
-            @click="auth.logout()"
+            @click="handleLogout"
             class="itbms-logout text-sm opacity-70 hover:opacity-100"
           >
             Logout
           </button>
+          <ConfirmModal
+            :visible="showLogoutModal"
+            title="Logout Confirmation"
+            message="Are you sure you want to logout?"
+            confirmText="Logout"
+            cancelText="Cancel"
+            @confirm="confirmLogout"
+            @cancel="cancelLogout"
+          />
         </div>
       </div>
 
@@ -145,11 +190,20 @@ const greeting = computed(() => {
         Login</router-link>
         <button
           v-if="auth.isAuthenticated"
-          @click="auth.logout()"
+          @click="handleLogout"
           class="itbms-logout text-sm opacity-70 hover:opacity-100"
         >
           Logout
         </button>
+        <ConfirmModal
+          :visible="showLogoutModal"
+          title="Logout Confirmation"
+          message="Are you sure you want to logout?"
+          confirmText="Logout"
+          cancelText="Cancel"
+          @confirm="confirmLogout"
+          @cancel="cancelLogout"
+        />
       </div>
     </div>
   </nav>

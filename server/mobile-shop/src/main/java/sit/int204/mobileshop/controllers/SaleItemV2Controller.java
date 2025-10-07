@@ -7,6 +7,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -75,16 +77,20 @@ public class SaleItemV2Controller {
 
             }
 
+
+
     @PostMapping("")
     public ResponseEntity<SaleItemDetailDto> createSaleItem(
+
             @ModelAttribute SaleItemRequestDto dto,
             @RequestParam(value = "images", required = false) List<MultipartFile> images
     ) throws IOException {
+        System.out.println("controller");
         SaleItemDetailDto result = saleItemService.createSaleItem(dto, images);
         result.setSaleItemImages(saleItemImageService.getSaleItemImagesDto(result.getId()));
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
-
+//
 //    @PostMapping("")
 //    public ResponseEntity<SaleItemDetailDto> createSaleItem(
 //            @RequestPart("dto") SaleItemRequestDto dto,

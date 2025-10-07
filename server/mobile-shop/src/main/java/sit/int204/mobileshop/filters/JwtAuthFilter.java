@@ -3,6 +3,7 @@ package sit.int204.mobileshop.filters;
 import com.nimbusds.jwt.JWTClaimsSet;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import sit.int204.mobileshop.services.JwtService;
 import sit.int204.mobileshop.services.UserService;
 
 import java.io.IOException;
+import java.util.Collections;
 
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -35,17 +37,30 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader(AUTHORIZATION_HEADER);
+        String authHeader = request.getHeader(AUTHORIZATION_HEADER);
+        String token = null;
+        
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("access_token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        if (token == null && hasValidAuthorizationHeader(authHeader)) {
+            token = extractToken(authHeader);
+        }
 
-        if (!hasValidAuthorizationHeader(authHeader)) {
+        if (token == null) {
             chain.doFilter(request, response);
             return;
         }
 
         try {
-            String token = extractToken(authHeader);
             JWTClaimsSet claims = jwtService.validateAccessToken(token);
             Long userId = extractUserId(claims);
+
 
             UserResponseDto user = getUserAndValidate(userId, response);
             if (user == null) return;
@@ -113,6 +128,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             }
 
+            System.out.println("getUserAndValidate");
             return user;
 
         } catch (Exception e) {
@@ -121,14 +137,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
     }
-
     private void setAuthenticationContext(UserResponseDto user, HttpServletRequest request) {
         UsernamePasswordAuthenticationToken authToken =
-                new UsernamePasswordAuthenticationToken(user, null, null);
+                new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
+
         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        System.out.println(">>> Authenticated user: " + user.getEmail());
         SecurityContextHolder.getContext().setAuthentication(authToken);
     }
-
     private void writeErrorResponse(HttpServletResponse response, HttpStatus status, String message)
             throws IOException {
 

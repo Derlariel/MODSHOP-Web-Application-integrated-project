@@ -26,7 +26,7 @@ import java.util.Date;
 public class JwtService {
 
     @Value("${app.jwt.verification.expiration-hours:1}")
-     private int verificationTokenExpirationHours;
+    private int verificationTokenExpirationHours;
 
     @Value("${app.jwt.issuer:itb-mshop}")
     private String issuer;

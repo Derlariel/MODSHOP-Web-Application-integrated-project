@@ -4,6 +4,7 @@ import App from './App.vue';
 import { createPinia } from 'pinia';
 import timeFormat from '@/plugin/timeFormat';
 import router from '@/router/index';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 import favicon from '@/assets/icon.png'; 
 
@@ -20,4 +21,10 @@ app.use(pinia);
 app.use(timeFormat);
 app.use(router);
 
-app.mount('#app');
+// Hydrate auth state on startup for persistence across reloads/tabs
+const auth = useAuthStore();
+auth.initPersistence();
+// Optionally validate with backend; if session cookie is valid, refresh minimal user claims
+auth.refreshUserData().finally(() => {
+	app.mount('#app');
+});

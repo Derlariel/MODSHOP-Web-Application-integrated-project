@@ -137,17 +137,17 @@ INSERT INTO brand (id, name, website_url, is_active, country_of_origin) VALUES
 
 -- Insert sample users
 INSERT INTO users (id, nickname, email, password_hash, fullname, role, status) VALUES
-(1, 'Somchai', 'itbkk.somchai@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Somchai Jaidee', 'BUYER', 'ACTIVE'),
-(2, 'Somkiat', 'itbkk.somkiat@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Somkiat Luckchart', 'BUYER', 'ACTIVE'),
-(3, 'Somsuan', 'itbkk.somsuan@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Somsuan Hundee', 'SELLER', 'ACTIVE'),
-(4, 'Somsuk', 'itbkk.somsuk@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Somsuk Fundee', 'SELLER', 'ACTIVE'),
-(5, 'Somsak', 'itbkk.somsak@ad.sit.kmutt.ac.th', 'itProj24/SOM', 'Soksak Saksit', 'SELLER', 'ACTIVE');
+(1, 'Somchai', 'itbkk.somchai@ad.sit.kmutt.ac.th', 'itProj24*SOM', 'Somchai Jaidee', 'BUYER', 'ACTIVE'),
+(2, 'Somkiat', 'itbkk.somkiat@ad.sit.kmutt.ac.th', 'itProj24*SOM', 'Somkiat Luckchart', 'BUYER', 'ACTIVE'),
+(3, 'Somsuan', 'itbkk.somsuan@ad.sit.kmutt.ac.th', 'itProj24*SOM', 'Somsuan Hundee', 'SELLER', 'ACTIVE'),
+(4, 'Somsuk', 'itbkk.somsuk@ad.sit.kmutt.ac.th', 'itProj24*SOM', 'Somsuk Fundee', 'SELLER', 'ACTIVE'),
+(5, 'Somsak', 'itbkk.somsak@ad.sit.kmutt.ac.th', 'itProj24*SOM', 'Somsak Saksit', 'SELLER', 'ACTIVE');
 
 -- Insert seller details for SELLER users
 INSERT INTO sellers (user_id, mobile_number, bank_account_number, bank_name, national_id_number, national_id_photo_front, national_id_photo_back) VALUES
-(3, '083-456-7890', '0371234567', 'Bankok Bank', '1000111100222', '1000111100222_front.png', '1000111100222_back.png'),
-(4, '084-567-8901', '2371234567', 'Saim Commercial Bank', '1000111100333', '1000111100333_front.png', '1000111100333_back.png'),
-(5, '085-678-9012', '373456789', 'Bankok Bank', '1000111100444', '1000111100444_front.png', '1000111100444_back.png');
+(3, '0834567890', '0371234567', 'Bangkok Bank', '1000111100222', '1000111100222_front.png', '1000111100222_back.png'),
+(4, '0845678901', '2371234567', 'Siam Commercial Bank', '1000111100333', '1000111100333_front.png', '1000111100333_back.png'),
+(5, '0856789012', '373456789', 'Bangkok Bank', '1000111100444', '1000111100444_front.png', '1000111100444_back.png');
 
 INSERT INTO sale_item (id, seller_id, brand_id, model, description, quantity, price, screen_size_inch, ram_gb, storage_gb, color, created_on, updated_on, rate) VALUES
 -- Apple products (brand_id = 2)
@@ -238,10 +238,41 @@ CREATE TABLE sale_item_image (
   CONSTRAINT sale_item_image_ibfk_1 FOREIGN KEY (sale_item_id) REFERENCES sale_item (id) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE orders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,                        
+    order_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    shipping_address VARCHAR(255) NOT NULL,          
+    order_note VARCHAR(255),                          
+    order_status ENUM('COMPLETED', 'CANCELLED') DEFAULT 'COMPLETED',
+    CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE order_items (
+    order_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,                            
+    sale_item_id INT NOT NULL,                        
+    price INT NOT NULL,                               
+    quantity INT NOT NULL,
+    description VARCHAR(255),                         
+    CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
+    CONSTRAINT fk_order_items_sale_item FOREIGN KEY (sale_item_id) REFERENCES sale_item(id)
+);
+
+INSERT INTO orders (user_id, shipping_address, order_note, order_status) VALUES
+(1, '123/45 Sukhumvit Rd, Bangkok, Thailand', 'กรุณาส่งสินค้าวันจันทร์', 'COMPLETED'),
+(2, '456/78 Silom Rd, Bangkok, Thailand', NULL, 'COMPLETED');
+
+INSERT INTO order_items (order_id, sale_item_id, price, quantity, description) VALUES
+(1, 1, 42900.00, 1, 'iPhone 14 Pro Max สี Space Black'),
+(1, 16, 39600.00, 1, 'Galaxy S23 Ultra สีดำปีศาจ'),
+(2, 2, 29700.00, 2, 'iPhone 14 สี Midnight'),
+(2, 31, 33000.00, 1, 'Xiaomi 13 Pro สี Black');
+
+
 
 CREATE INDEX idx_email_verification_tokens_token ON email_verification_tokens(token);
 CREATE INDEX idx_email_verification_tokens_user_id ON email_verification_tokens(user_id);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_status ON users(status);
-
 

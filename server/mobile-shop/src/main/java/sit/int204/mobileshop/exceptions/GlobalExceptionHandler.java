@@ -1,78 +1,58 @@
 package sit.int204.mobileshop.exceptions;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataAccessException;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
+import java.sql.SQLException;
 
 @RestControllerAdvice
-@Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<Map<String, Object>> handleResponseStatusException(ResponseStatusException ex,
-                                                                             HttpServletRequest request) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", Instant.now().toString());
-        response.put("status", ex.getStatusCode().value());
-        response.put("error", ex.getStatusCode().toString());
-        response.put("message", ex.getReason()); // getReason() แทน getMessage()
-        response.put("path", request.getRequestURI());
+    @ExceptionHandler({DataAccessException.class, SQLException.class, CannotCreateTransactionException.class,
+            DatabaseCommunicationException.class})
+    public ResponseEntity<MyErrorResponse> handleDatabaseError(Exception e, HttpServletRequest request) {
+        String errorMessage = e instanceof DatabaseCommunicationException ? e.getMessage()
+                : "Database Communication Error";
 
-        return ResponseEntity.status(ex.getStatusCode()).body(response);
+        MyErrorResponse myErrorResponse = new MyErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+                errorMessage,
+                request.getRequestURI());
+        myErrorResponse.setStackTrace(e.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(myErrorResponse);
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex,
-                                                                      HttpServletRequest request) {
-        if (ex instanceof ResponseStatusException) {
-            throw ex;
-        }
-
-        String message = ex.getMessage();
-        HttpStatus status;
-        String error;
-
-
-        if (message != null && (message.contains("No access token") || message.contains("Invalid Token"))) {
-            status = HttpStatus.UNAUTHORIZED;
-            error = "Unauthorized";
-        } else if (message != null && (message.contains("not active") || message.contains("not matched"))) {
-            status = HttpStatus.FORBIDDEN;
-            error = "Forbidden";
-        } else {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            error = "Internal Server Error";
-        }
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", Instant.now().toString());
-        response.put("status", status.value());
-        response.put("error", error);
-        response.put("message", message);
-        response.put("path", request.getRequestURI());
-
-        return ResponseEntity.status(status).body(response);
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<MyErrorResponse> handleResponseStatusException(
+            ResponseStatusException e , HttpServletRequest request
+    ){
+        HttpStatus status = (HttpStatus) e.getStatusCode();
+        MyErrorResponse myErrorResponse = new MyErrorResponse(
+                status.value(),
+                status.getReasonPhrase(),
+                e.getReason(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(status).body(myErrorResponse);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex,
-                                                                      HttpServletRequest request) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", Instant.now().toString());
-        response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        response.put("error", "Internal Server Error");
-        response.put("message", ex.getMessage());
-        response.put("path", request.getRequestURI());
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    public ResponseEntity<MyErrorResponse> handleUnexpectedError(Exception e,
+                                                                 HttpServletRequest request) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        MyErrorResponse myErrorResponse = new MyErrorResponse(
+                status.value(),
+                status.getReasonPhrase(),
+                "Something went wrong, please try again later.",
+                request.getRequestURI());
+        myErrorResponse.setStackTrace(e.getMessage());
+        return ResponseEntity.status(status).body(myErrorResponse);
     }
 }

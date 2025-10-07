@@ -17,19 +17,42 @@ const errorMessage = ref("")
 
 onMounted(async () => {
   try {
+    if (!auth.user || !auth.user.id) {
+      console.error("User not authenticated or missing ID")
+      const refreshed = await auth.refreshUserData()
+      if (!refreshed) {
+        showError.value = true
+        errorMessage.value = "User authentication required."
+        return
+      }
+    }
+    
+    console.log("Fetching profile for user ID:", auth.user.id)
+    
     const res = await fetch(
       `${import.meta.env.VITE_BASE_URL}/v2/users/${auth.user.id}`,
       {
+        credentials: 'include',
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
           "Content-Type": "application/json",
         },
       }
     )
+    
+    if (!res.ok) {
+      if (res.status === 401) {
+        console.error("Unauthorized - might need to login again")
+      }
+      throw new Error(`Failed to fetch profile: ${res.status}`)
+    }
+    
     const data = await res.json()
     form.value = { ...data }
     original.value = { ...data }
+    
+    console.log("Profile data:", data)
   } catch (err) {
+    console.error("Error loading profile:", err)
     showError.value = true
     errorMessage.value = "Failed to load profile data."
   }
@@ -38,13 +61,11 @@ onMounted(async () => {
 const changed = computed(() => {
   if (!form.value || !original.value) return false
   
-  // Check basic fields
   const basicChanged = (
     form.value.nickName !== original.value.nickName ||
     form.value.fullName !== original.value.fullName
   )
   
-  // Check seller-specific fields if user is a seller
   if (form.value.userType === 'SELLER') {
     const sellerChanged = (
       form.value.phoneNumber !== original.value.phoneNumber ||
@@ -59,15 +80,35 @@ const changed = computed(() => {
 
 async function save() {
   try {
+    if (form.value) {
+      if (typeof form.value.nickName === 'string') {
+        form.value.nickName = form.value.nickName.trim().replace(/\s+/g, ' ');
+      }
+      if (typeof form.value.fullName === 'string') {
+        form.value.fullName = form.value.fullName.trim().replace(/\s+/g, ' ');
+      }
+    }
+    
+    const updatePayload = {
+      nickName: form.value.nickName,
+      fullName: form.value.fullName
+    }
+    
+    if (form.value.userType === 'SELLER') {
+      updatePayload.phoneNumber = form.value.phoneNumber || form.value.mobileNumber
+      updatePayload.bankName = form.value.bankName
+      updatePayload.bankAccount = form.value.bankAccount || form.value.bankAccountNumber
+    }
+        
     const res = await fetch(
       `${import.meta.env.VITE_BASE_URL}/v2/users/${auth.user.id}`,
       {
         method: "PUT",
+        credentials: 'include', // Include HttpOnly cookies
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form.value),
+        body: JSON.stringify(updatePayload),
       }
     )
 
@@ -75,9 +116,12 @@ async function save() {
       showSuccess.value = true
       setTimeout(() => router.push("/profile"), 1500)
     } else {
-      throw new Error("Update failed")
+      const errorData = await res.text()
+      console.error('Update failed:', res.status, errorData)
+      throw new Error(`Update failed: ${res.status}`)
     }
   } catch (err) {
+    console.error('Error updating profile:', err)
     showError.value = true
     errorMessage.value = "Failed to update profile."
   }
@@ -129,32 +173,29 @@ function cancel() {
         </div>
 
         <div class="bg-gray-700 px-4 py-3 rounded-lg text-gray-200 text-sm border border-gray-600">
-          <span class="font-medium text-gray-400">User Type: </span> 
+          <span class="font-medium text-gray-400">Type: </span> 
           <span class="itbms-type">{{ form.userType }}</span>
         </div>
 
         <!-- Seller-specific fields -->
         <div v-if="form.userType === 'SELLER'" class="space-y-6 pt-4 border-t border-gray-600">
           <h3 class="text-lg font-semibold text-gray-200 mb-4">Seller Information</h3>
-          
-          <BaseInput
-            label="Mobile Number"
-            v-model="form.phoneNumber"
-            placeholder="Enter your mobile number"
-            cypress="itbms-mobile"
-          />
-          <BaseInput
-            label="Bank Name"
-            v-model="form.bankName"
-            placeholder="Enter your bank name"
-            cypress="itbms-bankName"
-          />
-          <BaseInput
-            label="Bank Account"
-            v-model="form.bankAccount"
-            placeholder="Enter your bank account number"
-            cypress="itbms-bankAccount"
-          />
+
+          <div class="bg-gray-700 px-4 py-3 rounded-lg text-gray-200 text-sm border border-gray-600">
+          <span class="font-medium text-gray-400">Mobile Number: </span> 
+          <span class="itbms-email">{{ form.phoneNumber }}</span>
+        </div>
+
+        <div class="bg-gray-700 px-4 py-3 rounded-lg text-gray-200 text-sm border border-gray-600">
+          <span class="font-medium text-gray-400">Bank Name: </span> 
+          <span class="itbms-email">{{ form.bankName }}</span>
+        </div>
+
+        <div class="bg-gray-700 px-4 py-3 rounded-lg text-gray-200 text-sm border border-gray-600">
+          <span class="font-medium text-gray-400">Bank Account: </span> 
+          <span class="itbms-email">{{ form.bankAccount }}</span>
+        </div>
+
         </div>
 
         <div class="flex items-center justify-center gap-4 pt-6">

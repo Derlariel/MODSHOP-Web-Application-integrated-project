@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import BaseInput from "@/components/shared/BaseInput.vue";
+import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
 import { validateEmailPassword } from "@/utils/validate";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useRouter } from "vue-router";
@@ -10,7 +11,8 @@ const auth = useAuthStore();
 
 const email = ref("");
 const password = ref("");
-
+const showSuccessModal = ref(false);
+const alertMessage = ref("");
 
 const errors = ref({ email: "", password: "", server: "" });
 
@@ -24,6 +26,9 @@ const canSubmit = computed(() => {
   return !auth.isSubmitting && (emailValid || passwordNotEmpty);
 });
 
+onMounted(() => {
+  // No logout success handling here; it now shows on /sale-items
+});
 
 async function handleSubmit() {
   errors.value = { email: "", password: "", server: "" };
@@ -33,7 +38,16 @@ async function handleSubmit() {
       email: email.value, 
       password: password.value 
     });
-    router.replace("/sale-items");
+    
+    // Set login success flag for showing success modal
+    sessionStorage.setItem("login-success", "true");
+    
+    // Redirect based on user role
+    if (auth.user && auth.user.role === "SELLER") {
+      router.replace("/sale-items/list");
+    } else {
+      router.replace("/sale-items");
+    }
   } catch (err) {
     errors.value.server = err?.message || "Email or Password is incorrect.";
   }
@@ -50,6 +64,8 @@ function handleCancel() {
 
 <template>
   <div class="min-h-screen flex items-center justify-center bg-black px-4">
+    <SuccessModal :visible="showSuccessModal" :message="alertMessage" />
+    
     <div class="max-w-md w-full space-y-4">
       <h2 class="text-3xl font-bold text-white text-center">Login</h2>
 
@@ -81,7 +97,7 @@ function handleCancel() {
       <div class="flex space-x-3 pt-4">
         <BaseInput
             isButton
-            buttonText="Sign In"
+            buttonText="Login"
             type="button"
             variant="primary"
             cypress="login-submit itbms-signin-button"

@@ -22,16 +22,33 @@ const maskNumber = (num) => {
 
 onMounted(async () => {
   try {
+    if (!auth.user || !auth.user.id) {
+      console.error("User not authenticated or missing ID")
+      const refreshed = await auth.refreshUserData()
+      if (!refreshed) {
+        console.error("Could not refresh user data, redirecting to login")
+        return
+      }
+    }
+    
     const res = await fetch(`${BASE_URL}/v2/users/${auth.user.id}`, {
+      credentials: 'include', 
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
         "Content-Type": "application/json",
       },
     })
-    if (!res.ok) throw new Error("Failed to fetch profile")
+    
+    if (!res.ok) {
+      if (res.status === 401) {
+        console.error("Unauthorized - might need to login again")
+      }
+      throw new Error(`Failed to fetch profile: ${res.status}`)
+    }
+    
     profile.value = await res.json()
+    console.log("Profile data:", profile.value)
   } catch (err) {
-    console.error(err)
+    console.error("Error fetching profile:", err)
   }
 })
 </script>
@@ -66,7 +83,7 @@ onMounted(async () => {
                 <p class="itbms-email text-xl font-semibold">{{ profile.email }}</p>
               </div>
               <div>
-                <p class="text-sm text-gray-400">User Type</p>
+                <p class="text-sm text-gray-400">Type</p>
                 <p class="itbms-type text-xl font-semibold">{{ profile.userType }}</p>
               </div>
             </div>

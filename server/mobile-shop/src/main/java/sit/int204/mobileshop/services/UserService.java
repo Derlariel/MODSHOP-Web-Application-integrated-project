@@ -7,7 +7,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int204.mobileshop.dtos.*;
 import sit.int204.mobileshop.entities.*;
-import sit.int204.mobileshop.exceptions.*;
+import sit.int204.mobileshop.exceptions.EmailAlreadyExistsException;
 import sit.int204.mobileshop.repositories.*;
 
 import java.io.IOException;
@@ -53,9 +52,9 @@ public class UserService {
         this.jwtService = jwtService;
         this.fileService = fileService;
         this.passwordEncoder = passwordEncoder;
-
     }
 
+    // ---------------- Register ----------------
     @Transactional
     public UserResponseDto register(RegisterUserDto dto) {
         validateEmailUniqueness(dto.getEmail());
@@ -69,15 +68,13 @@ public class UserService {
             sendVerificationEmailAsync(savedUser);
 
             log.info("User registered successfully with email: {}", savedUser.getEmail());
-            return mapToUserResponseDto(savedUser);
+            return mapToProfileResponseDto(savedUser);
 
         } catch (Exception e) {
             log.error("Registration failed for user: {}", dto.getEmail(), e);
             throw new RuntimeException("Registration failed: " + e.getMessage());
         }
     }
-
-
 
     private void validateEmailUniqueness(String email) {
         if (userRepository.existsByEmail(email)) {
@@ -98,7 +95,6 @@ public class UserService {
         // Create appropriate entity based on role
         if (UserRole.SELLER.name().equalsIgnoreCase(dto.getRole())) {
             Seller seller = new Seller();
-            // Set seller-specific fields
             seller.setMobileNumber(dto.getMobileNumber());
             seller.setBankAccountNumber(dto.getBankAccountNumber());
             seller.setBankName(dto.getBankName());
@@ -113,9 +109,7 @@ public class UserService {
         // Set common user fields
         user.setNickName(dto.getNickname());
         user.setEmail(dto.getEmail().trim().toLowerCase());
-        //  disabled password hashing ชั่วคราวเ
-        // user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
-        user.setPasswordHash(dto.getPassword()); // Store plain text password temporarily
+        user.setPasswordHash(passwordEncoder.encode(dto.getPassword())); // hash ก่อน save เสมอ
         user.setFullName(dto.getFullname());
         user.setUserType(dto.getRole());
         user.setStatus(UserStatus.INACTIVE.name());
@@ -127,17 +121,28 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    @Transactional(readOnly = true)
+    // ---------------- Authentication ----------------
+    @Transactional
     public boolean authenticate(String email, String rawPassword) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) return false;
+
         User u = userOpt.get();
-        // TODO: Temporarily disabled password hashing for development
-        // return passwordEncoder.matches(rawPassword, u.getPasswordHash());
-        return rawPassword.equals(u.getPasswordHash()); // Compare plain text passwords temporarily
+        String storedPassword = u.getPasswordHash();
+
+        if (!isHashedPassword(storedPassword)) {
+            if (rawPassword.equals(storedPassword)) {
+                migratePassword(u, storedPassword);
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        return passwordEncoder.matches(rawPassword, storedPassword);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponseDto authenticateWithJwt(String email, String rawPassword) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) {
@@ -145,19 +150,28 @@ public class UserService {
         }
 
         User user = userOpt.get();
-        
-        // Check password
-        // TODO: Temporarily disabled password hashing for development
-        // if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
-        if (!rawPassword.equals(user.getPasswordHash())) { // Compare plain text passwords temporarily
-            return null; // Invalid password
+        String storedPassword = user.getPasswordHash();
+
+        boolean valid;
+
+        if (!isHashedPassword(storedPassword)) {
+            valid = rawPassword.equals(storedPassword);
+            log.debug("Compare raw='{}' with stored='{}' → {}", rawPassword, storedPassword, valid);
+            if (valid) {
+                migratePassword(user, storedPassword);
+            }
+        } else {
+            valid = passwordEncoder.matches(rawPassword, storedPassword);
+        }
+
+        if (!valid) {
+            return null;
         }
 
         if (!"ACTIVE".equals(user.getStatus())) {
             return AuthResponseDto.builder().build();
         }
 
-        // Generate tokens
         String accessToken = jwtService.generateAccessToken(
                 user.getId(),
                 user.getEmail(),
@@ -169,53 +183,23 @@ public class UserService {
                 user.getId(),
                 user.getEmail()
         );
+        log.debug("Raw input: '{}', Stored: '{}'", rawPassword, storedPassword);
 
-        // Create response
+
         return AuthResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
-                .expiresIn(30 * 60L) // 30 minutes in seconds
+                .expiresIn(30 * 60L)
                 .nickname(user.getNickName())
                 .userId(user.getId())
                 .email(user.getEmail())
                 .role(user.getUserType())
                 .build();
+
     }
 
-
-    private void handleSellerFileUploads(RegisterUserDto dto) throws IOException {
-        if (dto.getNationalIdPhotoFront() != null && !dto.getNationalIdPhotoFront().isEmpty()) {
-            String frontPath = fileService.storeFile(dto.getNationalIdPhotoFront());
-            dto.setNationalIdPhotoFrontUrl(frontPath);
-        }
-
-        if (dto.getNationalIdPhotoBack() != null && !dto.getNationalIdPhotoBack().isEmpty()) {
-            String backPath = fileService.storeFile(dto.getNationalIdPhotoBack());
-            dto.setNationalIdPhotoBackUrl(backPath);
-        }
-    }
-
-    private void sendVerificationEmailAsync(User user) {
-        try {
-            String jwtToken = jwtService.generateVerificationToken(user.getId(), user.getEmail());
-            mailService.sendVerificationEmail(user.getEmail(), jwtToken);
-        } catch (Exception e) {
-
-        }
-    }
-
-    private UserResponseDto mapToUserResponseDto(User user) {
-        UserResponseDto responseDto = new UserResponseDto();
-        responseDto.setId(user.getId());
-        responseDto.setEmail(user.getEmail());
-        responseDto.setFullName(user.getFullName());
-        responseDto.setUserType(user.getUserType());
-        responseDto.setNickName(user.getNickName());
-        responseDto.setPhoneNumber(getPhoneNumber(user));
-        return responseDto;
-    }
-
+    // ---------------- Email Verification ----------------
     @Transactional
     public ResponseEntity<Map<String, Object>> verifyEmail(String jwtToken) {
         try {
@@ -258,7 +242,7 @@ public class UserService {
     }
 
     private Map<String, Object> buildSuccessResponse(User user) {
-        UserResponseDto userDto = mapToUserResponseDto(user);
+        UserResponseDto userDto = mapToProfileResponseDto(user);
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", userDto.getId());
@@ -278,38 +262,7 @@ public class UserService {
         userRepository.save(user);
     }
 
-    private String getPhoneNumber(User user) {
-        if (UserRole.SELLER.name().equalsIgnoreCase(user.getUserType())) {
-            // Since Seller extends User, we can cast directly or use repository
-            if (user instanceof Seller) {
-                return ((Seller) user).getMobileNumber();
-            } else {
-                // Fallback: Query seller table directly by ID
-                Optional<Seller> seller = sellerRepository.findById(user.getId());
-                return seller.map(Seller::getMobileNumber).orElse(null);
-            }
-        }
-        return null;
-    }
-
-    public ResponseEntity<String> verifyUser(String token) {
-        try {
-            ResponseEntity<Map<String, Object>> response = verifyEmail(token);
-
-            if (response.getStatusCode() == HttpStatus.OK) {
-                return ResponseEntity.ok("Your account has been successfully activated.");
-            } else {
-                Map<String, Object> errorBody = response.getBody();
-                String message = errorBody != null ? (String) errorBody.get("message") :
-                        "An error occurred, or the verification link has expired. Please request a new verification email.";
-                return ResponseEntity.status(response.getStatusCode()).body(message);
-            }
-        } catch (Exception e) {
-            log.error("Error in verifyUser method", e);
-            return ResponseEntity.badRequest()
-                    .body("An error occurred, or the verification link has expired. Please request a new verification email.");
-        }
-    }
+    // ---------------- Profile ----------------
     public UserResponseDto getUserById(Long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
@@ -321,68 +274,59 @@ public class UserService {
         }
 
         Optional<User> userOpt = userRepository.getUsersById(id);
-        return modelMapper.map(userOpt.get(), UserResponseDto.class);
+        User user = userOpt.get();
+
+        return mapToProfileResponseDto(user);
     }
 
     @Transactional
-    public UserResponseDto updateUserProfile(Long id, UpdateProfileDto updateDto, String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("No access token provided");
+    public UserResponseDto updateUserProfile(Long id, UpdateProfileDto updateDto, Authentication authentication) {
+        
+        if (authentication == null || authentication.getPrincipal() == null) {
+            log.error("No authentication provided");
+            throw new RuntimeException("No authentication provided");
+        }
+        UserResponseDto authenticatedUserDto = (UserResponseDto) authentication.getPrincipal();
+        if (!authenticatedUserDto.getId().equals(id)) {
+            log.error("User ID mismatch: authenticated={}, requested={}", authenticatedUserDto.getId(), id);
+            throw new RuntimeException("Request user id not matched with authenticated user");
+        }
+        User userToUpdate = userRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("User not found with ID: {}", id);
+                    return new RuntimeException("User not found");
+                });
+
+        if (!UserStatus.ACTIVE.name().equals(userToUpdate.getStatus())) {
+            log.error("User is not active: {}", userToUpdate.getStatus());
+            throw new RuntimeException("User is not active");
         }
 
-        String token = authHeader.substring(7); // Remove "Bearer " prefix
+        log.info("Updating user fields: nickName={}, fullName={}", updateDto.getNickName(), updateDto.getFullName());
 
-        try {
-            JWTClaimsSet claims = jwtService.validateAccessToken(token);
-            String email = claims.getStringClaim("email");
-            Long tokenUserId = Long.parseLong(claims.getSubject());
+        userToUpdate.setNickName(updateDto.getNickName());
+        userToUpdate.setFullName(updateDto.getFullName());
+        userToUpdate.setUpdatedOn(Instant.now());
 
-            User authenticatedUser = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found, Invalid Token"));
+        if (UserRole.SELLER.name().equalsIgnoreCase(userToUpdate.getUserType()) &&
+                userToUpdate instanceof Seller) {
+            Seller seller = (Seller) userToUpdate;
 
-            // Check if user is active
-            if (!UserStatus.ACTIVE.name().equals(authenticatedUser.getStatus())) {
-                throw new RuntimeException("User is not active");
+            if (updateDto.getPhoneNumber() != null) {
+                seller.setMobileNumber(updateDto.getPhoneNumber());
             }
-
-            // Check if requested ID matches authenticated user ID (authorization)
-            if (!authenticatedUser.getId().equals(id) || !tokenUserId.equals(id)) {
-                throw new RuntimeException("Request user id not matched with id in access token");
+            if (updateDto.getBankName() != null) {
+                seller.setBankName(updateDto.getBankName());
             }
-
-            // Update only allowed fields (nickname and fullname)
-            authenticatedUser.setNickName(updateDto.getNickName());
-            authenticatedUser.setFullName(updateDto.getFullName());
-            authenticatedUser.setUpdatedOn(Instant.now());
-
-            // If user is a Seller, update seller-specific fields
-            if (UserRole.SELLER.name().equalsIgnoreCase(authenticatedUser.getUserType()) &&
-                    authenticatedUser instanceof Seller) {
-                Seller seller = (Seller) authenticatedUser;
-
-                if (updateDto.getPhoneNumber() != null) {
-                    seller.setMobileNumber(updateDto.getPhoneNumber());
-                }
-                if (updateDto.getBankName() != null) {
-                    seller.setBankName(updateDto.getBankName());
-                }
-                if (updateDto.getBankAccount() != null) {
-                    seller.setBankAccountNumber(updateDto.getBankAccount());
-                }
+            if (updateDto.getBankAccount() != null) {
+                seller.setBankAccountNumber(updateDto.getBankAccount());
             }
-
-            User updatedUser = userRepository.save(authenticatedUser);
-            log.info("User profile updated successfully for user ID: {}", id);
-
-            return mapToProfileResponseDto(updatedUser);
-
-        } catch (RuntimeException e) {
-            // Re-throw our custom runtime exceptions
-            throw e;
-        } catch (Exception e) {
-            // Handle JWT parsing exceptions (ParseException, JOSEException, etc.)
-            throw new RuntimeException("User not found, Invalid Token");
         }
+
+        User updatedUser = userRepository.save(userToUpdate);
+        log.info("User profile updated successfully for user ID: {}", id);
+
+        return mapToProfileResponseDto(updatedUser);
     }
 
     private UserResponseDto mapToProfileResponseDto(User user) {
@@ -392,20 +336,20 @@ public class UserService {
         response.setFullName(user.getFullName());
         response.setUserType(user.getUserType());
         response.setNickName(user.getNickName());
+        response.setStatus(user.getStatus());
 
-        // If user is a Seller, add seller-specific fields
         if (UserRole.SELLER.name().equalsIgnoreCase(user.getUserType())) {
-            // Cast to Seller since we know it's a Seller
             if (user instanceof Seller) {
                 Seller seller = (Seller) user;
+                response.setMobileNumber(seller.getMobileNumber());
                 response.setPhoneNumber(seller.getMobileNumber());
                 response.setBankName(seller.getBankName());
                 response.setBankAccount(seller.getBankAccountNumber());
             } else {
-                // Fallback: Query seller table directly
                 Optional<Seller> seller = sellerRepository.findById(user.getId());
                 if (seller.isPresent()) {
                     Seller sellerData = seller.get();
+                    response.setMobileNumber(sellerData.getMobileNumber());
                     response.setPhoneNumber(sellerData.getMobileNumber());
                     response.setBankName(sellerData.getBankName());
                     response.setBankAccount(sellerData.getBankAccountNumber());
@@ -416,11 +360,93 @@ public class UserService {
         return response;
     }
 
+    // ---------------- Helpers ----------------
+    private void handleSellerFileUploads(RegisterUserDto dto) throws IOException {
+        if (dto.getNationalIdPhotoFront() != null && !dto.getNationalIdPhotoFront().isEmpty()) {
+            String frontPath = fileService.storeFile(dto.getNationalIdPhotoFront());
+            dto.setNationalIdPhotoFrontUrl(frontPath);
+        }
+
+        if (dto.getNationalIdPhotoBack() != null && !dto.getNationalIdPhotoBack().isEmpty()) {
+            String backPath = fileService.storeFile(dto.getNationalIdPhotoBack());
+            dto.setNationalIdPhotoBackUrl(backPath);
+        }
+    }
+
+    private void sendVerificationEmailAsync(User user) {
+        try {
+            String jwtToken = jwtService.generateVerificationToken(user.getId(), user.getEmail());
+            mailService.sendVerificationEmail(user.getEmail(), jwtToken);
+        } catch (Exception ignored) {}
+    }
+
+    private String getPhoneNumber(User user) {
+        if (UserRole.SELLER.name().equalsIgnoreCase(user.getUserType())) {
+            if (user instanceof Seller) {
+                return ((Seller) user).getMobileNumber();
+            } else {
+                Optional<Seller> seller = sellerRepository.findById(user.getId());
+                return seller.map(Seller::getMobileNumber).orElse(null);
+            }
+        }
+        return null;
+    }
+
+    /** ตรวจว่า password ที่เก็บใน DB เป็น hash หรือ plain text */
+    private boolean isHashedPassword(String password) {
+        return password != null && password.startsWith("$argon2");
+    }
+
+    /** migrate password จาก plain text → hash แล้ว update DB */
+    private void migratePassword(User user, String plainPassword) {
+        try {
+            String hashed = passwordEncoder.encode(plainPassword).trim();
+            user.setPasswordHash(hashed);
+            userRepository.save(user);
+            log.info("Migrated plain password for user {} to hash", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to migrate password for {}", user.getEmail(), e);
+        }
+    }
+
+
+    // ---------------- Enums ----------------
     public enum UserRole {
         BUYER, SELLER
     }
 
     public enum UserStatus {
         ACTIVE, INACTIVE
+    }
+
+    public AuthResponseDto refreshAccessToken(String refreshToken) {
+        try {
+            JWTClaimsSet claims = jwtService.validateRefreshToken(refreshToken);
+            Long userId = (Long) claims.getClaim("id");
+            String email = claims.getStringClaim("email");
+
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty() || !"ACTIVE".equals(userOpt.get().getStatus())) {
+                return null;
+            }
+            
+            User user = userOpt.get();
+            String newAccessToken = jwtService.generateAccessToken(
+                user.getId(),
+                user.getEmail(),
+                user.getNickName(),
+                user.getUserType()
+            );
+            
+            return AuthResponseDto.builder()
+                .accessToken(newAccessToken)
+                .tokenType("Bearer")
+                .expiresIn(30 * 60L)
+                .build();
+                
+        } catch (Exception e) {
+            log.error("Failed to refresh token", e);
+            return null;
+        }
     }
 }

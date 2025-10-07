@@ -1,5 +1,43 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useProductStore } from "@/stores/useProductStore";
+
+function requireAuth(to, from, next) {
+  const auth = useAuthStore();
+  if (!auth.isAuthenticated || !auth.user) {
+    next({ name: "Login" });
+  } else {
+    next();
+  }
+}
+
+function requireSeller(to, from, next) {
+  const auth = useAuthStore();
+  if (!auth.isAuthenticated || !auth.user) {
+    next({ name: "Login" });
+  } else if (auth.user.role === "SELLER") {
+    next();
+  } else if (auth.user.role === "BUYER") {
+    next({ name: "product-gallery" });
+  } else {
+    next({ name: "product-gallery" });
+  }
+}
+
+async function requireOwner(to, from, next) {
+  const auth = useAuthStore();
+  if (!auth.isAuthenticated || !auth.user || auth.user.role !== "SELLER") {
+    return next({ name: "product-gallery" });
+  }
+  try {
+    const productStore = useProductStore();
+    const detail = await productStore.fetchProductDetail(Number(to.params.productId));
+    if (detail && Number(detail.sellerId) === Number(auth.user.id)) {
+      return next();
+    }
+  } catch (e) {}
+  return next({ name: "product-gallery" });
+}
 import LandingLayout from "@/layout/LandingLayout.vue";
 import DefaultLayout from "@/layout/DefaultLayout.vue";
 import HomePage from "@/pages/HomePage.vue";
@@ -17,6 +55,9 @@ import Register from "@/pages/Register.vue";
 import Login from "@/pages/Login.vue";
 import Profile from "@/pages/Profile.vue";
 import ProfileEdit from "@/pages/ProfileEdit.vue";
+import Cart from "@/pages/CartPage.vue";
+import CartPage from "@/pages/CartPage.vue";
+import YourOrdersPage from "@/pages/YourOrdersPage.vue";
 const routes = [
   {
     path: "/",
@@ -45,11 +86,13 @@ const routes = [
         path: "profile",
         name: "Profile",
         component: Profile,
+        beforeEnter: requireAuth,
       },
       {
         path: "profile/edit",
         name: "ProfileEdit",
         component: ProfileEdit,
+        beforeEnter: requireAuth,
       },
       {
         path: "sale-items",
@@ -60,28 +103,13 @@ const routes = [
             path: "list",
             component: ProductList,
             name: "product-list",
-            beforeEnter: (to, from, next) => {
-              const auth = useAuthStore();
-
-              switch (true) {
-                case !auth.isAuthenticated || !auth.user:
-                  next({ name: "Login" });
-                  break;
-                case auth.user.role === "BUYER":
-                  next({ name: "product-gallery" });
-                  break;
-                case auth.user.role === "SELLER":
-                  next();
-                  break;
-                default:
-                  next({ name: "product-gallery" });
-              }
-            },
+            beforeEnter: requireSeller,
           },
           {
             path: "add",
             component: ProductAdd,
             name: "product-add",
+            beforeEnter: requireSeller,
           },
           {
             path: ":productId",
@@ -94,6 +122,7 @@ const routes = [
         path: "sale-items/:productId/edit",
         component: ProductEdit,
         name: "sale-items-edit",
+        beforeEnter: requireOwner,
       },
       {
         path: "brands",
@@ -116,6 +145,19 @@ const routes = [
         path: "about",
         name: "about",
         component: About,
+      },
+
+      {
+        path: "cart",
+        name : "CartPage",
+        component: CartPage,
+        beforeEnter: requireAuth,
+      },
+      {
+        path: "your-orders",
+        name: "YourOrdersPage",
+        component: YourOrdersPage,
+        beforeEnter: requireAuth,
       },
 
       {

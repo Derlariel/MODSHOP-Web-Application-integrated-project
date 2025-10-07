@@ -3,6 +3,7 @@ package sit.int204.mobileshop.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -33,14 +34,22 @@ public class SecurityConfig {
     @Autowired
     private JwtUserDetailsService jwtUserDetailsService;
 
-    private static final String[] PUBLIC_ENDPOINTS = {
+    private static final String[] PUBLIC_GET_ENDPOINTS = {
             "/v2/auth/**",
             "/v1/**",
             "/v2/sale-items",
             "/sale-items-images/**",
             "/actuator/health",
             "/swagger-ui/**",
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            "/v2/orders/**",
+            "/v2/users/**"
+    };
+
+    private static final String[] PUBLIC_POST_ENDPOINTS = {
+            "/v2/auth/**",
+            "/v2/orders/**",
+
     };
 
 
@@ -57,13 +66,16 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v2/sale-items").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/v2/orders").authenticated()
+                        .anyRequest().authenticated()
+                )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
             throws Exception {

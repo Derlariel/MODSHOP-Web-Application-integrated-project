@@ -54,8 +54,8 @@ const confirmDelete = async () => {
       `${import.meta.env.VITE_BASE_URL}/v1/sale-items/${selectedProductId.value}`,
       {
         method: 'DELETE',
+        credentials: 'include', // Include HttpOnly cookies
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
           "Content-Type": "application/json",
         },
       }
@@ -93,14 +93,21 @@ const cancelDelete = () => {
 async function loadSellerProducts(page = currentPage.value) {
   try {
     if (!auth.user || !auth.user.id) {
-      throw new Error('User not authenticated');
+      console.error('User not authenticated or missing ID')
+      // Try to refresh user data
+      const refreshed = await auth.refreshUserData()
+      if (!refreshed) {
+        throw new Error('User not authenticated');
+      }
     }
+
+    console.log('Loading products for seller ID:', auth.user.id)
 
     const response = await fetch(
       `${import.meta.env.VITE_BASE_URL}/v2/sellers/${auth.user.id}/sale-items?page=${page}&size=${pageSize.value}`,
       {
+        credentials: 'include', // Include HttpOnly cookies
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
           "Content-Type": "application/json",
         },
       }
@@ -121,15 +128,12 @@ async function loadSellerProducts(page = currentPage.value) {
     sellerProducts.value = data.content || [];
     totalPages.value = data.totalPages || 0;
     currentPage.value = page;
-    
-    if (sellerProducts.value.length === 0 && totalPages.value === 0) {
-      router.push({ name: "error-page", query: { code: "NODATA" } });
-      return;
-    }
   } catch (error) {
     console.error("Failed to load seller products:", error);
-    errorMessage.value = error.message || "Failed to load sale items. Please try again.";
-    showErrorModal.value = true;
+    if (!(sellerProducts.value.length === 0 && totalPages.value === 0)) {
+      errorMessage.value = error.message || "Failed to load sale items. Please try again.";
+      showErrorModal.value = true;
+    }
   }
 }
 
@@ -143,9 +147,7 @@ async function initProducts() {
   }
 }
 
-// Handle pagination events
 const handlePageChange = async (page) => {
-  // Convert from 1-based (UI) to 0-based (backend)
   const backendPage = page - 1;
   isLoading.value = true;
   try {
@@ -159,6 +161,15 @@ const handlePageChange = async (page) => {
 
 onMounted(async () => {
   await initProducts();
+
+  if (sessionStorage.getItem("login-success") === "true") {
+    alertMessage.value = "Login successful!";
+    showSuccessModal.value = true;
+    sessionStorage.removeItem("login-success");
+    setTimeout(() => {
+      showSuccessModal.value = false;
+    }, 3000);
+  }
 
   if (sessionStorage.getItem("add-success") === "true") {
     alertMessage.value = "The sale item has been successfully added.";
@@ -182,7 +193,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-black text-white pt-24 pb-16 px-4">
+  <div class="min-h-screen bg-black text-white pt-24">
     <div class="max-w-7xl mx-auto">
       <div v-if="isLoading" class="text-center py-12">
         <div class="flex flex-wrap justify-center gap-4">
@@ -192,16 +203,16 @@ onMounted(async () => {
 
       <div v-else>
         <ConfirmModal
-          :visible="showDeleteModal"
-          @confirm="confirmDelete"
-          @cancel="cancelDelete"
-          message="Do you want to delete this sale item?"
-          class="itbms-message"
+         :visible="showDeleteModal"
+         @confirm="confirmDelete"
+         @cancel="cancelDelete"
+         message="Do you want to delete this sale item?"
         />
 
-        <SuccessModal :visible="showSuccessModal" :message="alertMessage" class="itbms-message" />
-        
-        <ErrorModal :visible="showErrorModal" :message="errorMessage" @close="showErrorModal = false" />
+        <SuccessModal :visible="showSuccessModal" :message="alertMessage" />
+
+        <!-- Only show ErrorModal if not empty list -->
+        <ErrorModal v-if="showErrorModal && !(products.length === 0 && totalPages === 0)" :message="errorMessage" @close="showErrorModal = false" />
 
         <div class="flex justify-end mb-6 space-x-4">
           <router-link
@@ -218,7 +229,22 @@ onMounted(async () => {
           </router-link>
         </div>
 
+        <!-- Show no sale item message if empty -->
+        <div v-if="products.length === 0 && totalPages === 0" class="text-center py-16">
+          <div class="max-w-md mx-auto">
+            <h3 class="text-xl font-semibold text-white mb-4">No sale item</h3>
+            <p class="text-gray-400 mb-6">You have no sale items yet. Start by adding your first sale item!</p>
+            <router-link
+              to="/sale-items/add"
+              class="inline-block bg-white text-black px-6 py-3 rounded hover:bg-gray-200 transition-colors duration-200 font-medium"
+            >
+              Add First Sale Item
+            </router-link>
+          </div>
+        </div>
+
         <ListModel
+          v-else
           :saleItems="products"
           :viewType="viewType"
           @update:viewType="viewType = $event"
@@ -301,11 +327,13 @@ onMounted(async () => {
     </div>
 
     <!-- Pagination Component -->
+     <div class="max-w-7xl mx-auto m-12">
     <Pagination 
       v-if="!isLoading && totalPages > 1" 
       :totalPages="totalPages" 
       @sendPages="handlePageChange" 
     />
+    </div> 
   </div>
 </template>
 
