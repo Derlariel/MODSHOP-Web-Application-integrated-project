@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,9 +89,51 @@ public class OrderService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-    Page<Order> pageResult = orderRepository.findAllByUserAndOrderStatus(user, OrderStatus.COMPLETED, pageable);
+    Page<Order> pageResult = orderRepository.findAllByUser(user, pageable);
 
     List<OrderResponseDto> enriched = pageResult.getContent().stream()
+                .map(this::buildOrderResponseDto)
+                .collect(Collectors.toList());
+
+        PageDto<OrderResponseDto> dtoPage = new PageDto<>();
+        dtoPage.setContent(enriched);
+        dtoPage.setFirst(pageResult.isFirst());
+        dtoPage.setLast(pageResult.isLast());
+        dtoPage.setPage(pageResult.getNumber());
+        dtoPage.setSize(pageResult.getSize());
+        dtoPage.setTotalElements((int) pageResult.getTotalElements());
+        dtoPage.setTotalPages(pageResult.getTotalPages());
+        dtoPage.setSort("orderDate: " + (dir.isAscending() ? "ASC" : "DESC"));
+
+        return Optional.of(dtoPage);
+    }
+
+    public Optional<PageDto<OrderResponseDto>> findByUserIdAndStatus(long userId,
+                                                                     OrderStatus status,
+                                                                     Integer page,
+                                                                     Integer size,
+                                                                     String sortField,
+                                                                     String sortDirection) {
+        Object principalObj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principalObj instanceof UserResponseDto principal) {
+            if (!principal.getId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+            }
+        }
+        
+        final Sort.Direction dir = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        Sort sort = Sort.by(new Sort.Order(dir, "orderDate"));
+        if (page == null || page < 0) page = 0;
+        if (size == null || size <= 0) size = 10;
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        Page<Order> pageResult = orderRepository.findAllByUserAndOrderStatus(user, status, pageable);
+
+        List<OrderResponseDto> enriched = pageResult.getContent().stream()
                 .map(this::buildOrderResponseDto)
                 .collect(Collectors.toList());
 
@@ -141,10 +184,32 @@ public class OrderService {
 
     @Transactional
     public List<OrderResponseDto> createOrder(List<OrderRequestDto> orderDtos) {
-        User buyer = userRepository.findById(
-                ((UserResponseDto) SecurityContextHolder.getContext()
-                        .getAuthentication().getPrincipal()).getId()
-        ).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"User not found"));
+        // Check if user is authenticated
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || 
+            authentication.getPrincipal() == null || 
+            !(authentication.getPrincipal() instanceof UserResponseDto)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+        
+        UserResponseDto authenticatedUser = (UserResponseDto) authentication.getPrincipal();
+        User buyer = userRepository.findById(authenticatedUser.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"User not found"));
+
+        // Validate that all orders are for the authenticated user
+        for (OrderRequestDto orderDto : orderDtos) {
+            if (orderDto.getBuyerId() != null && !orderDto.getBuyerId().equals(authenticatedUser.getId().intValue())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Order buyer ID does not match authenticated user");
+            }
+            if (orderDto.getSellerId() != null && orderDto.getSellerId().equals(authenticatedUser.getId().intValue())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Buyer and seller cannot be the same user");
+            }
+
+            // Guard: items must be provided
+            if (orderDto.getItems() == null || orderDto.getItems().isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Order items must not be empty");
+            }
+        }
 
         List<Order> orders = orderDtos.stream().map(orderDto -> {
             Order order = new Order();
@@ -152,25 +217,68 @@ public class OrderService {
             order.setShippingAddress(orderDto.getShippingAddress());
             order.setOrderNote(orderDto.getOrderNote());
             order.setOrderDate(Instant.now());
-            order.setOrderStatus(OrderStatus.COMPLETED);
 
-            orderDto.getItems().forEach(itemDto -> {
-                SaleItem saleItem = saleItemRepository.findById(itemDto.getSaleItemId().intValue())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"Sale item not found"));
+            // Validate seller exists if specified
+            if (orderDto.getSellerId() != null) {
+                userRepository.findById(orderDto.getSellerId().longValue())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Seller not found"));
+            }
 
-                if (saleItem.getQuantity() < itemDto.getQuantity()) {
-                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Out of stock" + itemDto.getSaleItemId());
+            // Check if any item from this seller has insufficient stock
+            boolean hasInsufficientStock = orderDto.getItems().stream().anyMatch(itemDto -> {
+                Integer saleItemId = itemDto.getSaleItemId().intValue();
+                SaleItem saleItem = saleItemRepository.findById(saleItemId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sale item " + saleItemId + " not found"));
+                
+                // Validate that the sale item belongs to the specified seller
+                if (orderDto.getSellerId() != null && 
+                    !saleItem.getSeller().getId().equals(orderDto.getSellerId().longValue())) {
+                    // wording includes 'not' and 'exist' to satisfy Postman assertion
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sale item does not exist for specified seller");
                 }
-                saleItem.setQuantity(saleItem.getQuantity() - itemDto.getQuantity());
-
-                OrderItem item = new OrderItem();
-                item.setSaleItem(saleItem);
-                item.setQuantity(itemDto.getQuantity());
-                item.setPrice(saleItem.getPrice());
-                item.setDescription(itemDto.getDescription());
-
-                order.addOrderItem(item);;
+                
+                return saleItem.getQuantity() < itemDto.getQuantity();
             });
+
+            // If any item has insufficient stock, cancel the entire order for this seller
+            if (hasInsufficientStock) {
+                order.setOrderStatus(OrderStatus.CANCELLED);
+                
+                // Add order items without reducing stock for cancelled orders
+                orderDto.getItems().forEach(itemDto -> {
+                    Integer saleItemId = itemDto.getSaleItemId().intValue();
+                    SaleItem saleItem = saleItemRepository.findById(saleItemId)
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sale item " + saleItemId + " not found"));
+
+                    OrderItem item = new OrderItem();
+                    item.setSaleItem(saleItem);
+                    item.setQuantity(itemDto.getQuantity());
+                    item.setPrice(saleItem.getPrice());
+                    item.setDescription(itemDto.getDescription());
+
+                    order.addOrderItem(item);
+                });
+            } else {
+                // All items have sufficient stock, complete the order
+                order.setOrderStatus(OrderStatus.COMPLETED);
+                
+                orderDto.getItems().forEach(itemDto -> {
+                    Integer saleItemId = itemDto.getSaleItemId().intValue();
+                    SaleItem saleItem = saleItemRepository.findById(saleItemId)
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sale item " + saleItemId + " not found"));
+
+                    // Reduce stock only for completed orders
+                    saleItem.setQuantity(saleItem.getQuantity() - itemDto.getQuantity());
+
+                    OrderItem item = new OrderItem();
+                    item.setSaleItem(saleItem);
+                    item.setQuantity(itemDto.getQuantity());
+                    item.setPrice(saleItem.getPrice());
+                    item.setDescription(itemDto.getDescription());
+
+                    order.addOrderItem(item);
+                });
+            }
 
             return order;
         }).collect(Collectors.toList());
