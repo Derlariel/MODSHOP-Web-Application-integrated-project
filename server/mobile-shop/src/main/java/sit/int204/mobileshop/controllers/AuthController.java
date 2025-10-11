@@ -135,6 +135,7 @@ public class AuthController {
             response.addCookie(refreshTokenCookie);
         }
 
+        /*
         AuthResponseDto responseWithoutTokens = AuthResponseDto.builder()
                 .tokenType(authResponse.getTokenType())
                 .expiresIn(authResponse.getExpiresIn())
@@ -144,7 +145,22 @@ public class AuthController {
                 .role(authResponse.getRole())
                 .build();
 
-        return ResponseEntity.ok(responseWithoutTokens);
+        return ResponseEntity.ok(responseWithoutTokens); 
+         */
+
+         //for Postman test
+        AuthResponseDto responseWithTokens = AuthResponseDto.builder()
+                .accessToken(authResponse.getAccessToken())
+                .refreshToken(authResponse.getRefreshToken())
+                .tokenType(authResponse.getTokenType())
+                .expiresIn(authResponse.getExpiresIn())
+                .nickname(authResponse.getNickname())
+                .userId(authResponse.getUserId())
+                .email(authResponse.getEmail())
+                .role(authResponse.getRole())
+                .build();
+
+        return ResponseEntity.ok(responseWithTokens);
     }
 
     @PostMapping("/refresh")

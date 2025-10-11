@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import sit.int204.mobileshop.dtos.*;
 import sit.int204.mobileshop.dtos.UpdateProfileDto;
+import sit.int204.mobileshop.OrderStatus;
 import sit.int204.mobileshop.services.OrderService;
 import sit.int204.mobileshop.services.UserService;
 
@@ -53,6 +54,22 @@ public class UserController {
                                                                          @RequestParam(defaultValue = "orderDate") String sortField,
                                                                          @RequestParam(defaultValue = "desc") String sortDirection) {
         return ResponseEntity.ofNullable(orderService.findByUserId(userId, page, size, sortField, sortDirection));
+    }
+
+    @GetMapping("/{id}/orders/status/{status}")
+    public ResponseEntity<Optional<PageDto<OrderResponseDto>>> getOrdersByStatus(@PathVariable("id") Long userId,
+                                                                                 @PathVariable("status") String status,
+                                                                                 @RequestParam(defaultValue = "0") Integer page,
+                                                                                 @RequestParam(defaultValue = "10") Integer size,
+                                                                                 @RequestParam(defaultValue = "orderDate") String sortField,
+                                                                                 @RequestParam(defaultValue = "desc") String sortDirection) {
+        OrderStatus orderStatus;
+        try {
+            orderStatus = OrderStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ofNullable(orderService.findByUserIdAndStatus(userId, orderStatus, page, size, sortField, sortDirection));
     }
 
     /* End-point รับ user id ตาม principle ถึงแม้จะมี id อยู่ใน access token แล้วก็ตาม (id ใน token ใช้ verify ก่อนจะมาถึง controller)
