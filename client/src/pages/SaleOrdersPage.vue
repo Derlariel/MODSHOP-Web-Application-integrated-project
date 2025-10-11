@@ -17,7 +17,7 @@ const router = useRouter();
 
 const tabs = [
   { key: 'new', label: 'New Orders' },
-  { key: 'cancelled', label: 'Canceled Orders' },
+  { key: 'cancelled', label: 'Cancelled Orders' },
   { key: 'all', label: 'All Orders' },
 ];
 
