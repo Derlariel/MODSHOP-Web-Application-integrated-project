@@ -110,16 +110,24 @@ const groupedOrders = computed(() => {
             </CardHeader>
 
             <CardContent class="divide-y divide-neutral-800">
-              <div v-for="item in order.orderItems" :key="item.id" class="flex items-center gap-4 py-4 itbms-item-row">
+              <div v-for="item in order.orderItems" :key="item.saleItemId" class="flex items-center gap-4 py-4 itbms-item-row">
                 <img
-                  :src="item.image ? (BASE_IMG_URL + item.image) : DEFAULT_IMAGE"
-                  alt="product"
-                  class="w-10 h-10 object-cover rounded bg-neutral-800"
+                  :src="`${BASE_IMG_URL}${item.saleItemId}.jpg`"
+                  @error="(e) => (e.target.src = DEFAULT_IMAGE)"
+                  alt="Item Image"
+                  class="w-16 h-16 rounded object-cover"
                 />
                 <div class="flex-1">
-                  <div class="font-medium">{{ item.productName || item.name || ('Item #' + item.saleItemId) }}</div>
-                  <div class="text-sm text-gray-400">Qty: {{ item.quantity }} • Price: {{ item.price?.toLocaleString() }} THB</div>
+                  <p class="font-semibold text-lg itbms-item-description">
+                    {{ item.description }}
+                  </p>
+                  <p class="text-sm text-gray-400 itbms-item-quantity">
+                    Qty: {{ item.quantity }}
+                  </p>
                 </div>
+                <p class="text-right text-gray-300 itbms-item-total-price">
+                  ฿{{ (item.price * item.quantity).toLocaleString() }}
+                </p>
               </div>
             </CardContent>
           </Card>
