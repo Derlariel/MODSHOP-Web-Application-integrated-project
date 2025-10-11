@@ -240,12 +240,14 @@ CREATE TABLE sale_item_image (
 
 CREATE TABLE orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL,                        
+    user_id BIGINT NOT NULL,           -- buyer
+    seller_id BIGINT NOT NULL,         -- seller (เพิ่มใหม่)
     order_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    shipping_address VARCHAR(255) NOT NULL,          
-    order_note VARCHAR(255),                          
-    order_status ENUM('COMPLETED', 'CANCELLED') DEFAULT 'COMPLETED',
-    CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    shipping_address VARCHAR(255) NOT NULL,
+    order_note VARCHAR(255),
+    order_status ENUM('NEW', 'COMPLETED', 'CANCELLED') DEFAULT 'COMPLETED',
+    CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_orders_seller FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE order_items (
@@ -259,9 +261,11 @@ CREATE TABLE order_items (
     CONSTRAINT fk_order_items_sale_item FOREIGN KEY (sale_item_id) REFERENCES sale_item(id)
 );
 
-INSERT INTO orders (user_id, shipping_address, order_note, order_status) VALUES
-(1, '123/45 Sukhumvit Rd, Bangkok, Thailand', 'กรุณาส่งสินค้าวันจันทร์', 'COMPLETED'),
-(2, '456/78 Silom Rd, Bangkok, Thailand', NULL, 'COMPLETED');
+INSERT INTO orders (user_id, seller_id, shipping_address, order_note, order_status) VALUES
+(1, 3, '126 Pracha Utid Rd, Bangkok', 'School of IT (N11)', 'NEW'),
+(1, 4, '126 Pracha Utid Rd, Bangkok', NULL, 'CANCELLED'),
+(2, 3, '126 Pracha Utid Rd, Bangkok', 'ส่งด่วน', 'COMPLETED');
+
 
 INSERT INTO order_items (order_id, sale_item_id, price, quantity, description) VALUES
 (1, 1, 42900.00, 1, 'iPhone 14 Pro Max สี Space Black'),
@@ -275,4 +279,7 @@ CREATE INDEX idx_email_verification_tokens_token ON email_verification_tokens(to
 CREATE INDEX idx_email_verification_tokens_user_id ON email_verification_tokens(user_id);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_status ON users(status);
+CREATE INDEX idx_orders_seller_id ON orders(seller_id);
+CREATE INDEX idx_orders_status ON orders(order_status);
+
 

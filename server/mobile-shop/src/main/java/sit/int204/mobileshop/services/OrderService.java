@@ -292,6 +292,62 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+
+    public Optional<PageDto<OrderResponseDto>> findAllBySellerId(
+            long sellerId,
+            String tab,
+            Integer page,
+            Integer size,
+            String sortField,
+            String sortDirection
+    ){
+        Object principalObj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(principalObj instanceof UserResponseDto principal){
+            if (!principal.getId().equals(sellerId)){
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seller ID does not match authenticated user");
+            }
+            if(!"SELLER".equalsIgnoreCase(principal.getUserType())){
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seller type not supported");
+            }
+        }
+
+        final Sort.Direction dir = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(new Sort.Order(dir,sortField != null ? sortField : "orderDate"));
+        Pageable pageable = PageRequest.of(page == null ? 0 : page, size == null ? 10 : size , sort);
+
+        User seller = userRepository.findById(sellerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Seller not found") );
+
+        Page<Order> pageResult;
+        switch (tab.toLowerCase()){
+            case "new":
+                pageResult = orderRepository.findAllBySellerIdAndOrderStatus(seller, OrderStatus.NEW, pageable);
+                break;
+            case "canceled":
+                pageResult = orderRepository.findAllBySellerIdAndOrderStatus(seller, OrderStatus.CANCELLED, pageable);
+                break;
+            case "all":
+            default:
+                pageResult = orderRepository.findAllBySellerIdAndOrderStatus(seller, OrderStatus.COMPLETED, pageable);
+                break;
+        }
+        List<OrderResponseDto> orders = pageResult.getContent().stream()
+                .map(this::buildOrderResponseDto)
+                .collect(Collectors.toList());
+
+        PageDto<OrderResponseDto> dtoPage = new PageDto<>();
+        dtoPage.setContent(orders);
+        dtoPage.setFirst(pageResult.isFirst());
+        dtoPage.setLast(pageResult.isLast());
+        dtoPage.setPage(pageable.getPageNumber());
+        dtoPage.setSize(pageable.getPageSize());
+        dtoPage.setTotalElements((int) pageResult.getTotalElements());
+        dtoPage.setTotalPages(pageResult.getTotalPages());
+        dtoPage.setSort(sortField + ": " + (dir.isAscending() ? "ASC" : "DESC"));
+
+        return Optional.of(dtoPage);
+    }
+
     // ---- Helpers
     private OrderResponseDto buildOrderResponseDto(Order order) {
         OrderResponseDto dto = modelMapper.map(order, OrderResponseDto.class);
@@ -346,5 +402,6 @@ public class OrderService {
         
         return oid;
     }
+
 
 }
