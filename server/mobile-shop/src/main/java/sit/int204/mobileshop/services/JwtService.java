@@ -1,25 +1,26 @@
 package sit.int204.mobileshop.services;
 
-import com.nimbusds.jose.*;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.text.ParseException;
+import java.time.Instant;
+import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.text.ParseException;
-import java.time.Instant;
-import java.util.Date;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -125,7 +126,8 @@ public class JwtService {
     public String generateAccessToken(Long userId, String email, String nickname, String role) {
         try {
             Instant now = Instant.now();
-            Instant expiration = now.plusSeconds(30 * 60); // 30 minutes
+            Instant expiration = now.plusSeconds(30 * 60); //  30 minutes
+            // Instant expiration = now.plusSeconds(1 * 60);
 
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                     .subject(userId.toString())
@@ -161,7 +163,7 @@ public class JwtService {
         try {
             Instant now = Instant.now();
             Instant expiration = now.plusSeconds(24 * 60 * 60); // 24 hours
-
+          //  Instant expiration = now.plusSeconds(3 * 60); // 3 minutes
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                     .subject(userId.toString())
                     .issuer(issuer)

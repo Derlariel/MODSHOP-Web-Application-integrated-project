@@ -27,6 +27,10 @@ public class Order {
     @Column(name = "order_id", nullable = false)
     private Integer id;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "seller_id" , nullable = false)
+    private User seller;
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -59,6 +63,10 @@ public class Order {
     public void addOrderItem(OrderItem item) {
         item.setOrder(this);
         this.orderItems.add(item);
+    }
+
+    public Long getSellerId(){
+        return seller != null ? seller.getId() : null;
     }
 
 }
