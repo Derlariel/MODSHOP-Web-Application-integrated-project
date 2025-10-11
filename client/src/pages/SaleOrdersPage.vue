@@ -7,6 +7,9 @@ import Pagination from '@/components/shared/Pagination.vue';
 import Card from '@/components/UI/cart/Card.vue';
 import CardHeader from '@/components/UI/cart/CardHeader.vue';
 import CardContent from '@/components/UI/cart/CardContent.vue';
+import DEFAULT_IMAGE from '@/assets/default.jpg';
+
+const BASE_IMG_URL = `${import.meta.env.VITE_BASE_URL}/sale-items-images/`;
 
 const auth = useAuthStore();
 const store = useSellerOrdersStore();
@@ -88,7 +91,7 @@ const groupedOrders = computed(() => {
                 <div class="text-gray-300">
                   <div class="font-semibold">Order #{{ order.id }}</div>
                   <div class="text-sm">Date: {{ new Date(order.orderDate).toLocaleString('th-TH') }}</div>
-                  <div class="text-sm">Buyer: {{ order?.buyerNickname || order?.buyerName || '-' }}</div>
+                  <div class="text-sm">Buyer: {{ order?.buyerName || '-' }}</div>
                 </div>
                 <div>
                   <span
@@ -108,7 +111,11 @@ const groupedOrders = computed(() => {
 
             <CardContent class="divide-y divide-neutral-800">
               <div v-for="item in order.orderItems" :key="item.id" class="flex items-center gap-4 py-4 itbms-item-row">
-                <div class="w-10 h-10 bg-neutral-800 rounded"></div>
+                <img
+                  :src="item.image ? (BASE_IMG_URL + item.image) : DEFAULT_IMAGE"
+                  alt="product"
+                  class="w-10 h-10 object-cover rounded bg-neutral-800"
+                />
                 <div class="flex-1">
                   <div class="font-medium">{{ item.productName || item.name || ('Item #' + item.saleItemId) }}</div>
                   <div class="text-sm text-gray-400">Qty: {{ item.quantity }} • Price: {{ item.price?.toLocaleString() }} THB</div>

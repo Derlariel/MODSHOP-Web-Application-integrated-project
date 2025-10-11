@@ -9,6 +9,8 @@ import lombok.Data;
 public class OrderResponseDto {
     private Integer id;
     private Integer buyerId;
+    private String buyerNickname;
+    private String buyerName;
     private SellerDto seller;
     private Instant paymentDate;
     private Instant orderDate;
