@@ -326,7 +326,7 @@ public class OrderService {
             case "new":
                 pageResult = orderRepository.findAllBySellerIdAndOrderStatus(seller.getId(), OrderStatus.NEW, pageable);
                 break;
-            case "canceled":
+            case "cancelled":
                 pageResult = orderRepository.findAllBySellerIdAndOrderStatus(seller.getId(), OrderStatus.CANCELLED, pageable);
                 break;
             case "all":
