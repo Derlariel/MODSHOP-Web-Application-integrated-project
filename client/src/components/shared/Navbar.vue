@@ -1,5 +1,5 @@
 <script setup>
-import { Heart, ShoppingCart, User, Menu } from "lucide-vue-next";
+import { Heart, ShoppingCart, User, Menu, FileText } from "lucide-vue-next";
 import { useRoute, useRouter } from "vue-router";
 import { computed, ref, onMounted, watch } from "vue";
 import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
@@ -103,7 +103,7 @@ watch(
       <div class="hidden lg:flex text-white items-center space-x-4">
         <!-- Seller Sales Orders shortcut -->
         <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="relative">
-          <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
+          <FileText class="w-5 h-5 cursor-pointer hover:text-white" />
           <span
             v-if="sellerOrders.newOrdersCount > 0"
             class="absolute -top-2 -right-2 bg-purple-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full"
@@ -112,9 +112,9 @@ watch(
           </span>
         </router-link>
 
-        <!-- Buyer Your Orders link -->
-        <router-link v-if="auth.isAuthenticated && auth.user?.role==='BUYER'" to="your-orders">
-          <span>Your Orders</span>
+        <!-- Your Orders link for both Seller and Buyer -->
+        <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders">
+          <span class="hover:underline">Your Orders</span>
         </router-link>
 
         <router-link to="/cart" class="relative">
