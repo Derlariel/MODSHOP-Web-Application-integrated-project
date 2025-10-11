@@ -1,20 +1,48 @@
 <script setup>
-import { onMounted, computed } from "vue";
+import { onMounted, computed, ref, watch } from "vue";
 import { useOrderStore } from "@/stores/useOrderStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 import Card from "@/components/UI/cart/Card.vue";
 import CardHeader from "@/components/UI/cart/CardHeader.vue";
 import CardContent from "@/components/UI/cart/CardContent.vue";
 import CardTitle from "@/components/UI/cart/CartTitle.vue";
+import Pagination from "@/components/shared/Pagination.vue";
 
 const orderStore = useOrderStore();
 const userStore = useAuthStore();
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-const DEFAULT_IMAGE = new URL('@/assets/default.jpg', import.meta.url).href;
+const DEFAULT_IMAGE = new URL("@/assets/default.jpg", import.meta.url).href;
+
+const status = ref("COMPLETED");
 
 onMounted(() => {
-  orderStore.fetchOrders(userStore.user.id);
+  const savedPage = Number(sessionStorage.getItem("ordersActivePage")) || 1;
+  orderStore.setActivePage(savedPage);
+  fetchOrders();
+});
+
+const fetchOrders = (
+  statusValue = status.value,
+  page = orderStore.activePage
+) => {
+  orderStore.fetchOrders(userStore.user.id, statusValue, page);
+};
+
+const changeStatus = (newStatus) => {
+  status.value = newStatus;
+  orderStore.setActivePage(1);
+  sessionStorage.setItem("ordersActivePage", 1);
+  fetchOrders(newStatus, 1);
+};
+
+const updatePages = (page) => {
+  orderStore.setActivePage(page);
+  sessionStorage.setItem("ordersActivePage", page);
+  fetchOrders(status.value, page);
+};
+watch([status, () => orderStore.activePage], () => {
+  fetchOrders();
 });
 
 const groupedOrders = computed(() => {
@@ -26,8 +54,6 @@ const groupedOrders = computed(() => {
   });
   return grouped;
 });
-
-
 </script>
 
 <template>
@@ -48,7 +74,25 @@ const groupedOrders = computed(() => {
       No orders found.
     </div>
 
+
     <div v-else class="max-w-6xl mx-auto space-y-10">
+      <div class="mb-6">
+      <button
+        @click="changeStatus('COMPLETED')"
+        class="py-1 px-4 text-lg font-semibold rounded-lg"
+        :class="status === 'COMPLETED' ? 'text-white bg-purple-500' : ''"
+      >
+        Completed
+      </button>
+      <button
+        @click="changeStatus('CANCELLED')"
+        class="py-1 px-4 text-lg font-semibold rounded-lg"
+        :class="status === 'CANCELLED' ? 'text-white bg-purple-500' : ''"
+      >
+        Cancelled
+      </button>
+    </div>
+
       <div
         v-for="(orders, date) in groupedOrders"
         :key="date"
@@ -60,26 +104,20 @@ const groupedOrders = computed(() => {
           {{ date }}
         </h2>
 
-        <div
-          v-for="order in orders"
-          :key="order.id"
-          class="itbms-row"
-        >
+        <div v-for="order in orders" :key="order.id" class="itbms-row">
           <Card
             class="bg-neutral-900/80 border border-neutral-700 hover:border-purple-500 transition"
           >
             <CardHeader>
               <div class="flex justify-between items-center flex-wrap gap-4">
                 <div class="space-y-1">
-                  <CardTitle class="itbms-nickname">
-                    Seller: {{ order.seller.nickName }}
-                  </CardTitle>
-
+                  <CardTitle class="itbms-nickname"
+                    >Seller: {{ order.seller.nickName }}</CardTitle
+                  >
                   <p class="text-sm text-gray-400 itbms-order-id">
                     Order #: {{ order.id }}
                   </p>
                 </div>
-
                 <div class="text-sm text-gray-400 space-x-4">
                   <span class="itbms-order-date">
                     Order Date:
@@ -87,12 +125,15 @@ const groupedOrders = computed(() => {
                   </span>
                   <span class="itbms-payment-date">
                     Payment Date:
-                    {{ new Date(order.paymentDate).toLocaleDateString("th-TH") }}
+                    {{
+                      new Date(order.paymentDate).toLocaleDateString("th-TH")
+                    }}
                   </span>
                 </div>
-
                 <div class="text-right">
-                  <p class="text-green-400 font-bold text-lg itbms-total-order-price">
+                  <p
+                    class="text-green-400 font-bold text-lg itbms-total-order-price"
+                  >
                     ฿{{
                       order.orderItems
                         .reduce((sum, i) => sum + i.price * i.quantity, 0)
@@ -106,9 +147,13 @@ const groupedOrders = computed(() => {
               </div>
 
               <p class="mt-2 text-sm text-gray-300 itbms-shipping-address">
-                <b>Shipped To: </b> 
+                <b>Shipped To: </b>
                 <span v-if="order.shippingAddress">
-                  {{ userStore.user?.fullName ? userStore.user.fullName + ', ' : '' }}{{ order.shippingAddress }}
+                  {{
+                    userStore.user?.fullName
+                      ? userStore.user.fullName + ", "
+                      : ""
+                  }}{{ order.shippingAddress }}
                 </span>
               </p>
               <p class="mt-1 text-sm text-gray-300 itbms-order-note">
@@ -128,7 +173,6 @@ const groupedOrders = computed(() => {
                   alt="Item Image"
                   class="w-16 h-16 rounded object-cover"
                 />
-
                 <div class="flex-1">
                   <p class="font-semibold text-lg itbms-item-description">
                     {{ item.description }}
@@ -137,7 +181,6 @@ const groupedOrders = computed(() => {
                     Qty: {{ item.quantity }}
                   </p>
                 </div>
-
                 <p class="text-right text-gray-300 itbms-item-total-price">
                   ฿{{ (item.price * item.quantity).toLocaleString() }}
                 </p>
@@ -147,11 +190,12 @@ const groupedOrders = computed(() => {
         </div>
       </div>
     </div>
+
+    <!-- Pagination -->
+    <Pagination
+      v-if="orderStore.allPages > 1"
+      :total-pages="orderStore.allPages"
+      @send-pages="updatePages"
+    />
   </div>
 </template>
-
-<style scoped>
-h1 {
-  font-family: "Inter", sans-serif;
-}
-</style>

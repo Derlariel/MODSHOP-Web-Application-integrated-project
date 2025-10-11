@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.hibernate.query.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
@@ -69,7 +70,15 @@ public class UserController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ofNullable(orderService.findByUserIdAndStatus(userId, orderStatus, page, size, sortField, sortDirection));
+
+        Optional<PageDto<OrderResponseDto>> result;
+
+        if(!status.equals("ALL")) {
+            result = orderService.findByUserIdAndStatus(userId, orderStatus, page, size, sortField, sortDirection);
+        }else {
+            result = orderService.findByUserId(userId, page, size, sortField, sortDirection);
+        }
+        return ResponseEntity.ofNullable(result);
     }
 
     /* End-point รับ user id ตาม principle ถึงแม้จะมี id อยู่ใน access token แล้วก็ตาม (id ใน token ใช้ verify ก่อนจะมาถึง controller)
