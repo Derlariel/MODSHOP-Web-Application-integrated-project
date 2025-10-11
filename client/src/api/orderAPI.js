@@ -44,3 +44,25 @@ export async function getOrdersWithStatus(userId, page = 0, size = 10, sort = "o
     method: "GET",
   });
 }
+
+export async function getSellerOrders(
+  sellerId,
+  { tab = "all", page = 0, size = 10, sort = "orderDate,desc" } = {}
+) {
+  const query = `?tab=${encodeURIComponent(tab)}&page=${page}&size=${size}&sort=${encodeURIComponent(
+    sort
+  )}`;
+  return await request(`/v2/sellers/${sellerId}/orders${query}`, {
+    method: "GET",
+  });
+}
+
+export async function getSellerNewOrdersCount(sellerId) {
+  const res = await getSellerOrders(sellerId, {
+    tab: "new",
+    page: 0,
+    size: 1,
+    sort: "id,desc",
+  });
+  return res?.totalElements ?? (res?.totalItems ?? 0);
+}

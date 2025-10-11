@@ -246,7 +246,7 @@ CREATE TABLE orders (
     shipping_address VARCHAR(255) NOT NULL,
     order_note VARCHAR(255),
     order_status ENUM('NEW', 'COMPLETED', 'CANCELLED') DEFAULT 'COMPLETED',
-    CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_orders_user   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_orders_seller FOREIGN KEY (seller_id) REFERENCES users(id) ON DELETE CASCADE
 );
 

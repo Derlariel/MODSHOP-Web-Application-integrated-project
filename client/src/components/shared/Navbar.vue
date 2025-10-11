@@ -1,10 +1,11 @@
 <script setup>
 import { Heart, ShoppingCart, User, Menu } from "lucide-vue-next";
 import { useRoute, useRouter } from "vue-router";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useCartStore } from "@/stores/useCartStore";
+import { useSellerOrdersStore } from "@/stores/useSellerOrdersStore";
 
 const route = useRoute();
 const router = useRouter();
@@ -15,6 +16,7 @@ const toggleMobileMenu = () => {
 
 const auth = useAuthStore();
 const cart = useCartStore();
+const sellerOrders = useSellerOrdersStore();
 
 const greeting = computed(() => {
   return auth.isAuthenticated ? `${auth.nickname}` : "Login";
@@ -34,6 +36,20 @@ const confirmLogout = async () => {
 const cancelLogout = () => {
   showLogoutModal.value = false;
 };
+
+onMounted(() => {
+  if (auth.isAuthenticated && auth.user?.role === 'SELLER') {
+    sellerOrders.refreshBadge(auth.user.id);
+  }
+});
+
+watch(
+  () => auth.user,
+  (u) => {
+    if (u?.role === 'SELLER') sellerOrders.refreshBadge(u.id);
+  },
+  { immediate: false }
+);
 </script>
 
 <template>
@@ -85,11 +101,22 @@ const cancelLogout = () => {
 
       <!-- Icons -->
       <div class="hidden lg:flex text-white items-center space-x-4">
-        
-        <router-link to="your-orders">
-          <span class="" >Your Orders</span>
+        <!-- Seller Sales Orders shortcut -->
+        <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="relative">
+          <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
+          <span
+            v-if="sellerOrders.newOrdersCount > 0"
+            class="absolute -top-2 -right-2 bg-purple-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full"
+          >
+            {{ sellerOrders.newOrdersCount }}
+          </span>
         </router-link>
-        
+
+        <!-- Buyer Your Orders link -->
+        <router-link v-if="auth.isAuthenticated && auth.user?.role==='BUYER'" to="your-orders">
+          <span>Your Orders</span>
+        </router-link>
+
         <router-link to="/cart" class="relative">
           <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
           <span
