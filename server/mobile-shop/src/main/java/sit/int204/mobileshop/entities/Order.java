@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
@@ -27,15 +28,15 @@ public class Order {
     @Column(name = "order_id", nullable = false)
     private Integer id;
 
+    // Buyer
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "seller_id" , nullable = false)
-    private User seller;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    // Seller
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "seller_id", nullable = false)
+    private User seller;
 
     public Integer getBuyerId() { return Math.toIntExact(user.getId()); }
 
@@ -43,6 +44,7 @@ public class Order {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "order_date", nullable = false)
     private Instant orderDate;
+
 
     @Size(max = 255)
     @NotNull
@@ -63,10 +65,6 @@ public class Order {
     public void addOrderItem(OrderItem item) {
         item.setOrder(this);
         this.orderItems.add(item);
-    }
-
-    public Long getSellerId(){
-        return seller != null ? seller.getId() : null;
     }
 
 }

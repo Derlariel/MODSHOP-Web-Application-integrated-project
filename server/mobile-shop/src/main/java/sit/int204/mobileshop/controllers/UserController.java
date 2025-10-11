@@ -73,7 +73,7 @@ public class UserController {
 
         Optional<PageDto<OrderResponseDto>> result;
 
-        if(!status.equals("ALL")) {
+        if(!status.equals("NEW")) {
             result = orderService.findByUserIdAndStatus(userId, orderStatus, page, size, sortField, sortDirection);
         }else {
             result = orderService.findByUserId(userId, page, size, sortField, sortDirection);

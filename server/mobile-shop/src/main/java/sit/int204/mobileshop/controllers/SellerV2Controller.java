@@ -118,14 +118,20 @@ public class SellerV2Controller {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
+            System.out.println(authenticatedUser);
+            System.out.println("here");
+
             PageDto<OrderResponseDto> result = orderService
                     .findAllBySellerId(sid, tab, page, size, sortField, sortDirection)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No orders found"));
 
+            System.out.println(result);
+            System.out.println("result");
             return ResponseEntity.ok(result);
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
         }
     }

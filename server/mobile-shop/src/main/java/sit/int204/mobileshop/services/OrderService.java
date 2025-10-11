@@ -222,8 +222,11 @@ public class OrderService {
 
             // Validate seller exists if specified
             if (orderDto.getSellerId() != null) {
-                userRepository.findById(orderDto.getSellerId().longValue())
+                User seller = userRepository.findById(orderDto.getSellerId().longValue())
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Seller not found"));
+                order.setSeller(seller);
+            } else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "SellerId is required");
             }
 
             // Check if any item from this seller has insufficient stock
@@ -321,14 +324,14 @@ public class OrderService {
         Page<Order> pageResult;
         switch (tab.toLowerCase()){
             case "new":
-                pageResult = orderRepository.findAllBySellerIdAndOrderStatus(seller, OrderStatus.NEW, pageable);
+                pageResult = orderRepository.findAllBySellerIdAndOrderStatus(seller.getId(), OrderStatus.NEW, pageable);
                 break;
             case "canceled":
-                pageResult = orderRepository.findAllBySellerIdAndOrderStatus(seller, OrderStatus.CANCELLED, pageable);
+                pageResult = orderRepository.findAllBySellerIdAndOrderStatus(seller.getId(), OrderStatus.CANCELLED, pageable);
                 break;
             case "all":
             default:
-                pageResult = orderRepository.findAllBySellerIdAndOrderStatus(seller, OrderStatus.COMPLETED, pageable);
+                pageResult = orderRepository.findAllBySellerIdAndOrderStatus(seller.getId(), OrderStatus.COMPLETED, pageable);
                 break;
         }
         List<OrderResponseDto> orders = pageResult.getContent().stream()
