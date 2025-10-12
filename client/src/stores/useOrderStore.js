@@ -32,8 +32,8 @@ export const useOrderStore = defineStore("orderStore", {
           "id,desc",
           status
         );
-        this.allPages = res.totalPages;
-        this.orders = (res.content || []).slice().sort((a, b) => {
+        this.allPages = res?.data?.totalPages;
+        this.orders = (res?.data?.content || []).slice().sort((a, b) => {
           if (a.id != null && b.id != null && a.id !== b.id) {
             return b.id - a.id;
           }

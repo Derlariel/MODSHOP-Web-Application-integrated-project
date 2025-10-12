@@ -47,7 +47,7 @@ export async function request(path, options = {}) {
       try { data = await res.json(); } catch {}
     } else {
       processQueue(new Error("Session expired"));
-      window.location.href = "/login";
+      window.location.href = "/kk1/login";
       throw new Error("Session expired. Please login again.");
     }
   }

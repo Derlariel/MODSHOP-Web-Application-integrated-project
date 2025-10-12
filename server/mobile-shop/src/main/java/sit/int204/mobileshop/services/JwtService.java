@@ -192,7 +192,7 @@ public class JwtService {
         }
     }
 
-    public JWTClaimsSet validateAccessToken(String token) {
+    public JWTClaimsSet validateAccessToken(String token) throws ParseException, JOSEException {
         return validateAuthToken(token, "access_token");
     }
 
@@ -200,42 +200,34 @@ public class JwtService {
         return validateAuthToken(token, "refresh_token");
     }
 
-    private JWTClaimsSet validateAuthToken(String token, String expectedType) {
-        try {
-            System.out.println("token: " + token);
-            SignedJWT signedJWT = SignedJWT.parse(token);
-            System.out.println("signedJWT: " + signedJWT);
+    private JWTClaimsSet validateAuthToken(String token, String expectedType) throws JOSEException, ParseException {
+        SignedJWT signedJWT = SignedJWT.parse(token);
 
-            if (!signedJWT.verify(verifier)) {
-                System.out.println("Invalid token");
-                return null;
-            }
-
-            JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
-
-            Date expirationTime = claimsSet.getExpirationTime();
-            if (expirationTime == null || expirationTime.before(new Date())) {
-                System.out.println("expired at " + expirationTime.getTime());
-                return null; // expired
-            }
-
-            String tokenType = claimsSet.getStringClaim("type");
-            if (!expectedType.equals(tokenType)) {
-                System.out.println("not type " + tokenType);
-                return null;
-            }
-
-            if (!issuer.equals(claimsSet.getIssuer())) {
-                System.out.println("not issuer " + claimsSet.getIssuer());
-                return null;
-            }
-
-            System.out.println("finish");
-            return claimsSet;
-
-        } catch (ParseException | JOSEException e) {
-            return null;
+        // Verify signature
+        if (!signedJWT.verify(verifier)) {
+            throw new JOSEException("Invalid token signature");
         }
+
+        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+
+        // Check expiration - THROW EXCEPTION แทน return null
+        Date expirationTime = claimsSet.getExpirationTime();
+        if (expirationTime == null || expirationTime.before(new Date())) {
+            throw new JOSEException("Token has expired at " + expirationTime);
+        }
+
+        // Check token type
+        String tokenType = claimsSet.getStringClaim("type");
+        if (!expectedType.equals(tokenType)) {
+            throw new JOSEException("Invalid token type: expected " + expectedType + ", got " + tokenType);
+        }
+
+        // Check issuer
+        if (!issuer.equals(claimsSet.getIssuer())) {
+            throw new JOSEException("Invalid token issuer: " + claimsSet.getIssuer());
+        }
+
+        return claimsSet;
     }
 
 }

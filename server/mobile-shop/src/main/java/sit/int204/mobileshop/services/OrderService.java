@@ -76,12 +76,25 @@ public class OrderService {
                                                             Integer size,
                                                             String sortField,
                                                             String sortDirection) {
-        Object principalObj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        // Check if user is authenticated
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() ||
+                authentication.getPrincipal() == null ||
+                !(authentication.getPrincipal() instanceof UserResponseDto)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+
+        Object principalObj = authentication.getPrincipal();
         if (principalObj instanceof UserResponseDto principal) {
             if (!principal.getId().equals(userId)) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seller ID does not match authenticated user");
+            }
+            if (!"SELLER".equalsIgnoreCase(principal.getUserType())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seller type not supported");
             }
         }
+
         final Sort.Direction dir = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
         Sort sort = Sort.by(new Sort.Order(dir, "orderDate"));
@@ -125,7 +138,7 @@ public class OrderService {
                 !(authentication.getPrincipal() instanceof UserResponseDto)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
         }
-        
+
         Object principalObj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principalObj instanceof UserResponseDto principal) {
             if (!principal.getId().equals(userId)) {

@@ -196,11 +196,12 @@ public class AuthController {
             accessTokenCookie.setHttpOnly(true);
             accessTokenCookie.setSecure(cookieSecure);
             accessTokenCookie.setPath("/");
-            accessTokenCookie.setMaxAge(30 * 60);
+            accessTokenCookie.setMaxAge(1 * 60);
             response.addCookie(accessTokenCookie);
 
             Map<String, String> responseBody = new HashMap<>();
             responseBody.put("message", "Token refreshed successfully");
+            System.out.println("refresh here");
             return ResponseEntity.ok(responseBody);
 
         } catch (Exception e) {
