@@ -37,9 +37,11 @@ export const useSellerOrdersStore = defineStore("sellerOrdersStore", {
           size: this.size,
           sort: this.sort,
         });
-        this.orders = res?.content || [];
-        this.totalPages = res?.totalPages || 0;
-        this.totalElements = res?.totalElements || 0;
+        console.log("res",res)
+        this.orders = res.data?.content || [];
+        console.log(this?.orders)
+        this.totalPages = res.data?.totalPages || 0;
+        this.totalElements = res.data?.totalElements || 0;
       } catch (e) {
         console.error("Failed to fetch seller orders", e);
         this.orders = [];

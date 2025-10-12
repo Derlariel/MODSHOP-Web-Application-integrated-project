@@ -123,15 +123,16 @@ public class AuthController {
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(cookieSecure);
         accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(30 * 60);
+        accessTokenCookie.setMaxAge(1 * 60);  // 👈 1 นาที
         response.addCookie(accessTokenCookie);
 
+// Refresh Token อายุ 5 นาที (300 วินาที)
         if (authResponse.getRefreshToken() != null) {
             Cookie refreshTokenCookie = new Cookie("refresh_token", authResponse.getRefreshToken());
             refreshTokenCookie.setHttpOnly(true);
             refreshTokenCookie.setSecure(cookieSecure);
             refreshTokenCookie.setPath("/");
-            refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
+            refreshTokenCookie.setMaxAge(5 * 60);  // 👈 5 นาที
             response.addCookie(refreshTokenCookie);
         }
 

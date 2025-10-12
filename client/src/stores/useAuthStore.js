@@ -1,27 +1,9 @@
 import { defineStore } from "pinia"
 import { validateEmailPassword } from "@/utils/validate"
+import { request } from "../middleware/interception.js"
 
 const BASE_URL = import.meta.env.VITE_BASE_URL
 
-async function request(path, options = {}, skipAuth = false) {
-  const headers = options.headers ? { ...options.headers } : {}
-
-  
-  const requestOptions = {
-    ...options,
-    headers,
-    credentials: 'include', 
-  }
-
-  const res = await fetch(`${BASE_URL}${path}`, requestOptions)
-
-  let data = {}
-  try {
-    data = await res.json()
-  } catch (e) {}
-
-  return { res, data }
-}
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -29,7 +11,7 @@ export const useAuthStore = defineStore("auth", {
     _syncInitialized: false,
     user: (() => {
       try {
-        // Persist minimal user claims in localStorage for UX (no tokens stored)
+        
         const userClaims = localStorage.getItem("userClaims")
         const parsedUser = userClaims ? JSON.parse(userClaims) : null
         return parsedUser

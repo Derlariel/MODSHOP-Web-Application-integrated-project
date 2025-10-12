@@ -81,7 +81,8 @@ public class OrderService {
             if (!principal.getId().equals(userId)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
             }
-        }        final Sort.Direction dir = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        }
+        final Sort.Direction dir = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
         Sort sort = Sort.by(new Sort.Order(dir, "orderDate"));
         if (page == null || page < 0) page = 0;
@@ -116,13 +117,23 @@ public class OrderService {
                                                                      Integer size,
                                                                      String sortField,
                                                                      String sortDirection) {
+
+        // Check if user is authenticated
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() ||
+                authentication.getPrincipal() == null ||
+                !(authentication.getPrincipal() instanceof UserResponseDto)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+        
         Object principalObj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principalObj instanceof UserResponseDto principal) {
             if (!principal.getId().equals(userId)) {
+                System.out.println("Access denied for userId=" + principal.getId() + " trying to access " + userId);
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
             }
         }
-        
+
         final Sort.Direction dir = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
         Sort sort = Sort.by(new Sort.Order(dir, "orderDate"));
