@@ -67,16 +67,9 @@ const groupedOrders = computed(() => {
       Loading your orders...
     </div>
 
-    <div
-      v-else-if="Object.keys(groupedOrders).length === 0"
-      class="text-center text-gray-400 py-20"
-    >
-      No orders found.
-    </div>
 
-
-    <div v-else class="max-w-6xl mx-auto space-y-10">
-      <div class="mb-6">
+    <!-- Always show tab buttons at the top -->
+    <div class="max-w-6xl mx-auto mb-6">
       <button
         @click="changeStatus('COMPLETED')"
         class="py-1 px-4 text-lg font-semibold rounded-lg"
@@ -93,6 +86,14 @@ const groupedOrders = computed(() => {
       </button>
     </div>
 
+    <div
+      v-if="Object.keys(groupedOrders).length === 0"
+      class="text-center text-gray-400 py-20"
+    >
+      No orders found.
+    </div>
+
+    <div v-if="Object.keys(groupedOrders).length > 0" class="max-w-6xl mx-auto space-y-10">
       <div
         v-for="(orders, date) in groupedOrders"
         :key="date"

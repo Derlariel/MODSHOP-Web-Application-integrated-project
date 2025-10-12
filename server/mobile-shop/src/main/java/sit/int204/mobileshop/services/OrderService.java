@@ -356,6 +356,10 @@ public class OrderService {
         OrderResponseDto dto = modelMapper.map(order, OrderResponseDto.class);
         
         dto.setPaymentDate(order.getOrderDate()); 
+        if (order.getUser() != null) {
+            dto.setBuyerNickname(order.getUser().getNickName());
+            dto.setBuyerName(order.getUser().getFullName());
+        }
         
         if (order.getOrderItems() != null && !order.getOrderItems().isEmpty()) {
             var firstItem = order.getOrderItems().get(0);
