@@ -99,7 +99,7 @@ public class AuthService {
         user.setPasswordHash(encoded);
         userRepository.save(user);
 
-        // ✅ Clear Security Context (สำคัญมาก)
+        // Clear Security Context 
         org.springframework.security.core.context.SecurityContextHolder.clearContext();
     }
 
