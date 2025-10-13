@@ -6,42 +6,32 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import org.springframework.web.server.ResponseStatusException;
+
 import sit.int204.mobileshop.OrderStatus;
-import sit.int204.mobileshop.dtos.OrderRequestDto;
-import sit.int204.mobileshop.dtos.OrderItemDto;
-import sit.int204.mobileshop.dtos.OrderResponseDto;
-import sit.int204.mobileshop.dtos.PageDto;
-import sit.int204.mobileshop.dtos.SellerDto;
-import sit.int204.mobileshop.dtos.UserResponseDto;
-import sit.int204.mobileshop.entities.Order;
-import sit.int204.mobileshop.entities.OrderItem;
-import sit.int204.mobileshop.entities.SaleItem;
-import sit.int204.mobileshop.entities.User;
-import sit.int204.mobileshop.repositories.OrderRepository;
-import sit.int204.mobileshop.repositories.SaleItemRepository;
-import sit.int204.mobileshop.repositories.SaleItemImageRepository;
-import sit.int204.mobileshop.repositories.UserRepository;
+import sit.int204.mobileshop.dtos.*;
+import sit.int204.mobileshop.entities.*;
+import sit.int204.mobileshop.repositories.*;
 
 @Service
 public class OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
-    private final ModelMapper modelMapper;
     private final SaleItemRepository saleItemRepository;
     private final SaleItemImageRepository saleItemImageRepository;
+    private final ModelMapper modelMapper;
 
-    public OrderService(OrderRepository orderRepository, UserRepository userRepository, ModelMapper modelMapper, SaleItemRepository saleItemRepository, SaleItemImageRepository saleItemImageRepository) {
+    public OrderService(OrderRepository orderRepository,
+                        UserRepository userRepository,
+                        ModelMapper modelMapper,
+                        SaleItemRepository saleItemRepository,
+                        SaleItemImageRepository saleItemImageRepository) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
@@ -52,6 +42,7 @@ public class OrderService {
     public Optional<OrderResponseDto> findById(long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+
         Object principalObj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principalObj instanceof UserResponseDto principal) {
             Long principalId = principal.getId();
@@ -78,7 +69,6 @@ public class OrderService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
             }
         }
-
         return Optional.of(buildOrderResponseDto(order));
     }
 
@@ -118,25 +108,11 @@ public class OrderService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-    Page<Order> pageResult = orderRepository.findAllByUser(user, pageable);
-
-    List<OrderResponseDto> enriched = pageResult.getContent().stream()
-                .map(this::buildOrderResponseDto)
-                .collect(Collectors.toList());
-
-        PageDto<OrderResponseDto> dtoPage = new PageDto<>();
-        dtoPage.setContent(enriched);
-        dtoPage.setFirst(pageResult.isFirst());
-        dtoPage.setLast(pageResult.isLast());
-        dtoPage.setPage(pageResult.getNumber());
-        dtoPage.setSize(pageResult.getSize());
-        dtoPage.setTotalElements((int) pageResult.getTotalElements());
-        dtoPage.setTotalPages(pageResult.getTotalPages());
-        dtoPage.setSort("orderDate: " + (dir.isAscending() ? "ASC" : "DESC"));
-
-        return Optional.of(dtoPage);
+        Page<Order> pageResult = orderRepository.findAllByUser(user, pageable);
+        return Optional.of(toPageDto(pageResult));
     }
 
+    // Get orders by buyer and status
     public Optional<PageDto<OrderResponseDto>> findByUserIdAndStatus(long userId,
                                                                      OrderStatus status,
                                                                      Integer page,
@@ -171,85 +147,44 @@ public class OrderService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         Page<Order> pageResult = orderRepository.findAllByUserAndOrderStatus(user, status, pageable);
-
-        List<OrderResponseDto> enriched = pageResult.getContent().stream()
-                .map(this::buildOrderResponseDto)
-                .collect(Collectors.toList());
-
-        PageDto<OrderResponseDto> dtoPage = new PageDto<>();
-        dtoPage.setContent(enriched);
-        dtoPage.setFirst(pageResult.isFirst());
-        dtoPage.setLast(pageResult.isLast());
-        dtoPage.setPage(pageResult.getNumber());
-        dtoPage.setSize(pageResult.getSize());
-        dtoPage.setTotalElements((int) pageResult.getTotalElements());
-        dtoPage.setTotalPages(pageResult.getTotalPages());
-        dtoPage.setSort("orderDate: " + (dir.isAscending() ? "ASC" : "DESC"));
-
-        return Optional.of(dtoPage);
+        return Optional.of(toPageDto(pageResult));
     }
 
-//    @Transactional
-//    public List<OrderResponseDto> createOrder(List<OrderResponseDto> orderDtos) {
-//        User buyer = userRepository.findById(
-//                ((UserResponseDto) SecurityContextHolder.getContext()
-//                        .getAuthentication().getPrincipal()).getId()
-//        ).orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        List<Order> orders = orderDtos.stream().map(orderDto -> {
-//            Order order = modelMapper.map(orderDto, Order.class);
-//            order.setUser(buyer);
-//
-//            List<OrderItem> orderItems = orderDto.getOrderItems().stream().map(itemDto -> {
-//                OrderItem item = modelMapper.map(itemDto, OrderItem.class);
-//                SaleItem saleItem = saleItemService.getSaleItemByIdOld(Math.toIntExact(itemDto.getSaleItemId()));
-//                saleItem.setQuantity(saleItem.getQuantity() - itemDto.getQuantity());
-//                saleItemRepository.save(saleItem);
-//
-//                item.setSaleItem(saleItem);
-//                item.setOrder(order);
-//                return item;
-//            }).toList();
-//
-//            order.setOrderItems(orderItems);
-//            return order;
-//        }).toList();
-//
-//        orderRepository.saveAll(orders);
-//        return listMapper.mapList(orders, OrderResponseDto.class, modelMapper);
-//    }
-//
-//
-
+    //  Create Order (with stock check + transactional integrity)
     @Transactional
     public List<OrderResponseDto> createOrder(List<OrderRequestDto> orderDtos) {
-        // Check if user is authenticated
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || 
-            authentication.getPrincipal() == null || 
-            !(authentication.getPrincipal() instanceof UserResponseDto)) {
+        if (!(authentication != null && authentication.isAuthenticated() &&
+                authentication.getPrincipal() instanceof UserResponseDto)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
         }
-        
-        UserResponseDto authenticatedUser = (UserResponseDto) authentication.getPrincipal();
-        User buyer = userRepository.findById(authenticatedUser.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,"User not found"));
 
-        // Validate that all orders are for the authenticated user
+        UserResponseDto principal = (UserResponseDto) authentication.getPrincipal();
+        User buyer = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        //  Validate orders structure and ownership
         for (OrderRequestDto orderDto : orderDtos) {
-            if (orderDto.getBuyerId() != null && !orderDto.getBuyerId().equals(authenticatedUser.getId().intValue())) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Order buyer ID does not match authenticated user");
+            if (orderDto.getBuyerId() != null &&
+                    !orderDto.getBuyerId().equals(principal.getId().intValue())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Order buyer ID does not match authenticated user");
             }
-            if (orderDto.getSellerId() != null && orderDto.getSellerId().equals(authenticatedUser.getId().intValue())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Buyer and seller cannot be the same user");
+            if (orderDto.getSellerId() != null &&
+                    orderDto.getSellerId().equals(principal.getId().intValue())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Buyer and seller cannot be the same user");
             }
-
-            // Guard: items must be provided
             if (orderDto.getItems() == null || orderDto.getItems().isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Order items must not be empty");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Order items must not be empty");
             }
         }
 
+        // Validate stock availability before processing any order
+        validateStockBeforeOrder(orderDtos);
+
+        // Create orders
         List<Order> orders = orderDtos.stream().map(orderDto -> {
             Order order = new Order();
             order.setUser(buyer);
@@ -309,10 +244,60 @@ public class OrderService {
         }).collect(Collectors.toList());
 
         orderRepository.saveAll(orders);
+        return orders.stream().map(this::buildOrderResponseDto).collect(Collectors.toList());
+    }
 
-        return orders.stream()
+    //  Helper: Validate stock before placing order
+    private void validateStockBeforeOrder(List<OrderRequestDto> orderDtos) {
+        for (OrderRequestDto orderDto : orderDtos) {
+            for (var itemDto : orderDto.getItems()) {
+                SaleItem saleItem = saleItemRepository.findById(itemDto.getSaleItemId().intValue())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "Sale item " + itemDto.getSaleItemId() + " not found"));
+
+                if (saleItem.getQuantity() < itemDto.getQuantity()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Insufficient stock for " + saleItem.getModel() +
+                                    " (available: " + saleItem.getQuantity() +
+                                    ", requested: " + itemDto.getQuantity() + ")");
+                }
+            }
+        }
+    }
+
+    //  Helper: Check user authorization
+    private void validateUserAccess(long userId) {
+        Object principalObj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principalObj instanceof UserResponseDto principal) {
+            if (!principal.getId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+            }
+        }
+    }
+
+    // Helper: Paging and sorting config
+    private Pageable createPageRequest(Integer page, Integer size, String sortField, String sortDirection) {
+        final Sort.Direction dir = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(new Sort.Order(dir, sortField != null ? sortField : "orderDate"));
+        return PageRequest.of(page == null ? 0 : page, size == null ? 10 : size, sort);
+    }
+
+    // Helper: Map Page<Order> → PageDto<OrderResponseDto>
+    private PageDto<OrderResponseDto> toPageDto(Page<Order> pageResult) {
+        List<OrderResponseDto> content = pageResult.getContent().stream()
                 .map(this::buildOrderResponseDto)
                 .collect(Collectors.toList());
+
+        PageDto<OrderResponseDto> dtoPage = new PageDto<>();
+        dtoPage.setContent(content);
+        dtoPage.setFirst(pageResult.isFirst());
+        dtoPage.setLast(pageResult.isLast());
+        dtoPage.setPage(pageResult.getNumber());
+        dtoPage.setSize(pageResult.getSize());
+        dtoPage.setTotalElements((int) pageResult.getTotalElements());
+        dtoPage.setTotalPages(pageResult.getTotalPages());
+        dtoPage.setSort(pageResult.getSort().toString());
+        return dtoPage;
     }
 
 
@@ -384,7 +369,7 @@ public class OrderService {
         
         if (order.getOrderItems() != null && !order.getOrderItems().isEmpty()) {
             var firstItem = order.getOrderItems().get(0);
-            var seller = firstItem.getSaleItem() != null ? firstItem.getSaleItem().getSeller() : null;
+            var seller = firstItem.getSaleItem().getSeller();
             if (seller != null) {
                 SellerDto sellerDto = new SellerDto();
                 sellerDto.setId(seller.getId());
@@ -396,8 +381,10 @@ public class OrderService {
             }
         }
 
-        List<OrderItemDto> items = order.getOrderItems() == null ? List.of()
-                : order.getOrderItems().stream().map(this::buildOrderItemDto).collect(Collectors.toList());
+        // items
+        List<OrderItemDto> items = order.getOrderItems().stream()
+                .map(this::buildOrderItemDto)
+                .collect(Collectors.toList());
         dto.setOrderItems(items);
 
         return dto;
@@ -405,29 +392,26 @@ public class OrderService {
 
     private OrderItemDto buildOrderItemDto(OrderItem oi) {
         OrderItemDto oid = new OrderItemDto();
-        
         oid.setNo(oi.getNo());
         oid.setPrice(oi.getPrice());
         oid.setQuantity(oi.getQuantity());
         oid.setDescription(oi.getDescription());
-        
+
         if (oi.getSaleItem() != null) {
-            if (oi.getSaleItem().getId() != null) {
-                oid.setSaleItemId(oi.getSaleItem().getId().longValue());
+            var saleItem = oi.getSaleItem();
+            oid.setSaleItemId(saleItem.getId().longValue());
+            if (saleItem.getBrand() != null) {
+                oid.setBrandName(saleItem.getBrand().getName());
             }
-            if (oi.getSaleItem().getBrand() != null) {
-                oid.setBrandName(oi.getSaleItem().getBrand().getName());
-            }
-            oid.setModel(oi.getSaleItem().getModel());
-            oid.setColor(oi.getSaleItem().getColor());
-            oid.setStorageGb(oi.getSaleItem().getStorageGb());
-            
-            var images = saleItemImageRepository.findAllBySaleItemIdOrderByImageViewOrderAsc(oi.getSaleItem().getId());
+            oid.setModel(saleItem.getModel());
+            oid.setColor(saleItem.getColor());
+            oid.setStorageGb(saleItem.getStorageGb());
+
+            var images = saleItemImageRepository.findAllBySaleItemIdOrderByImageViewOrderAsc(saleItem.getId());
             if (images != null && !images.isEmpty()) {
                 oid.setImage(images.get(0).getFileName());
             }
         }
-        
         return oid;
     }
 

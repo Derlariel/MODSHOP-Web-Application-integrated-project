@@ -274,6 +274,19 @@ INSERT INTO order_items (order_id, sale_item_id, price, quantity, description) V
 (2, 31, 33000.00, 1, 'Xiaomi 13 Pro สี Black');
 
 
+CREATE TABLE password_reset_tokens (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    expiry_time TIMESTAMP NOT NULL,
+    is_used BOOLEAN DEFAULT FALSE,
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_reset_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+INSERT INTO users (id, nickname, email, password_hash, fullname, role, status) VALUES
+(6, 'Kongphob', 'kongphob.kong@mail.kmutt.ac.th', 'itProj24*SOM', 'Kongphob Kongsan', 'BUYER', 'ACTIVE');
+
 
 CREATE INDEX idx_email_verification_tokens_token ON email_verification_tokens(token);
 CREATE INDEX idx_email_verification_tokens_user_id ON email_verification_tokens(user_id);

@@ -113,4 +113,11 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordDto changePasswordDto , Authentication authentication) {
+        UserResponseDto principal =  (UserResponseDto) authentication.getPrincipal();
+        userService.changePassword(principal.getId(), changePasswordDto.getOldPassword() , changePasswordDto.getNewPassword());
+        return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+    }
+
 }

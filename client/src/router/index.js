@@ -58,8 +58,7 @@ import ProfileEdit from "@/pages/ProfileEdit.vue";
 import Cart from "@/pages/CartPage.vue";
 import CartPage from "@/pages/CartPage.vue";
 import YourOrdersPage from "@/pages/YourOrdersPage.vue";
-import SaleOrdersPage from "@/pages/SaleOrdersPage.vue";
-import YourOrderPage from "@/pages/YourOrderPage.vue";
+import ResetPasswordPage from "@/pages/ResetPasswordPage.vue";
 const routes = [
   {
     path: "/",
@@ -70,7 +69,13 @@ const routes = [
         name: "Home",
         component: HomePage,
       },
+      {
+        path: "forgot-password",
+        name: "ForgotPasswordPage",
+        component: ResetPasswordPage, 
+},
     ],
+    
   },
   { path: "/register", name: "Register", component: Register },
   { path: "/login", name: "Login", component: Login },
@@ -162,16 +167,10 @@ const routes = [
         beforeEnter: requireAuth,
       },
       {
-        path: "your-orders/:orderId",
-        name: "YourOrderPage",
-        component: YourOrderPage,
+        path: "change-password",
+        name: "ChangePasswordPage",
+        component: ResetPasswordPage,
         beforeEnter: requireAuth,
-      },
-      {
-        path: "sale-orders",
-        name: "SaleOrdersPage",
-        component: SaleOrdersPage,
-        beforeEnter: requireSeller,
       },
 
       {
@@ -179,13 +178,14 @@ const routes = [
         name: "error-page",
         component: () => import("@/pages/ErrorCodePage.vue"),
       },
+      
     ],
   },
   // fallback route
   {
-    path: "/:pathMatch(.*)*",
-    redirect: { name: "error-page", query: { code: 404 } },
-  },
+  path: "/:catchAll(.*)",
+  redirect: "/error?code=404",
+}
 ];
 
 const router = createRouter({

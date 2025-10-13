@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,10 +23,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import sit.int204.mobileshop.dtos.AuthRequestDto;
-import sit.int204.mobileshop.dtos.AuthResponseDto;
-import sit.int204.mobileshop.dtos.RegisterUserDto;
-import sit.int204.mobileshop.dtos.UserResponseDto;
+import org.springframework.web.server.ResponseStatusException;
+import sit.int204.mobileshop.dtos.*;
+import sit.int204.mobileshop.entities.User;
+import sit.int204.mobileshop.services.AuthService;
 import sit.int204.mobileshop.services.UserService;
 
 @RestController
@@ -40,6 +42,8 @@ public class AuthController {
     @Value("${app.cookie.same-site:None}")
     private String cookieSameSite;
 
+    @Autowired
+    private AuthService authService;
 
 
     @PostMapping("/logout")
@@ -208,5 +212,36 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        authService.requestPasswordReset(email);
+        return ResponseEntity.ok("Reset link sent to " + email);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<String> changePassword(
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal Object principal
+    ) {
+        String oldPassword = body.get("oldPassword");
+        String newPassword = body.get("newPassword");
+
+        System.out.println("🔐 Principal: " + principal);
+
+        String email = null;
+        if (principal instanceof UserResponseDto userDto) {
+            email = userDto.getEmail();
+        } else if (principal instanceof User userEntity) {
+            email = userEntity.getEmail();
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid user principal");
+        }
+
+        authService.changePassword(email, oldPassword, newPassword);
+        return ResponseEntity.ok("Password changed successfully");
+    }
+
+
 
 }
