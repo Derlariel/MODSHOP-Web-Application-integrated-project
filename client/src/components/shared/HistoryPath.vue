@@ -7,6 +7,7 @@ import { useProductStore } from "@/stores/useProductStore";
 const productStore = useProductStore();
 
 const props = defineProps({
+    main: String,
     previous: Number,
     next: Number,
     namePath: {
@@ -23,7 +24,8 @@ const back = () => {
 
 <template>
   <div class="flex cursor-pointer font-light mb-5 space-x-2.5">
-     <p class="itbms-home-button" @click="back">Home</p>
+     <p v-if="main" class="itbms-home-button" @click="router.go(-1)">{{ main }}</p>
+     <p v-if="!main" class="itbms-home-button" @click="back">Home</p>
     <p>/</p>
     <p
       @click="router.go(-props.next)"

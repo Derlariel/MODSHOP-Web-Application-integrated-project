@@ -3,6 +3,7 @@ package sit.int204.mobileshop.dtos;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 import sit.int204.mobileshop.utils.SellerFieldsValidation;
@@ -28,6 +29,7 @@ public class RegisterUserDto {
     private String fullname;
 
     @NotBlank(message = "Role is required")
+    @Pattern(regexp = "(?i)^(BUYER|SELLER)$", message = "Role must be BUYER or SELLER")
     private String role;
 
     // Seller specific fields - will be validated by @SellerFieldsValidation

@@ -1,10 +1,11 @@
 <script setup>
-import { Heart, ShoppingCart, User, Menu } from "lucide-vue-next";
+import { Heart, ShoppingCart, User, Menu, FileText, ShoppingBag } from "lucide-vue-next";
 import { useRoute, useRouter } from "vue-router";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useCartStore } from "@/stores/useCartStore";
+import { useSellerOrdersStore } from "@/stores/useSellerOrdersStore";
 
 const route = useRoute();
 const router = useRouter();
@@ -15,6 +16,7 @@ const toggleMobileMenu = () => {
 
 const auth = useAuthStore();
 const cart = useCartStore();
+const sellerOrders = useSellerOrdersStore();
 
 const greeting = computed(() => {
   return auth.isAuthenticated ? `${auth.nickname}` : "Login";
@@ -34,6 +36,20 @@ const confirmLogout = async () => {
 const cancelLogout = () => {
   showLogoutModal.value = false;
 };
+
+onMounted(() => {
+  if (auth.isAuthenticated && auth.user?.role === 'SELLER') {
+    sellerOrders.refreshBadge(auth.user.id);
+  }
+});
+
+watch(
+  () => auth.user,
+  (u) => {
+    if (u?.role === 'SELLER') sellerOrders.refreshBadge(u.id);
+  },
+  { immediate: false }
+);
 </script>
 
 <template>
@@ -85,11 +101,22 @@ const cancelLogout = () => {
 
       <!-- Icons -->
       <div class="hidden lg:flex text-white items-center space-x-4">
-        
-        <router-link to="your-orders">
-          <span class="" >Your Orders</span>
+        <!-- Seller Sales Orders shortcut -->
+        <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="relative">
+          <ShoppingBag class="w-5 h-5 cursor-pointer hover:text-white" />
+          <span
+            v-if="sellerOrders.newOrdersCount > 0"
+            class="absolute -top-2 -right-2 bg-purple-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full"
+          >
+            {{ sellerOrders.newOrdersCount }}
+          </span>
         </router-link>
-        
+
+        <!-- Your Orders link for both Seller and Buyer -->
+        <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="flex items-center gap-1">
+          <FileText class="w-5 h-5" />
+        </router-link>
+
         <router-link to="/cart" class="relative">
           <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
           <span
@@ -150,23 +177,31 @@ const cancelLogout = () => {
       v-if="isMobileMenuOpen"
       class="lg:hidden px-6 py-4 space-y-4 border-t text-center font-semibold text-white bg-black bg-opacity-90"
     >
-      <router-link :to="{ name: 'Main' }" class="block hover:text-blue-400"
-        >Home</router-link
-      >
-      <router-link
-        :to="{ name: 'product-gallery' }"
-        class="block hover:text-blue-400"
-        >Product</router-link
-      >
-      <router-link
-        :to="{ name: 'brands-list' }"
-        class="block hover:text-blue-400"
-        >Brand</router-link
-      >
-      <router-link to="/about" class="block hover:text-blue-400"
-        >About</router-link
-      >
+      <router-link :to="{ name: 'Main' }" class="block hover:text-blue-400">Home</router-link>
+      <router-link :to="{ name: 'product-gallery' }" class="block hover:text-blue-400">Products</router-link>
+      <router-link :to="{ name: 'brands-list' }" class="block hover:text-blue-400">Brands</router-link>
+      <router-link to="/about" class="block hover:text-blue-400">About</router-link>
 
+      <!-- Seller Sales Orders shortcut -->
+      <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="block hover:text-purple-400 flex items-center gap-1 justify-center">
+        <ShoppingBag class="w-5 h-5" />
+        <span>Sales Orders</span>
+        <span v-if="sellerOrders.newOrdersCount > 0" class="ml-2 bg-purple-500 text-white text-xs min-w-5 h-5 px-2 py-0.5 rounded-full">{{ sellerOrders.newOrdersCount }}</span>
+      </router-link>
+
+      <!-- Your Orders link for both Seller and Buyer -->
+      <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="block hover:text-purple-400 flex items-center gap-1 justify-center">
+        <FileText class="w-5 h-5" />
+        <span>Your Orders</span>
+      </router-link>
+
+      <!-- Cart link -->
+      <router-link to="/cart" class="block hover:text-red-400 relative">
+        Cart
+        <span v-if="auth.isAuthenticated && cart.totalItems > 0" class="ml-2 bg-red-500 text-white text-xs w-5 h-5 inline-flex items-center justify-center rounded-full">{{ cart.totalItems }}</span>
+      </router-link>
+
+      <!-- Register -->
       <router-link
         v-if="!auth.isAuthenticated"
         to="/register"
@@ -176,18 +211,18 @@ const cancelLogout = () => {
         Register
       </router-link>
 
-
-
-      <div class="flex items-center justify-center gap-4">
+      <!-- Profile / Login / Logout -->
+      <div class="flex items-center justify-center gap-4 mt-4">
         <router-link to="/profile" v-if="auth.isAuthenticated" class="itbms-profile">
-              <span v-if="auth.isAuthenticated" class="itbms-nickname">{{ greeting }}</span>
-          </router-link>
-        <router-link to="/login" v-else 
-        class="itbms-login block font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md 
+          <span v-if="auth.isAuthenticated" class="itbms-nickname">{{ greeting }}</span>
+        </router-link>
+        <router-link to="/login" v-else
+          class="itbms-login block font-bold text-sm bg-white text-black px-3 py-1 rounded-lg shadow-md 
            hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 
            hover:text-white hover:shadow-xl hover:scale-105 transition-all duration-300 ease-out "
-  >
-        Login</router-link>
+        >
+          Login
+        </router-link>
         <button
           v-if="auth.isAuthenticated"
           @click="handleLogout"

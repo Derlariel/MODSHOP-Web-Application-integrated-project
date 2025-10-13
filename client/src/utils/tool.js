@@ -1,3 +1,5 @@
+import { request } from "../middleware/interception.js"
+
 const handleFetch = async (url, options, errorMessages) => {
   try {
 
@@ -65,44 +67,29 @@ const getProductById = async (url, id) => {
 
 const updateProductById = async (url, id, data) => {
   let options;
-
   if (data instanceof FormData) {
-    options = {
-      method: "PUT",
-      body: data,
-      credentials: 'include',
-    };
+    options = { method: "PUT", body: data };
   } else {
     options = {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-      credentials: 'include',
     };
   }
-
-  return handleFetch(`${url}/${id}`, options, "Error updating product by ID");
+  return await request(`${url}/${id}`, options);
 };
 
-async function addProduct(url, data) {
-  const response = await fetch(url, {
+const addProduct = async (url, data) => {
+  return await request(url, {
     method: "POST",
     body: data,
-    credentials: 'include',
   });
-
-  if (!response.ok) throw new Error("Failed to add product");
-  return await response.json();
-}
-const deleteProductById = async (url, id) => {
-  return handleFetch(
-    `${url}/${id}`,
-    { method: "DELETE" },
-    "Error deleting product by ID"
-  );
 };
+
+const deleteProductById = async (url, id) => {
+  return await request(`${url}/${id}`, { method: "DELETE" });
+};
+
 export {
   addProduct,
   getProductById,
