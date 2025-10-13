@@ -3,7 +3,7 @@ import { getSellerOrders, getSellerNewOrdersCount } from "@/api/orderAPI";
 
 export const useSellerOrdersStore = defineStore("sellerOrdersStore", {
   state: () => ({
-    tab: "all", // 'new' | 'cancelled' | 'all'
+    tab: "new", // default to 'new' tab for sellers
     page: 1,
     size: 10,
     sort: "id,desc",

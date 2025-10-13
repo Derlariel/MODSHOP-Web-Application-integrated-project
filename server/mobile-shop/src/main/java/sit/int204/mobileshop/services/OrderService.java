@@ -48,6 +48,7 @@ public class OrderService {
         this.saleItemRepository = saleItemRepository;
         this.saleItemImageRepository = saleItemImageRepository;
     }
+    @Transactional
     public Optional<OrderResponseDto> findById(long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
@@ -56,19 +57,23 @@ public class OrderService {
             Long principalId = principal.getId();
             boolean isBuyer = order.getUser() != null && order.getUser().getId() != null
                     && order.getUser().getId().equals(principalId);
-            Optional<Order> optionalOrder = orderRepository.findById(id);
-            if (optionalOrder.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found");
+            boolean isSeller = order.getSeller() != null
+                    && order.getSeller().getId() != null
+                    && order.getSeller().getId().equals(principalId);
+
+            // Only when the seller views a NEW order, mark it as COMPLETED and deduct stock
+            if (isSeller && order.getOrderStatus() == OrderStatus.NEW) {
+                order.setOrderStatus(OrderStatus.COMPLETED);
+                if (order.getOrderItems() != null) {
+                    order.getOrderItems().forEach(oi -> {
+                        if (oi.getSaleItem() != null) {
+                            // reduce stock on first view by seller
+                            oi.getSaleItem().setQuantity(oi.getSaleItem().getQuantity() - oi.getQuantity());
+                        }
+                    });
+                }
+                orderRepository.save(order);
             }
-
-            Order orderGet = optionalOrder.get();
-
-            boolean isSeller = orderGet.getSeller() != null
-                    && orderGet.getSeller().getId() != null
-                    && orderGet.getSeller().getId().equals(principalId);
-
-            if(orderGet.getOrderStatus() == OrderStatus.NEW) orderGet.setOrderStatus(OrderStatus.COMPLETED);
-            orderRepository.save(orderGet);
             if (!isBuyer && !isSeller) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
             }
@@ -280,42 +285,25 @@ public class OrderService {
             // If any item has insufficient stock, cancel the entire order for this seller
             if (hasInsufficientStock) {
                 order.setOrderStatus(OrderStatus.CANCELLED);
-                
-                // Add order items without reducing stock for cancelled orders
-                orderDto.getItems().forEach(itemDto -> {
-                    Integer saleItemId = itemDto.getSaleItemId().intValue();
-                    SaleItem saleItem = saleItemRepository.findById(saleItemId)
-                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sale item " + saleItemId + " not found"));
-
-                    OrderItem item = new OrderItem();
-                    item.setSaleItem(saleItem);
-                    item.setQuantity(itemDto.getQuantity());
-                    item.setPrice(saleItem.getPrice());
-                    item.setDescription(itemDto.getDescription());
-
-                    order.addOrderItem(item);
-                });
             } else {
-                // All items have sufficient stock, complete the order
-                order.setOrderStatus(OrderStatus.COMPLETED);
-                
-                orderDto.getItems().forEach(itemDto -> {
-                    Integer saleItemId = itemDto.getSaleItemId().intValue();
-                    SaleItem saleItem = saleItemRepository.findById(saleItemId)
-                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sale item " + saleItemId + " not found"));
-
-                    // Reduce stock only for completed orders
-                    saleItem.setQuantity(saleItem.getQuantity() - itemDto.getQuantity());
-
-                    OrderItem item = new OrderItem();
-                    item.setSaleItem(saleItem);
-                    item.setQuantity(itemDto.getQuantity());
-                    item.setPrice(saleItem.getPrice());
-                    item.setDescription(itemDto.getDescription());
-
-                    order.addOrderItem(item);
-                });
+                // Initially mark order as NEW; stock deduction will occur when seller views it
+                order.setOrderStatus(OrderStatus.NEW);
             }
+
+            // Add order items without reducing stock at creation time
+            orderDto.getItems().forEach(itemDto -> {
+                Integer saleItemId = itemDto.getSaleItemId().intValue();
+                SaleItem saleItem = saleItemRepository.findById(saleItemId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sale item " + saleItemId + " not found"));
+
+                OrderItem item = new OrderItem();
+                item.setSaleItem(saleItem);
+                item.setQuantity(itemDto.getQuantity());
+                item.setPrice(saleItem.getPrice());
+                item.setDescription(itemDto.getDescription());
+
+                order.addOrderItem(item);
+            });
 
             return order;
         }).collect(Collectors.toList());
@@ -363,7 +351,8 @@ public class OrderService {
                 break;
             case "all":
             default:
-                pageResult = orderRepository.findAllBySellerIdAndOrderStatus(seller.getId(), OrderStatus.COMPLETED, pageable);
+                // Show all except cancelled => include NEW and COMPLETED
+                pageResult = orderRepository.findAllBySellerIdAndOrderStatusNot(seller.getId(), OrderStatus.CANCELLED, pageable);
                 break;
         }
         List<OrderResponseDto> orders = pageResult.getContent().stream()

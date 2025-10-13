@@ -8,6 +8,7 @@ import Card from '@/components/UI/cart/Card.vue';
 import CardHeader from '@/components/UI/cart/CardHeader.vue';
 import CardContent from '@/components/UI/cart/CardContent.vue';
 import DEFAULT_IMAGE from '@/assets/default.jpg';
+import { getOrdersWithId } from '@/api/orderAPI';
 
 
 const BASE_IMG_URL = `${import.meta.env.VITE_BASE_URL}/sale-items-images/`;
@@ -30,7 +31,15 @@ onMounted(async () => {
   await store.fetchOrders(auth.user.id);
 });
 
-const viewOrder = (order) => { router.push({name: "YourOrderPage", params: {orderId: order}}) }
+const viewOrder = async (orderId) => {
+  try {
+    await getOrdersWithId(orderId);
+    await store.fetchOrders(auth.user.id);
+  } catch (e) {
+  } finally {
+    router.push({ name: 'YourOrderPage', params: { orderId } });
+  }
+}
 
 function selectTab(key) {
   store.setTab(key);
@@ -88,7 +97,7 @@ const groupedOrders = computed(() => {
           {{ date }}
         </h2>
 
-        <div v-for="order in orders" :key="order.id" class="itbms-row" @click="viewOrder(order.id)">
+        <div v-for="order in orders" :key="order.id" class="itbms-row">
           <Card class="bg-neutral-900/80 border border-neutral-700 hover:border-purple-500 transition">
             <CardHeader>
               <div class="flex justify-between items-center flex-wrap gap-4">
@@ -97,7 +106,7 @@ const groupedOrders = computed(() => {
                   <div class="text-sm">Date: {{ new Date(order.orderDate).toLocaleString('th-TH') }}</div>
                   <div class="text-sm">Buyer: {{ order?.buyerName || '-' }}</div>
                 </div>
-                <div>
+                <div class="flex items-center gap-3">
                   <span
                     class="px-3 py-1 text-xs rounded-full"
                     :class="{
@@ -107,6 +116,14 @@ const groupedOrders = computed(() => {
                     }"
                     >{{ order.orderStatus }}</span
                   >
+                  <button
+                    type="button"
+                    @click.stop="viewOrder(order.id)"
+                    class="text-xs md:text-sm font-semibold px-3 py-1 rounded-lg border border-purple-500 text-purple-300 hover:bg-purple-600/20 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    aria-label="View order details"
+                  >
+                    VIEW
+                  </button>
                 </div>
               </div>
               <p class="mt-2 text-sm text-gray-300">Ship to: {{ order.shippingAddress }}</p>
