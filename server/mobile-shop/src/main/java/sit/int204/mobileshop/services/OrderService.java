@@ -67,9 +67,8 @@ public class OrderService {
                     && orderGet.getSeller().getId() != null
                     && orderGet.getSeller().getId().equals(principalId);
 
-            System.out.println(principalId);
-            System.out.println(isBuyer);
-            System.out.println(isSeller);
+            if(orderGet.getOrderStatus() == OrderStatus.NEW) orderGet.setOrderStatus(OrderStatus.COMPLETED);
+            orderRepository.save(orderGet);
             if (!isBuyer && !isSeller) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
             }
