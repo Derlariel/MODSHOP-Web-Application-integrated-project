@@ -1,8 +1,9 @@
 import { defineStore } from "pinia";
-import { getOrdersWithStatus } from "@/api/orderAPI";
+import { getOrdersWithId, getOrdersWithStatus } from "@/api/orderAPI";
 
 export const useOrderStore = defineStore("orderStore", {
   state: () => ({
+    order: null,
     activePage: 1,
     orders: [],
     loading: false,
@@ -17,33 +18,51 @@ export const useOrderStore = defineStore("orderStore", {
     setActivePage(page) {
       this.activePage = page;
       sessionStorage.setItem("activePage", page);
-      this.fetchOrders(this._userId, this._status);
     },
 
-    async fetchOrders(userId, status) {
+    async fetchOrderById(orderId) {
       this.loading = true;
-      this._userId = userId; 
-      this._status = status;
+      this._orderId = orderId; 
       try {
-        const res = await getOrdersWithStatus(
-          userId,
-          this.activePage - 1,
-          5,
-          "id,desc",
-          status
+        const res = await getOrdersWithId(
+          orderId,
         );
-        this.allPages = res?.data?.totalPages;
-        this.orders = (res?.data?.content || []).slice().sort((a, b) => {
-          if (a.id != null && b.id != null && a.id !== b.id) {
-            return b.id - a.id;
-          }
-          return new Date(b.orderDate) - new Date(a.orderDate);
-        });
+        
+        this.order = res?.data
       } catch (err) {
+        this.order = null
         console.error("Error fetching orders:", err);
       } finally {
         this.loading = false;
       }
     },
+
+   async fetchOrders(userId, status, page = this.activePage) {
+  this.loading = true;
+  this._userId = userId; 
+  this._status = status;
+  this.orders = []; 
+  try {
+    const res = await getOrdersWithStatus(
+      userId,
+      page - 1, 
+      5,
+      "id,desc",
+      status
+    );
+    this.allPages = res?.data?.totalPages;
+    this.orders = (res?.data?.content || []).slice().sort((a, b) => {
+      if (a.id != null && b.id != null && a.id !== b.id) {
+        return b.id - a.id;
+      }
+      return new Date(b.orderDate) - new Date(a.orderDate);
+    });
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    this.orders = [];
+  } finally {
+    this.loading = false;
+  }
+},
   },
 });

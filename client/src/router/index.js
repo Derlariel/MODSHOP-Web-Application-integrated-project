@@ -59,6 +59,7 @@ import Cart from "@/pages/CartPage.vue";
 import CartPage from "@/pages/CartPage.vue";
 import YourOrdersPage from "@/pages/YourOrdersPage.vue";
 import SaleOrdersPage from "@/pages/SaleOrdersPage.vue";
+import YourOrderPage from "@/pages/YourOrderPage.vue";
 const routes = [
   {
     path: "/",
@@ -158,6 +159,12 @@ const routes = [
         path: "your-orders",
         name: "YourOrdersPage",
         component: YourOrdersPage,
+        beforeEnter: requireAuth,
+      },
+      {
+        path: "your-orders/:orderId",
+        name: "YourOrderPage",
+        component: YourOrderPage,
         beforeEnter: requireAuth,
       },
       {

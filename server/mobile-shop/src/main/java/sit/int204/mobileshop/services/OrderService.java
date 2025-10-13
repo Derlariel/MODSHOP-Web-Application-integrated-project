@@ -56,11 +56,20 @@ public class OrderService {
             Long principalId = principal.getId();
             boolean isBuyer = order.getUser() != null && order.getUser().getId() != null
                     && order.getUser().getId().equals(principalId);
-            boolean isSeller = order.getOrderItems() != null && order.getOrderItems().stream()
-                    .anyMatch(oi -> oi.getSaleItem() != null
-                            && oi.getSaleItem().getSeller() != null
-                            && oi.getSaleItem().getSeller().getId() != null
-                            && oi.getSaleItem().getSeller().getId().equals(principalId));
+            Optional<Order> optionalOrder = orderRepository.findById(id);
+            if (optionalOrder.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found");
+            }
+
+            Order orderGet = optionalOrder.get();
+
+            boolean isSeller = orderGet.getSeller() != null
+                    && orderGet.getSeller().getId() != null
+                    && orderGet.getSeller().getId().equals(principalId);
+
+            System.out.println(principalId);
+            System.out.println(isBuyer);
+            System.out.println(isSeller);
             if (!isBuyer && !isSeller) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
             }

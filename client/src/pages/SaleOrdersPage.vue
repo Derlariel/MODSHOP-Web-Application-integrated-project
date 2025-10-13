@@ -9,6 +9,7 @@ import CardHeader from '@/components/UI/cart/CardHeader.vue';
 import CardContent from '@/components/UI/cart/CardContent.vue';
 import DEFAULT_IMAGE from '@/assets/default.jpg';
 
+
 const BASE_IMG_URL = `${import.meta.env.VITE_BASE_URL}/sale-items-images/`;
 
 const auth = useAuthStore();
@@ -28,6 +29,8 @@ onMounted(async () => {
   }
   await store.fetchOrders(auth.user.id);
 });
+
+const viewOrder = (order) => { router.push({name: "YourOrderPage", params: {orderId: order}}) }
 
 function selectTab(key) {
   store.setTab(key);
@@ -70,6 +73,7 @@ const groupedOrders = computed(() => {
       </button>
     </div>
 
+
     <div v-if="store.loading" class="text-gray-500 text-center py-20">
       Loading orders...
     </div>
@@ -84,7 +88,7 @@ const groupedOrders = computed(() => {
           {{ date }}
         </h2>
 
-        <div v-for="order in orders" :key="order.id" class="itbms-row">
+        <div v-for="order in orders" :key="order.id" class="itbms-row" @click="viewOrder(order.id)">
           <Card class="bg-neutral-900/80 border border-neutral-700 hover:border-purple-500 transition">
             <CardHeader>
               <div class="flex justify-between items-center flex-wrap gap-4">

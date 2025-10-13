@@ -18,6 +18,13 @@ export async function getOrders(userId, page = 0, size = 10, sort = "orderDate,d
 }
 
 
+export async function getOrdersWithId(orderId) {
+  return await request(`/v2/orders/${orderId}`, {
+    method: "GET",
+  });
+}
+
+
 export async function getOrdersWithStatus(userId, page = 0, size = 10, sort = "orderDate,desc", status) {
   const query = `?page=${page}&size=${size}&sort=${sort}`;
   return await request(`/v2/users/${userId}/orders/status/${status}${query}`, {
