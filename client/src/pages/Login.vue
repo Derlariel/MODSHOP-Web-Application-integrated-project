@@ -28,9 +28,9 @@ const canSubmit = computed(() => {
 
 onMounted(() => {
   if (route.query.status === "password-changed")
-    status.value = "✅ Your password has been changed. Please log in again.";
+    status.value = "Your password has been changed. Please log in again.";
   else if (route.query.status === "reset-success")
-    status.value = "✅ Password reset successfully. Please log in.";
+    status.value = "Password reset successfully. Please log in.";
 });
 
 async function handleSubmit() {
@@ -62,7 +62,7 @@ function handleCancel() {
     <div class="max-w-md w-full space-y-5">
       <h2 class="text-3xl font-bold text-white text-center">Login</h2>
 
-      <!-- ✅ Status Message -->
+      <!-- Status Message -->
       <transition name="fade">
         <p v-if="status" class="text-green-400 text-center font-medium">
           {{ status }}
