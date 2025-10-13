@@ -1,5 +1,5 @@
 <script setup>
-import { Heart, ShoppingCart, User, Menu, FileText } from "lucide-vue-next";
+import { Heart, ShoppingCart, User, Menu, FileText, ShoppingBag } from "lucide-vue-next";
 import { useRoute, useRouter } from "vue-router";
 import { computed, ref, onMounted, watch } from "vue";
 import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
@@ -103,7 +103,7 @@ watch(
       <div class="hidden lg:flex text-white items-center space-x-4">
         <!-- Seller Sales Orders shortcut -->
         <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="relative">
-          <FileText class="w-5 h-5 cursor-pointer hover:text-white" />
+          <ShoppingBag class="w-5 h-5 cursor-pointer hover:text-white" />
           <span
             v-if="sellerOrders.newOrdersCount > 0"
             class="absolute -top-2 -right-2 bg-purple-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full"
@@ -113,8 +113,8 @@ watch(
         </router-link>
 
         <!-- Your Orders link for both Seller and Buyer -->
-        <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders">
-          <span class="hover:underline">Your Orders</span>
+        <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="flex items-center gap-1">
+          <FileText class="w-5 h-5" />
         </router-link>
 
         <router-link to="/cart" class="relative">
@@ -183,14 +183,16 @@ watch(
       <router-link to="/about" class="block hover:text-blue-400">About</router-link>
 
       <!-- Seller Sales Orders shortcut -->
-      <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="block hover:text-purple-400">
+      <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="block hover:text-purple-400 flex items-center gap-1 justify-center">
+        <ShoppingBag class="w-5 h-5" />
         <span>Sales Orders</span>
         <span v-if="sellerOrders.newOrdersCount > 0" class="ml-2 bg-purple-500 text-white text-xs min-w-5 h-5 px-2 py-0.5 rounded-full">{{ sellerOrders.newOrdersCount }}</span>
       </router-link>
 
       <!-- Your Orders link for both Seller and Buyer -->
-      <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="block hover:text-purple-400">
-        Your Orders
+      <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="block hover:text-purple-400 flex items-center gap-1 justify-center">
+        <FileText class="w-5 h-5" />
+        <span>Your Orders</span>
       </router-link>
 
       <!-- Cart link -->
