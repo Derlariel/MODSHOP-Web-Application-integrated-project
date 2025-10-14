@@ -1,33 +1,37 @@
+name: Deploy kk1
+
+on:
+  push:
+    branches:
+      - main
+
 jobs:
   deploy:
     runs-on: self-hosted
+
     steps:
-      
-name: Check current user
-      run: whoami
+      - name: Check current user
+        run: whoami
 
-      
-name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      
-name: Docker login
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }} //napatzzz
-        password: ${{ secrets.DOCKERHUB_TOKEN }} //dckr_pat_3iqYy8VzTwRCoFVZJ4PxiMigKfs
+      - name: Docker login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      
-name: Auto Deploy container application itb-mshop 
-      run: |
-        set -x
-        cd /home/sysadmin/2-2567_INT221_KK-1
-        git pull https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git main
-        rm -rf ./secrets/db_password
-        mkdir -p ./secrets
-        echo "${{ secrets.DB_PASSWORD }}" > ./secrets/db_password
+      - name: Auto Deploy container application itb-mshop
+        run: |
+          set -x
+          cd /home/sysadmin/2-2567_INT221_KK-1
+          git pull https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git main
+          rm -rf ./secrets/db_password
+          mkdir -p ./secrets
+          echo "${{ secrets.DB_PASSWORD }}" > ./secrets/db_password
 
           docker compose down -v
-          docker compose build --no-cache
+          docker compose build
           docker compose up -d
           docker image prune -f
