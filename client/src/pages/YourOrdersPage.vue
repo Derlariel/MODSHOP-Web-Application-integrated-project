@@ -17,7 +17,7 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const DEFAULT_IMAGE = new URL("@/assets/default.jpg", import.meta.url).href;
 
-const status = ref("COMPLETED");
+const status = ref("NEW");
 
 onMounted(() => {
   const savedPage = Number(sessionStorage.getItem("ordersActivePage")) || 1;
@@ -54,7 +54,19 @@ watch(status, (newStatus) => {
   fetchOrders(newStatus, 1);
 });
 
-const viewOrder = (order) => { router.push({name: "YourOrderPage", params: {orderId: order}}) }
+const viewOrder = (orderId) => {
+  // Optimistically update UI: when buyer views, show as COMPLETED
+  const idx = orderStore.orders.findIndex(o => o.id === orderId);
+  if (idx !== -1) {
+    // If currently on NEW tab, remove the order from this list so it disappears immediately
+    if (status.value === 'NEW') {
+      orderStore.orders.splice(idx, 1);
+    } else {
+      orderStore.orders[idx] = { ...orderStore.orders[idx], orderStatus: 'COMPLETED' };
+    }
+  }
+  router.push({ name: 'YourOrderPage', params: { orderId } });
+}
 
 watch(() => orderStore.activePage, (newPage) => {
   sessionStorage.setItem("ordersActivePage", newPage);
@@ -90,6 +102,13 @@ const groupedOrders = computed(() => {
     <div v-else class="max-w-6xl mx-auto space-y-10">
       <div class="mb-6 flex gap-4 justify-center">
         <button
+          @click="changeStatus('NEW')"
+          class="py-1 px-4 text-lg font-semibold rounded-lg"
+          :class="status === 'NEW' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
+        >
+          New
+        </button>
+        <button
           @click="changeStatus('COMPLETED')"
           class="py-1 px-4 text-lg font-semibold rounded-lg"
           :class="status === 'COMPLETED' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
@@ -124,7 +143,7 @@ const groupedOrders = computed(() => {
           {{ date }}
         </h2>
 
-        <div v-for="order in orders" :key="order.id" class="itbms-row" @click="viewOrder(order.id)">
+        <div v-for="order in orders" :key="order.id" class="itbms-row">
           <Card
             class="bg-neutral-900/80 border border-neutral-700 hover:border-purple-500 transition"
           >
@@ -163,6 +182,16 @@ const groupedOrders = computed(() => {
                   <p class="text-sm text-gray-400 itbms-order-status">
                     Status: {{ order.orderStatus }}
                   </p>
+                  <div class="mt-2">
+                    <button
+                      type="button"
+                      @click.stop="viewOrder(order.id)"
+                      class="text-xs md:text-sm font-semibold px-3 py-1 rounded-lg border border-purple-500 text-purple-300 hover:bg-purple-600/20 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      aria-label="View order details"
+                    >
+                      VIEW
+                    </button>
+                  </div>
                 </div>
               </div>
 

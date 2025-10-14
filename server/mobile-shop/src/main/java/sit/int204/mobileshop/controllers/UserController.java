@@ -1,13 +1,9 @@
 package sit.int204.mobileshop.controllers;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.hibernate.query.Page;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -38,8 +34,7 @@ import sit.int204.mobileshop.services.UserService;
 @Tag(name = "User API", description = "API for user registration and email verification")
 public class UserController {
 
-    @Autowired
-    private Environment env;
+    // Environment env; // removed unused field
 
     @Autowired
     private UserService userService;
@@ -71,13 +66,9 @@ public class UserController {
             return ResponseEntity.badRequest().build();
         }
 
-        Optional<PageDto<OrderResponseDto>> result;
-
-        if(!status.equals("NEW")) {
-            result = orderService.findByUserIdAndStatus(userId, orderStatus, page, size, sortField, sortDirection);
-        }else {
-            result = orderService.findByUserId(userId, page, size, sortField, sortDirection);
-        }
+        // Always filter by the requested status (including NEW)
+        Optional<PageDto<OrderResponseDto>> result =
+                orderService.findByUserIdAndStatus(userId, orderStatus, page, size, sortField, sortDirection);
         return ResponseEntity.ofNullable(result);
     }
 

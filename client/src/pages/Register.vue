@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/useAuthStore";
 import BaseInput from "@/components/shared/BaseInput.vue";
 import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
+import ErrorModal from "@/components/shared/modal/ErrorModal.vue";
 import {
   runValidation,
   validateMinLength,
@@ -15,6 +16,8 @@ const router = useRouter();
 const auth = useAuthStore();
 const showSuccess = ref(false);
 const successMessage = ref("The user account has been successfully registered.");
+const showError = ref(false);
+const errorMessage = ref("");
 
 const form = reactive({
   accountType: "BUYER", // BUYER | SELLER
@@ -33,6 +36,12 @@ const form = reactive({
 
 const errors = reactive({});
 const isSeller = computed(() => form.accountType === "SELLER");
+
+// Collapse multiple internal spaces to a single space and trim ends
+const collapseInternalSpaces = (s) =>
+  String(s || "")
+    .replace(/\s+/g, " ")
+    .trim();
 
 const vEmail = (data) => {
   const email = String(data || '').trim();
@@ -106,6 +115,16 @@ const vNationalId13 = (data) => {
   return { valid: ok, message: ok ? null : "National ID must be 13 digits." };
 };
 
+// Bank account: digits only, 3–30 (align with BE validation)
+const vBankAccountDigits = (data) => {
+  const s = String(data || "").trim();
+  const ok = /^\d{3,30}$/.test(s);
+  return {
+    valid: ok,
+    message: ok ? null : "Bank account number must be 3–30 digits.",
+  };
+};
+
 const vFileRequired = (label) => (file) => {
   const ok = !!file;
   return { valid: ok, message: ok ? null : `${label} is required.` };
@@ -133,9 +152,7 @@ const rules = {
   mobile: [vRequired("Mobile number"), vThaiMobile, vWhiteSpace],
   bankAccountNo: [
     vRequired("Bank account number"),
-    validateMinLength(3),
-    validateMaxLength(30),
-    vWhiteSpace,
+    vBankAccountDigits,
   ],
   bankName: [
     vRequired("Bank name"),
@@ -182,8 +199,8 @@ function trimAndValidateField(name) {
       // Remove dashes and trim
       trimmedValue = trimmedValue.trim().replace(/-/g, '');
     } else if (name === 'fullName' || name === 'bankName') {
-      // Only trim leading and trailing spaces, keep internal spaces for fullName and bankName
-      trimmedValue = trimmedValue.trim();
+      // Collapse multiple internal spaces to a single space for readability while preserving middle names
+      trimmedValue = collapseInternalSpaces(trimmedValue);
     } else {
       // Regular trim for all other fields including email
       trimmedValue = trimmedValue.trim();
@@ -231,10 +248,13 @@ async function onSubmit() {
   form.email = String(form.email || '').trim();
   form.nickname = String(form.nickname || '').trim();
   form.password = String(form.password || '');
+  // Safety normalization: collapse spaces in fullName as well
+  form.fullName = collapseInternalSpaces(form.fullName);
   if(isSeller.value) {
-    form.mobile = String(form.mobile || '').trim().replace(/-/g, '')
-    form.bankAccountNo = String(form.bankAccountNo || '').trim();
-    form.bankName = String(form.bankName || '').trim();
+    // Normalize to digits only for predictable validation
+    form.mobile = String(form.mobile || '').replace(/\D/g, '').trim();
+    form.bankAccountNo = String(form.bankAccountNo || '').replace(/\D/g, '').trim();
+    form.bankName = collapseInternalSpaces(form.bankName);
     form.nationalIdNumber = String(form.nationalIdNumber || '').trim();
   }
 
@@ -265,7 +285,8 @@ async function onSubmit() {
     sessionStorage.setItem("register-success", "true");
     router.push({ path: "/sale-items" });
   } catch (e) {
-    alert(e?.message || "Registration failed!");
+    errorMessage.value = e?.message || "Registration failed!";
+    showError.value = true;
   }
 }
 </script>
@@ -486,6 +507,12 @@ async function onSubmit() {
       :message="successMessage" 
       :duration="2000"
       @close="showSuccess = false" 
+    />
+    <!-- Error modal -->
+    <ErrorModal
+      :visible="showError"
+      :message="errorMessage"
+      @close="showError = false"
     />
   </div>
 </template>
