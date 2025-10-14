@@ -242,6 +242,20 @@ public class AuthController {
         return ResponseEntity.ok("Password changed successfully");
     }
 
+    @PutMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> body) {
+        String token = body.get("token");
+        String newPassword = body.get("newPassword");
+
+        if (token == null || newPassword == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token and newPassword are required");
+        }
+
+        authService.resetPasswordByToken(token, newPassword);
+        return ResponseEntity.ok("Password has been reset successfully");
+    }
+
+
 
 
 }

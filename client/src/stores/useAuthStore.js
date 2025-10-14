@@ -180,14 +180,12 @@ export const useAuthStore = defineStore("auth", {
           return true;
         } else {
           console.error("Failed to refresh user data:", res.status);
-          // If server says not authorized/invalid, clear local persisted state for security
           this.user = null;
           localStorage.removeItem("userClaims");
           return false;
         }
       } catch (error) {
         console.error("Error refreshing user data:", error);
-        // network or other errors shouldn't keep stale identity around
         this.user = null;
         localStorage.removeItem("userClaims");
         return false;
@@ -248,7 +246,35 @@ export const useAuthStore = defineStore("auth", {
   } finally {
     this.isSubmitting = false;
   }
-}
+},
+async resetPasswordByToken(token, newPassword) {
+  this.isSubmitting = true;
+  try {
+    const { res, data } = await request("/v2/auth/reset-password", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, newPassword }),
+    }, true);
+
+    if (!res.ok) {
+      throw new Error(data?.message || "Failed to reset password.");
+    }
+
+    return {
+      success: true,
+      message: data?.message || "Password reset successfully.",
+    };
+  } catch (error) {
+    console.error("Reset password failed:", error);
+    return {
+      success: false,
+      message: error.message || "Failed to reset password.",
+    };
+  } finally {
+    this.isSubmitting = false;
+  }
+},
+
 
 ,
   },
