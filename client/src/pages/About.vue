@@ -1,6 +1,6 @@
 <script setup>
-import Advisor from '@/assets/group-about/teacher.png';
-import Kongphob from '@/assets/team-pics/kongphob.JPG';
+// import Advisor from '@/assets/group-about/teacher.png';
+// import Kongphob from '@/assets/team-pics/kongphob.JPG';
 </script>
 
 <template>

@@ -58,6 +58,8 @@ import ProfileEdit from "@/pages/ProfileEdit.vue";
 import Cart from "@/pages/CartPage.vue";
 import CartPage from "@/pages/CartPage.vue";
 import YourOrdersPage from "@/pages/YourOrdersPage.vue";
+import YourOrderPage from "@/pages/YourOrderPage.vue";
+import SaleOrdersPage from "@/pages/SaleOrdersPage.vue";
 import ResetPasswordPage from "@/pages/ResetPasswordPage.vue";
 const routes = [
   {
@@ -165,6 +167,18 @@ const routes = [
         name: "YourOrdersPage",
         component: YourOrdersPage,
         beforeEnter: requireAuth,
+      },
+      {
+        path: "your-orders/:orderId",
+        name: "YourOrderPage",
+        component: YourOrderPage,
+        beforeEnter: requireAuth,
+      },
+      {
+        path: "sale-orders",
+        name: "SaleOrdersPage",
+        component: SaleOrdersPage,
+        beforeEnter: requireSeller,
       },
       {
         path: "change-password",
