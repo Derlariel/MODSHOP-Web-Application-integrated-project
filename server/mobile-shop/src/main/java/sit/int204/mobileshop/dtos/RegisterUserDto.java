@@ -18,14 +18,26 @@ public class RegisterUserDto {
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     @Size(max = 100, message = "Email must not exceed 100 characters")
+    @Pattern(
+        regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+        message = "Invalid email format"
+    )
     private String email;
 
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
+    @Pattern(
+        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$",
+        message = "Password must include lower, upper, number, and special character"
+    )
     private String password;
 
     @NotBlank(message = "Full name is required")
     @Size(min = 4, max = 40, message = "Full name must be between 4 and 40 characters")
+    @Pattern(
+        regexp = "^(?!\\s)(?!.*\\s$)(?!.*\\s{2,}).{4,40}$",
+        message = "Full name must not have leading/trailing spaces and must not contain multiple spaces"
+    )
     private String fullname;
 
     @NotBlank(message = "Role is required")

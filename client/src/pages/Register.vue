@@ -37,6 +37,12 @@ const form = reactive({
 const errors = reactive({});
 const isSeller = computed(() => form.accountType === "SELLER");
 
+// Collapse multiple internal spaces to a single space and trim ends
+const collapseInternalSpaces = (s) =>
+  String(s || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
 const vEmail = (data) => {
   const email = String(data || '').trim();
   console.log("🔍 Email after trim:", `"${email}"`);
@@ -193,8 +199,8 @@ function trimAndValidateField(name) {
       // Remove dashes and trim
       trimmedValue = trimmedValue.trim().replace(/-/g, '');
     } else if (name === 'fullName' || name === 'bankName') {
-      // Only trim leading and trailing spaces, keep internal spaces for fullName and bankName
-      trimmedValue = trimmedValue.trim();
+      // Collapse multiple internal spaces to a single space for readability while preserving middle names
+      trimmedValue = collapseInternalSpaces(trimmedValue);
     } else {
       // Regular trim for all other fields including email
       trimmedValue = trimmedValue.trim();
@@ -242,11 +248,13 @@ async function onSubmit() {
   form.email = String(form.email || '').trim();
   form.nickname = String(form.nickname || '').trim();
   form.password = String(form.password || '');
+  // Safety normalization: collapse spaces in fullName as well
+  form.fullName = collapseInternalSpaces(form.fullName);
   if(isSeller.value) {
     // Normalize to digits only for predictable validation
     form.mobile = String(form.mobile || '').replace(/\D/g, '').trim();
     form.bankAccountNo = String(form.bankAccountNo || '').replace(/\D/g, '').trim();
-    form.bankName = String(form.bankName || '').trim();
+    form.bankName = collapseInternalSpaces(form.bankName);
     form.nationalIdNumber = String(form.nationalIdNumber || '').trim();
   }
 
