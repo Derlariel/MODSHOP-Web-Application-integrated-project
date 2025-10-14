@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.hibernate.query.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import sit.int204.mobileshop.dtos.*;
 import sit.int204.mobileshop.dtos.UpdateProfileDto;
+import sit.int204.mobileshop.OrderStatus;
 import sit.int204.mobileshop.services.OrderService;
 import sit.int204.mobileshop.services.UserService;
 
@@ -53,6 +55,30 @@ public class UserController {
                                                                          @RequestParam(defaultValue = "orderDate") String sortField,
                                                                          @RequestParam(defaultValue = "desc") String sortDirection) {
         return ResponseEntity.ofNullable(orderService.findByUserId(userId, page, size, sortField, sortDirection));
+    }
+
+    @GetMapping("/{id}/orders/status/{status}")
+    public ResponseEntity<Optional<PageDto<OrderResponseDto>>> getOrdersByStatus(@PathVariable("id") Long userId,
+                                                                                 @PathVariable("status") String status,
+                                                                                 @RequestParam(defaultValue = "0") Integer page,
+                                                                                 @RequestParam(defaultValue = "10") Integer size,
+                                                                                 @RequestParam(defaultValue = "orderDate") String sortField,
+                                                                                 @RequestParam(defaultValue = "desc") String sortDirection) {
+        OrderStatus orderStatus;
+        try {
+            orderStatus = OrderStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Optional<PageDto<OrderResponseDto>> result;
+
+        if(!status.equals("NEW")) {
+            result = orderService.findByUserIdAndStatus(userId, orderStatus, page, size, sortField, sortDirection);
+        }else {
+            result = orderService.findByUserId(userId, page, size, sortField, sortDirection);
+        }
+        return ResponseEntity.ofNullable(result);
     }
 
     /* End-point รับ user id ตาม principle ถึงแม้จะมี id อยู่ใน access token แล้วก็ตาม (id ใน token ใช้ verify ก่อนจะมาถึง controller)
@@ -85,6 +111,13 @@ public class UserController {
                                                          Authentication authentication) {
         UserResponseDto updatedUser = userService.updateUserProfile(id, updateDto, authentication);
         return ResponseEntity.ok(updatedUser);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordDto changePasswordDto , Authentication authentication) {
+        UserResponseDto principal =  (UserResponseDto) authentication.getPrincipal();
+        userService.changePassword(principal.getId(), changePasswordDto.getOldPassword() , changePasswordDto.getNewPassword());
+        return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
     }
 
 }

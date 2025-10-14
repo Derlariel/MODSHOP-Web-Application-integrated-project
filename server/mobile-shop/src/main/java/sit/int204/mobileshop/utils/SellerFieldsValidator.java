@@ -45,6 +45,30 @@ public class SellerFieldsValidator implements ConstraintValidator<SellerFieldsVa
             isValid = false;
         }
 
+        // National ID must be exactly 13 digits
+        if (!isEmpty(dto.getNationalIdNumber()) && !dto.getNationalIdNumber().matches("^\\d{13}$")) {
+            context.buildConstraintViolationWithTemplate("National ID number must be exactly 13 digits")
+                    .addPropertyNode("nationalIdNumber")
+                    .addConstraintViolation();
+            isValid = false;
+        }
+
+    // Mobile number: allow optional '+', digits, spaces, and dashes; total length 6-20 and must start/end with a digit
+    if (!isEmpty(dto.getMobileNumber()) && !dto.getMobileNumber().matches("^[+]?\\d[\\d \\-]{4,18}\\d$")) {
+            context.buildConstraintViolationWithTemplate("Mobile number format is invalid (allowed digits, optional '+', spaces or '-')")
+                    .addPropertyNode("mobileNumber")
+                    .addConstraintViolation();
+            isValid = false;
+        }
+
+        // Bank account: digits only 6-20 (common range)
+        if (!isEmpty(dto.getBankAccountNumber()) && !dto.getBankAccountNumber().matches("^\\d{6,20}$")) {
+            context.buildConstraintViolationWithTemplate("Bank account number must be 6-20 digits")
+                    .addPropertyNode("bankAccountNumber")
+                    .addConstraintViolation();
+            isValid = false;
+        }
+
         // Validate national ID photos
         if (!isValidFile(dto.getNationalIdPhotoFront())) {
             context.buildConstraintViolationWithTemplate("National ID photo (front) is required for sellers")

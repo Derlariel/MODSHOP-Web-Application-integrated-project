@@ -39,7 +39,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader(AUTHORIZATION_HEADER);
         String token = null;
-        
+
+
+
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("access_token".equals(cookie.getName())) {
@@ -52,7 +54,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             token = extractToken(authHeader);
         }
 
-        if (token == null) {
+        if (token == null || token.isEmpty()) {
             chain.doFilter(request, response);
             return;
         }
@@ -60,11 +62,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             JWTClaimsSet claims = jwtService.validateAccessToken(token);
             Long userId = extractUserId(claims);
-
-
             UserResponseDto user = getUserAndValidate(userId, response);
             if (user == null) return;
-
             setAuthenticationContext(user, request);
 
         } catch (Exception e) {

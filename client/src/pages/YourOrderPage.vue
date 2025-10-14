@@ -6,10 +6,10 @@ import Card from "@/components/UI/cart/Card.vue";
 import CardHeader from "@/components/UI/cart/CardHeader.vue";
 import CardContent from "@/components/UI/cart/CardContent.vue";
 import CardTitle from "@/components/UI/cart/CartTitle.vue";
-import Pagination from "@/components/shared/Pagination.vue";
-import { useRouter } from "vue-router";
+import HistoryPath from "@/components/shared/HistoryPath.vue";
+import { useRoute } from "vue-router";
 
-const router = useRouter()
+const route = useRoute()
 
 const orderStore = useOrderStore();
 const userStore = useAuthStore();
@@ -17,104 +17,42 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const DEFAULT_IMAGE = new URL("@/assets/default.jpg", import.meta.url).href;
 
-const status = ref("COMPLETED");
-
 onMounted(() => {
   const savedPage = Number(sessionStorage.getItem("ordersActivePage")) || 1;
   orderStore.setActivePage(savedPage);
   fetchOrders();
 });
 
-const fetchOrders = (statusValue = status.value, page = orderStore.activePage) => {
-  console.log(`Fetching orders for user ${userStore.user.id}, status=${statusValue}, page=${page}`);
-  orderStore.fetchOrders(userStore.user.id, statusValue, page);
+const fetchOrders = (
+) => {
+  orderStore.fetchOrderById(route.params.orderId)
 };
 
-const changeStatus = (newStatus) => {
-  if (status.value === newStatus) return;
-  status.value = newStatus;
-  orderStore.setActivePage(1);
-  sessionStorage.setItem("ordersActivePage", 1);
-  fetchOrders(newStatus, 1);
-};
-
-const updatePages = (page) => {
-  orderStore.setActivePage(page);
-  sessionStorage.setItem("ordersActivePage", page);
-  fetchOrders(status.value, page);
-};
-watch(() => orderStore.orders, (newOrders) => {
-  console.log(status)
-  console.log("orderStore.orders changed:", newOrders);
-});
-
-watch(status, (newStatus) => {
-  orderStore.setActivePage(1);
-  sessionStorage.setItem("ordersActivePage", 1);
-  fetchOrders(newStatus, 1);
-});
-
-const viewOrder = (order) => { router.push({name: "YourOrderPage", params: {orderId: order}}) }
-
-watch(() => orderStore.activePage, (newPage) => {
-  sessionStorage.setItem("ordersActivePage", newPage);
-  fetchOrders(status.value, newPage);
-});
-
-const groupedOrders = computed(() => {
-  console.log('Recomputing groupedOrders...');
-  const grouped = {};
-  const orders = orderStore.orders.slice();
-
-  orders.forEach((order) => {
-    const date = new Date(order.orderDate).toLocaleDateString("th-TH");
-    if (!grouped[date]) grouped[date] = [];
-    grouped[date].push(order);
-  });
-  console.log(grouped)
-  return grouped;
-});
 </script>
 
 <template>
   <div class="min-h-screen bg-black text-white px-6 py-20">
     <div class="text-center mb-12">
-      <h1 class="text-5xl font-extrabold tracking-tight">📦 Your Orders</h1>
+      <h1 class="text-5xl font-extrabold tracking-tight">📦 Order details</h1>
       <p class="text-gray-400 mt-2">Track and view your completed purchases</p>
     </div>
+
+     <HistoryPath main="Your Orders" name-path="Order Details" :previous="1" :name-path="title" />
 
     <div v-if="orderStore.loading" class="text-gray-500 text-center py-20">
       Loading your orders...
     </div>
 
-    <div v-else class="max-w-6xl mx-auto space-y-10">
-      <div class="mb-6 flex gap-4 justify-center">
-        <button
-          @click="changeStatus('COMPLETED')"
-          class="py-1 px-4 text-lg font-semibold rounded-lg"
-          :class="status === 'COMPLETED' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
-        >
-          Completed
-        </button>
-        <button
-          @click="changeStatus('CANCELLED')"
-          class="py-1 px-4 text-lg font-semibold rounded-lg"
-          :class="status === 'CANCELLED' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
-        >
-          Cancelled
-        </button>
-      </div>
 
-      <div
-      v-if="Object.keys(groupedOrders).length === 0"
+    <div
+      v-if="!orderStore.order"
       class="text-center text-gray-400 py-20"
     >
       No orders found.
     </div>
 
-    
+    <div v-if="orderStore.order" class="max-w-6xl mx-auto space-y-10">
       <div
-        v-for="(orders, date) in groupedOrders"
         :key="date"
         class="space-y-6"
       >
@@ -124,7 +62,7 @@ const groupedOrders = computed(() => {
           {{ date }}
         </h2>
 
-        <div v-for="order in orders" :key="order.id" class="itbms-row" @click="viewOrder(order.id)">
+        <div class="itbms-row">
           <Card
             class="bg-neutral-900/80 border border-neutral-700 hover:border-purple-500 transition"
           >
@@ -132,21 +70,21 @@ const groupedOrders = computed(() => {
               <div class="flex justify-between items-center flex-wrap gap-4">
                 <div class="space-y-1">
                   <CardTitle class="itbms-nickname"
-                    >Seller: {{ order.seller.nickName }}</CardTitle
+                    >Seller: {{orderStore.order.seller.nickName }}</CardTitle
                   >
                   <p class="text-sm text-gray-400 itbms-order-id">
-                    Order #: {{ order.id }}
+                    Order #: {{orderStore.order.id }}
                   </p>
                 </div>
                 <div class="text-sm text-gray-400 space-x-4">
                   <span class="itbms-order-date">
                     Order Date:
-                    {{ new Date(order.orderDate).toLocaleDateString("th-TH") }}
+                    {{ new Date(orderStore.order.orderDate).toLocaleDateString("th-TH") }}
                   </span>
                   <span class="itbms-payment-date">
                     Payment Date:
                     {{
-                      new Date(order.paymentDate).toLocaleDateString("th-TH")
+                      new Date(orderStore.order.paymentDate).toLocaleDateString("th-TH")
                     }}
                   </span>
                 </div>
@@ -155,35 +93,35 @@ const groupedOrders = computed(() => {
                     class="text-green-400 font-bold text-lg itbms-total-order-price"
                   >
                     ฿{{
-                      order.orderItems
+                      orderStore.order.orderItems
                         .reduce((sum, i) => sum + i.price * i.quantity, 0)
                         .toLocaleString()
                     }}
                   </p>
                   <p class="text-sm text-gray-400 itbms-order-status">
-                    Status: {{ order.orderStatus }}
+                    Status: {{ orderStore.order.orderStatus }}
                   </p>
                 </div>
               </div>
 
               <p class="mt-2 text-sm text-gray-300 itbms-shipping-address">
                 <b>Shipped To: </b>
-                <span v-if="order.shippingAddress">
+                <span v-if="orderStore.order.shippingAddress">
                   {{
-                    userStore.user?.fullName
-                      ? userStore.user.fullName + ", "
+                    orderStore.order?.buyerName
+                      ? orderStore.order.buyerName+ ", "
                       : ""
-                  }}{{ order.shippingAddress }}
+                  }}{{ orderStore.order.shippingAddress }}
                 </span>
               </p>
               <p class="mt-1 text-sm text-gray-300 itbms-order-note">
-                <b>Note:</b> {{ order.orderNote || "—" }}
+                <b>Note:</b> {{ orderStore.order.orderNote || "—" }}
               </p>
             </CardHeader>
 
             <CardContent class="divide-y divide-neutral-800">
               <div
-                v-for="item in order.orderItems"
+                v-for="item in orderStore.order.orderItems"
                 :key="item.saleItemId"
                 class="flex items-center gap-4 py-4 itbms-item-row"
               >
@@ -211,11 +149,5 @@ const groupedOrders = computed(() => {
       </div>
     </div>
 
-    <!-- Pagination -->
-    <Pagination
-      v-if="orderStore.allPages > 1"
-      :total-pages="orderStore.allPages"
-      @send-pages="updatePages"
-    />
   </div>
 </template>

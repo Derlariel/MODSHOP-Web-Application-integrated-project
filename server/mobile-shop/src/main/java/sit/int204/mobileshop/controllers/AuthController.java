@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,10 +23,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import sit.int204.mobileshop.dtos.AuthRequestDto;
-import sit.int204.mobileshop.dtos.AuthResponseDto;
-import sit.int204.mobileshop.dtos.RegisterUserDto;
-import sit.int204.mobileshop.dtos.UserResponseDto;
+import org.springframework.web.server.ResponseStatusException;
+import sit.int204.mobileshop.dtos.*;
+import sit.int204.mobileshop.entities.User;
+import sit.int204.mobileshop.services.AuthService;
 import sit.int204.mobileshop.services.UserService;
 
 @RestController
@@ -40,6 +42,8 @@ public class AuthController {
     @Value("${app.cookie.same-site:None}")
     private String cookieSameSite;
 
+    @Autowired
+    private AuthService authService;
 
 
     @PostMapping("/logout")
@@ -123,18 +127,20 @@ public class AuthController {
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(cookieSecure);
         accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(30 * 60);
+        accessTokenCookie.setMaxAge(1 * 60);  // 👈 1 นาที
         response.addCookie(accessTokenCookie);
 
+// Refresh Token อายุ 5 นาที (300 วินาที)
         if (authResponse.getRefreshToken() != null) {
             Cookie refreshTokenCookie = new Cookie("refresh_token", authResponse.getRefreshToken());
             refreshTokenCookie.setHttpOnly(true);
             refreshTokenCookie.setSecure(cookieSecure);
             refreshTokenCookie.setPath("/");
-            refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
+            refreshTokenCookie.setMaxAge(5 * 60);  // 👈 5 นาที
             response.addCookie(refreshTokenCookie);
         }
 
+        /*
         AuthResponseDto responseWithoutTokens = AuthResponseDto.builder()
                 .tokenType(authResponse.getTokenType())
                 .expiresIn(authResponse.getExpiresIn())
@@ -144,7 +150,22 @@ public class AuthController {
                 .role(authResponse.getRole())
                 .build();
 
-        return ResponseEntity.ok(responseWithoutTokens);
+        return ResponseEntity.ok(responseWithoutTokens); 
+         */
+
+         //for Postman test
+        AuthResponseDto responseWithTokens = AuthResponseDto.builder()
+                .accessToken(authResponse.getAccessToken())
+                .refreshToken(authResponse.getRefreshToken())
+                .tokenType(authResponse.getTokenType())
+                .expiresIn(authResponse.getExpiresIn())
+                .nickname(authResponse.getNickname())
+                .userId(authResponse.getUserId())
+                .email(authResponse.getEmail())
+                .role(authResponse.getRole())
+                .build();
+
+        return ResponseEntity.ok(responseWithTokens);
     }
 
     @PostMapping("/refresh")
@@ -179,16 +200,48 @@ public class AuthController {
             accessTokenCookie.setHttpOnly(true);
             accessTokenCookie.setSecure(cookieSecure);
             accessTokenCookie.setPath("/");
-            accessTokenCookie.setMaxAge(30 * 60);
+            accessTokenCookie.setMaxAge(1 * 60);
             response.addCookie(accessTokenCookie);
 
             Map<String, String> responseBody = new HashMap<>();
             responseBody.put("message", "Token refreshed successfully");
+            System.out.println("refresh here");
             return ResponseEntity.ok(responseBody);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        authService.requestPasswordReset(email);
+        return ResponseEntity.ok("Reset link sent to " + email);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<String> changePassword(
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal Object principal
+    ) {
+        String oldPassword = body.get("oldPassword");
+        String newPassword = body.get("newPassword");
+
+        System.out.println("🔐 Principal: " + principal);
+
+        String email = null;
+        if (principal instanceof UserResponseDto userDto) {
+            email = userDto.getEmail();
+        } else if (principal instanceof User userEntity) {
+            email = userEntity.getEmail();
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid user principal");
+        }
+
+        authService.changePassword(email, oldPassword, newPassword);
+        return ResponseEntity.ok("Password changed successfully");
+    }
+
+
 
 }

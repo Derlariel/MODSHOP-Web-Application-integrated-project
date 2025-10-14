@@ -449,4 +449,17 @@ public class UserService {
             return null;
         }
     }
+
+    @Transactional
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        if(!passwordEncoder.matches(oldPassword, user.getPasswordHash())){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Wrong old password");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+    }
 }
