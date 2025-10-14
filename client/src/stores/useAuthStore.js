@@ -274,8 +274,5 @@ async resetPasswordByToken(token, newPassword) {
     this.isSubmitting = false;
   }
 },
-
-
-,
   },
 });
