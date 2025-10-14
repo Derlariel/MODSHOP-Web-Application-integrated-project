@@ -31,7 +31,9 @@ async function requireOwner(to, from, next) {
   }
   try {
     const productStore = useProductStore();
-    const detail = await productStore.fetchProductDetail(Number(to.params.productId));
+    const detail = await productStore.fetchProductDetail(
+      Number(to.params.productId)
+    );
     if (detail && Number(detail.sellerId) === Number(auth.user.id)) {
       return next();
     }
@@ -71,17 +73,16 @@ const routes = [
         name: "Home",
         component: HomePage,
       },
-      {
-        path: "forgot-password",
-        name: "ForgotPasswordPage",
-        component: ResetPasswordPage, 
-},
     ],
-    
   },
   { path: "/register", name: "Register", component: Register },
   { path: "/login", name: "Login", component: Login },
   { path: "/signin", name: "SignIn", component: Login },
+  {
+    path: "forgot-password",
+    name: "ForgotPasswordPage",
+    component: ResetPasswordPage,
+  },
   {
     path: "/",
     component: DefaultLayout,
@@ -158,7 +159,7 @@ const routes = [
 
       {
         path: "cart",
-        name : "CartPage",
+        name: "CartPage",
         component: CartPage,
         beforeEnter: requireAuth,
       },
@@ -192,14 +193,13 @@ const routes = [
         name: "error-page",
         component: () => import("@/pages/ErrorCodePage.vue"),
       },
-      
     ],
   },
   // fallback route
   {
-  path: "/:catchAll(.*)",
-  redirect: "/error?code=404",
-}
+    path: "/:catchAll(.*)",
+    redirect: "/error?code=404",
+  },
 ];
 
 const router = createRouter({
