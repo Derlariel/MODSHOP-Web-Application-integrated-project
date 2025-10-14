@@ -30,14 +30,14 @@ const canSubmit = computed(() => {
   }
   if (mode.value === "change") {
     return (
-      oldPassword.value.trim().length >= 6 &&
-      newPassword.value.trim().length >= 6 &&
+      oldPassword.value.trim().length >= 8 &&
+      newPassword.value.trim().length >= 8 &&
       newPassword.value === confirmPassword.value
     );
   }
   if (mode.value === "reset") {
     return (
-      newPassword.value.trim().length >= 6 &&
+      newPassword.value.trim().length >= 8 &&
       newPassword.value === confirmPassword.value
     );
   }

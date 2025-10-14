@@ -84,6 +84,11 @@ const routes = [
     component: ResetPasswordPage,
   },
   {
+  path: "/reset-password",
+  name: "ResetPasswordPage",
+  component: ResetPasswordPage,
+},
+  {
     path: "/",
     component: DefaultLayout,
     children: [

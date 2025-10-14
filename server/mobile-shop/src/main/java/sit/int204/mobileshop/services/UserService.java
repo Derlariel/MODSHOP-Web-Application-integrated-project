@@ -57,6 +57,16 @@ public class UserService {
     // ---------------- Register ----------------
     @Transactional
     public UserResponseDto register(RegisterUserDto dto) {
+        if (dto.getEmail() != null) dto.setEmail(dto.getEmail().trim());
+        if (dto.getNickname() != null) dto.setNickname(dto.getNickname().trim());
+        if (dto.getPassword() != null) dto.setPassword(dto.getPassword().trim());
+        if (dto.getFullname() != null) dto.setFullname(normalizeFullName(dto.getFullname()));
+        if (dto.getRole() != null) dto.setRole(dto.getRole().trim().toUpperCase());
+        if (dto.getMobileNumber() != null) dto.setMobileNumber(normalizeDigits(dto.getMobileNumber()));
+        if (dto.getBankAccountNumber() != null) dto.setBankAccountNumber(normalizeDigits(dto.getBankAccountNumber()));
+        if (dto.getBankName() != null) dto.setBankName(dto.getBankName().trim().replaceAll("\\s{2,}", " "));
+        if (dto.getNationalIdNumber() != null) dto.setNationalIdNumber(normalizeDigits(dto.getNationalIdNumber()));
+
         validateEmailUniqueness(dto.getEmail());
 
         try {
@@ -74,6 +84,17 @@ public class UserService {
             log.error("Registration failed for user: {}", dto.getEmail(), e);
             throw new RuntimeException("Registration failed: " + e.getMessage());
         }
+    }
+
+    private String normalizeDigits(String s) {
+        return s == null ? null : s.replaceAll("\\D", "").trim();
+    }
+
+    private String normalizeFullName(String name) {
+        if (name == null) return null;
+        String trimmed = name.trim();
+        // Collapse multiple spaces to single space
+        return trimmed.replaceAll("\\s{2,}", " ");
     }
 
     private void validateEmailUniqueness(String email) {
@@ -334,7 +355,7 @@ public class UserService {
         response.setId(user.getId());
         response.setEmail(user.getEmail());
         response.setFullName(user.getFullName());
-        response.setUserType(user.getUserType());
+    response.setUserType(user.getUserType() != null ? user.getUserType().toUpperCase() : null);
         response.setNickName(user.getNickName());
         response.setStatus(user.getStatus());
 
