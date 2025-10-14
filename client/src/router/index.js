@@ -79,7 +79,7 @@ const routes = [
   { path: "/login", name: "Login", component: Login },
   { path: "/signin", name: "SignIn", component: Login },
   {
-    path: "forgot-password",
+    path: "/forgot-password",
     name: "ForgotPasswordPage",
     component: ResetPasswordPage,
   },
