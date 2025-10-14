@@ -36,7 +36,7 @@ public class RegisterUserDto {
     @Size(max = 20, message = "Mobile number must not exceed 20 characters")
     private String mobileNumber;
 
-    @Size(max = 50, message = "Bank account number must not exceed 50 characters")
+    @Size(max = 30, message = "Bank account number must not exceed 30 characters")
     private String bankAccountNumber;
 
     @Size(max = 100, message = "Bank name must not exceed 100 characters")

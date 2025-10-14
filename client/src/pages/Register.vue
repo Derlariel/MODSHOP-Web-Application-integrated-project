@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/useAuthStore";
 import BaseInput from "@/components/shared/BaseInput.vue";
 import SuccessModal from "@/components/shared/modal/SuccessModal.vue";
+import ErrorModal from "@/components/shared/modal/ErrorModal.vue";
 import {
   runValidation,
   validateMinLength,
@@ -15,6 +16,8 @@ const router = useRouter();
 const auth = useAuthStore();
 const showSuccess = ref(false);
 const successMessage = ref("The user account has been successfully registered.");
+const showError = ref(false);
+const errorMessage = ref("");
 
 const form = reactive({
   accountType: "BUYER", // BUYER | SELLER
@@ -106,6 +109,16 @@ const vNationalId13 = (data) => {
   return { valid: ok, message: ok ? null : "National ID must be 13 digits." };
 };
 
+// Bank account: digits only, 3–30 (align with BE validation)
+const vBankAccountDigits = (data) => {
+  const s = String(data || "").trim();
+  const ok = /^\d{3,30}$/.test(s);
+  return {
+    valid: ok,
+    message: ok ? null : "Bank account number must be 3–30 digits.",
+  };
+};
+
 const vFileRequired = (label) => (file) => {
   const ok = !!file;
   return { valid: ok, message: ok ? null : `${label} is required.` };
@@ -133,9 +146,7 @@ const rules = {
   mobile: [vRequired("Mobile number"), vThaiMobile, vWhiteSpace],
   bankAccountNo: [
     vRequired("Bank account number"),
-    validateMinLength(3),
-    validateMaxLength(30),
-    vWhiteSpace,
+    vBankAccountDigits,
   ],
   bankName: [
     vRequired("Bank name"),
@@ -232,8 +243,9 @@ async function onSubmit() {
   form.nickname = String(form.nickname || '').trim();
   form.password = String(form.password || '');
   if(isSeller.value) {
-    form.mobile = String(form.mobile || '').trim().replace(/-/g, '')
-    form.bankAccountNo = String(form.bankAccountNo || '').trim();
+    // Normalize to digits only for predictable validation
+    form.mobile = String(form.mobile || '').replace(/\D/g, '').trim();
+    form.bankAccountNo = String(form.bankAccountNo || '').replace(/\D/g, '').trim();
     form.bankName = String(form.bankName || '').trim();
     form.nationalIdNumber = String(form.nationalIdNumber || '').trim();
   }
@@ -265,7 +277,8 @@ async function onSubmit() {
     sessionStorage.setItem("register-success", "true");
     router.push({ path: "/sale-items" });
   } catch (e) {
-    alert(e?.message || "Registration failed!");
+    errorMessage.value = e?.message || "Registration failed!";
+    showError.value = true;
   }
 }
 </script>
@@ -486,6 +499,12 @@ async function onSubmit() {
       :message="successMessage" 
       :duration="2000"
       @close="showSuccess = false" 
+    />
+    <!-- Error modal -->
+    <ErrorModal
+      :visible="showError"
+      :message="errorMessage"
+      @close="showError = false"
     />
   </div>
 </template>

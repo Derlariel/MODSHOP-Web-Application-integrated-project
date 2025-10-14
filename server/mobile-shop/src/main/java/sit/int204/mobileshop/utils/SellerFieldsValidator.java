@@ -61,9 +61,9 @@ public class SellerFieldsValidator implements ConstraintValidator<SellerFieldsVa
             isValid = false;
         }
 
-        // Bank account: digits only 6-20 (common range)
-        if (!isEmpty(dto.getBankAccountNumber()) && !dto.getBankAccountNumber().matches("^\\d{6,20}$")) {
-            context.buildConstraintViolationWithTemplate("Bank account number must be 6-20 digits")
+        // Bank account: digits only 3-30 (updated requirement)
+        if (!isEmpty(dto.getBankAccountNumber()) && !dto.getBankAccountNumber().matches("^\\d{3,30}$")) {
+            context.buildConstraintViolationWithTemplate("Bank account number must be 3-30 digits")
                     .addPropertyNode("bankAccountNumber")
                     .addConstraintViolation();
             isValid = false;
