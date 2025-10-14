@@ -30,7 +30,7 @@ jobs:
           # sudo chmod 400 ./secrets/db_password
 
           docker compose down -v
-          docker compose build --no-cache
+          docker compose build 
           docker compose up -d
           docker image prune -f
    
