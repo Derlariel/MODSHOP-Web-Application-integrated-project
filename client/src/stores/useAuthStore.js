@@ -1,26 +1,6 @@
 import { defineStore } from "pinia";
 import { validateEmailPassword } from "@/utils/validate";
-
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-
-async function request(path, options = {}, skipAuth = false) {
-  const headers = options.headers ? { ...options.headers } : {};
-
-  const requestOptions = {
-    ...options,
-    headers,
-    credentials: "include",
-  };
-
-  const res = await fetch(`${BASE_URL}${path}`, requestOptions);
-
-  let data = {};
-  try {
-    data = await res.json();
-  } catch (e) {}
-
-  return { res, data };
-}
+import { request } from "@/middleware/interception";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -28,12 +8,10 @@ export const useAuthStore = defineStore("auth", {
     _syncInitialized: false,
     user: (() => {
       try {
-        // Persist minimal user claims in localStorage for UX (no tokens stored)
         const userClaims = localStorage.getItem("userClaims");
-        const parsedUser = userClaims ? JSON.parse(userClaims) : null;
-        return parsedUser;
+        return userClaims ? JSON.parse(userClaims) : null;
       } catch (e) {
-        console.error("Error parsing user claims from sessionStorage:", e);
+        console.error("Error parsing user claims:", e);
         localStorage.removeItem("userClaims");
         return null;
       }
@@ -50,35 +28,25 @@ export const useAuthStore = defineStore("auth", {
       window.addEventListener("storage", (e) => {
         if (e.key === "userClaims") {
           try {
-            if (e.newValue) {
-              const parsed = JSON.parse(e.newValue);
-              this.user = parsed;
-            } else {
-              this.user = null;
-            }
+            this.user = e.newValue ? JSON.parse(e.newValue) : null;
           } catch (err) {
-            console.error("Failed to sync userClaims from storage:", err);
+            console.error("Failed to sync userClaims:", err);
           }
         }
       });
     },
+
     async register(formData) {
       this.isSubmitting = true;
       try {
-        const { res, data } = await request(
-          "/v2/auth/register",
-          {
-            method: "POST",
-            body: formData,
-          },
-          true
-        );
+        const { res, data } = await request("/v2/auth/register", {
+          method: "POST",
+          body: formData,
+        }, true);
 
         if (res.status !== 201) {
-          const msg = data?.message || data?.error || "Registration failed.";
-          throw new Error(msg);
+          throw new Error(data?.message || "Registration failed.");
         }
-
         return data;
       } finally {
         this.isSubmitting = false;
@@ -91,27 +59,15 @@ export const useAuthStore = defineStore("auth", {
         const { valid } = validateEmailPassword({ email, password });
         if (!valid) throw new Error("Email or Password is incorrect.");
 
-        const { res, data } = await request(
-          "/v2/auth/login",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          },
-          true
-        );
+        const { res, data } = await request("/v2/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }, true);
 
         if (res.status !== 200) {
-          if (res.status === 403) {
-            throw new Error(
-              "You need to activate your account before signing in."
-            );
-          }
-          throw new Error(
-            res.status === 400 || res.status === 401
-              ? "Email or Password is incorrect."
-              : "Authentication failed."
-          );
+          if (res.status === 403) throw new Error("Account not activated.");
+          throw new Error("Authentication failed.");
         }
 
         this.user = {
@@ -121,13 +77,9 @@ export const useAuthStore = defineStore("auth", {
           role: data.role,
           fullName: data.fullName || data.fullname || data.full_name || "",
         };
-
         localStorage.setItem("userClaims", JSON.stringify(this.user));
 
-        try {
-          await this.refreshUserData();
-        } catch {}
-
+        await this.refreshUserData();
         return this.user;
       } finally {
         this.isSubmitting = false;
@@ -136,9 +88,7 @@ export const useAuthStore = defineStore("auth", {
 
     async logout() {
       try {
-        await request("/v2/auth/logout", {
-          method: "POST",
-        });
+        await request("/v2/auth/logout", { method: "POST" }, true);
       } catch (error) {
         console.error("Logout failed:", error);
       } finally {
@@ -148,108 +98,66 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    ensureNotExpired() {
-      if (!this.user) {
-        this.user = null;
-        localStorage.removeItem("userClaims");
-      }
-    },
-
     async refreshUserData() {
-      if (!this.user || !this.user.id) {
-        return false;
-      }
+      if (!this.user || !this.user.id) return false;
 
       try {
         const { res, data } = await request(`/v2/users/${this.user.id}`);
-
         if (res.ok) {
           this.user = {
             ...this.user,
             nickname: data.nickName || data.nickname || this.user.nickname,
             email: data.email || this.user.email,
             role: data.userType || data.role || this.user.role,
-            fullName:
-              data.fullName ||
-              data.fullname ||
-              data.full_name ||
-              this.user.fullName,
+            fullName: data.fullName || data.fullname || data.full_name || this.user.fullName,
           };
           localStorage.setItem("userClaims", JSON.stringify(this.user));
-
           return true;
         } else {
-          console.error("Failed to refresh user data:", res.status);
-          // If server says not authorized/invalid, clear local persisted state for security
           this.user = null;
           localStorage.removeItem("userClaims");
           return false;
         }
-      } catch (error) {
-        console.error("Error refreshing user data:", error);
-        // network or other errors shouldn't keep stale identity around
+      } catch (err) {
+        console.error("Error refreshing user data:", err);
         this.user = null;
         localStorage.removeItem("userClaims");
         return false;
       }
     },
+
     async forgotPasswordReset(email) {
       this.isSubmitting = true;
       try {
-        const { res, data } = await request(
-          `/v2/auth/forgot-password?email=${encodeURIComponent(email)}`,
-          {
-            method: "POST",
-          },
-          true
-        );
-
-        if (!res.ok) {
-          throw new Error(data?.message || "Failed to request password reset.");
-        }
-
-        return {
-          success: true,
-          message: data?.message || "Password reset email sent successfully.",
-        };
+        const { res, data } = await request(`/v2/auth/forgot-password?email=${encodeURIComponent(email)}`, {
+          method: "POST",
+        }, true);
+        if (!res.ok) throw new Error(data?.message || "Failed to request password reset.");
+        return { success: true, message: data?.message || "Password reset email sent." };
       } catch (error) {
         console.error("Password reset request failed:", error);
-        return {
-          success: false,
-          message: error.message || "Failed to request password reset.",
-        };
+        return { success: false, message: error.message || "Failed to request password reset." };
       } finally {
         this.isSubmitting = false;
       }
     },
+
     async updatePasswordInProfile(oldPassword, newPassword) {
-  this.isSubmitting = true;
-  try {
-    const { res, data } = await request("/v2/auth/change-password", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ oldPassword, newPassword }),
-    });
-
-    if (!res.ok) {
-      throw new Error(data?.message || "Failed to change password.");
-    }
-
-    return {
-      success: true,
-      message: data?.message || "Password updated successfully.",
-    };
-  } catch (error) {
-    console.error("Change password failed:", error);
-    return {
-      success: false,
-      message: error.message || "Failed to change password.",
-    };
-  } finally {
-    this.isSubmitting = false;
-  }
-}
-
-,
+      this.isSubmitting = true;
+      try {
+        const { res, data } = await request("/v2/auth/change-password", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ oldPassword, newPassword }),
+        });
+        if (!res.ok) throw new Error(data?.message || "Failed to change password.");
+        return { success: true, message: data?.message || "Password updated successfully." };
+      } catch (error) {
+        console.error("Change password failed:", error);
+        return { success: false, message: error.message || "Failed to change password." };
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
   },
 });
