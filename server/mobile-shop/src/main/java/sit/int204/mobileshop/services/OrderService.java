@@ -61,17 +61,8 @@ public class OrderService {
                     && order.getSeller().getId() != null
                     && order.getSeller().getId().equals(principalId);
 
-            // Only when the seller views a NEW order, mark it as COMPLETED and deduct stock
             if (isSeller && order.getOrderStatus() == OrderStatus.NEW) {
                 order.setOrderStatus(OrderStatus.COMPLETED);
-                if (order.getOrderItems() != null) {
-                    order.getOrderItems().forEach(oi -> {
-                        if (oi.getSaleItem() != null) {
-                            // reduce stock on first view by seller
-                            oi.getSaleItem().setQuantity(oi.getSaleItem().getQuantity() - oi.getQuantity());
-                        }
-                    });
-                }
                 orderRepository.save(order);
             }
             if (!isBuyer && !isSeller) {
@@ -264,44 +255,56 @@ public class OrderService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "SellerId is required");
             }
 
-            // Check if any item from this seller has insufficient stock
-            boolean hasInsufficientStock = orderDto.getItems().stream().anyMatch(itemDto -> {
+            // 1) Lock all involved SaleItems for this seller and validate stock atomically
+            // Collect locked sale items to ensure consistent update
+            final List<SaleItem> lockedItems = orderDto.getItems().stream().map(itemDto -> {
                 Integer saleItemId = itemDto.getSaleItemId().intValue();
-                SaleItem saleItem = saleItemRepository.findById(saleItemId)
+                SaleItem saleItem = saleItemRepository.findByIdForUpdate(saleItemId)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sale item " + saleItemId + " not found"));
-                
-                // Validate that the sale item belongs to the specified seller
-                if (orderDto.getSellerId() != null && 
-                    !saleItem.getSeller().getId().equals(orderDto.getSellerId().longValue())) {
-                    // wording includes 'not' and 'exist' to satisfy Postman assertion
+
+                if (orderDto.getSellerId() != null &&
+                        !saleItem.getSeller().getId().equals(orderDto.getSellerId().longValue())) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sale item does not exist for specified seller");
                 }
-                
-                return saleItem.getQuantity() < itemDto.getQuantity();
-            });
+                return saleItem;
+            }).collect(Collectors.toList());
 
-            // If any item has insufficient stock, cancel the entire order for this seller
+            boolean hasInsufficientStock = false;
+            for (int i = 0; i < orderDto.getItems().size(); i++) {
+                var itemDto = orderDto.getItems().get(i);
+                var saleItem = lockedItems.get(i);
+                if (saleItem.getQuantity() < itemDto.getQuantity()) {
+                    hasInsufficientStock = true;
+                    break;
+                }
+            }
+
             if (hasInsufficientStock) {
+                // CANCELLED: do not deduct any stock
                 order.setOrderStatus(OrderStatus.CANCELLED);
             } else {
-                // Initially mark order as NEW; stock deduction will occur when seller views it
+                // NEW: deduct stock now under the same lock/transaction to prevent negatives
+                for (int i = 0; i < orderDto.getItems().size(); i++) {
+                    var itemDto = orderDto.getItems().get(i);
+                    var saleItem = lockedItems.get(i);
+                    saleItem.setQuantity(saleItem.getQuantity() - itemDto.getQuantity());
+                    saleItemRepository.save(saleItem);
+                }
                 order.setOrderStatus(OrderStatus.NEW);
             }
 
-            // Add order items without reducing stock at creation time
-            orderDto.getItems().forEach(itemDto -> {
-                Integer saleItemId = itemDto.getSaleItemId().intValue();
-                SaleItem saleItem = saleItemRepository.findById(saleItemId)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sale item " + saleItemId + " not found"));
+            // Add order items (use the locked sale items)
+            for (int i = 0; i < orderDto.getItems().size(); i++) {
+                var itemDto = orderDto.getItems().get(i);
+                var saleItem = lockedItems.get(i);
 
                 OrderItem item = new OrderItem();
                 item.setSaleItem(saleItem);
                 item.setQuantity(itemDto.getQuantity());
                 item.setPrice(saleItem.getPrice());
                 item.setDescription(itemDto.getDescription());
-
                 order.addOrderItem(item);
-            });
+            }
 
             return order;
         }).collect(Collectors.toList());

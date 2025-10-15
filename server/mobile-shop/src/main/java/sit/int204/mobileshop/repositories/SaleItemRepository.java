@@ -4,15 +4,24 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import sit.int204.mobileshop.entities.SaleItem;
 
+import jakarta.persistence.LockModeType;
 import java.util.List;
+import java.util.Optional;
 
 public interface SaleItemRepository extends JpaRepository<SaleItem, Integer>, JpaSpecificationExecutor<SaleItem> {
 
     Page<SaleItem> findSaleItemsBySellerId(Long seller_id, Pageable pageable);
 
     List<SaleItem> findAllByOrderByCreatedOnAsc();
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from SaleItem s where s.id = :id")
+    Optional<SaleItem> findByIdForUpdate(@Param("id") Integer id);
 
 //    @Query("SELECT s FROM SaleItem s WHERE " +
 //            "(:filterBrands IS NULL OR s.brand.name IN :filterBrands) AND " +
