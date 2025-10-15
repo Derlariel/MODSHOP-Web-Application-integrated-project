@@ -169,12 +169,13 @@ async function placeOrder() {
     
     const createdOrders = response?.data || []
     const newOrdersCount = createdOrders.filter(order => order.orderStatus === 'NEW').length
+    const cancelledOrdersCount = createdOrders.filter(order => order.orderStatus === 'CANCELLED').length
     
     if (newOrdersCount > 0) {
       for (let i = 0; i < newOrdersCount; i++) {
         orderStore.incrementBadge()
       }
-            if (auth.user?.role === 'SELLER') {
+      if (auth.user?.role === 'SELLER') {
         const newOrdersForThisSeller = createdOrders.filter(
           order => order.orderStatus === 'NEW' && order.seller?.id === auth.user.id
         ).length
@@ -185,8 +186,16 @@ async function placeOrder() {
       }
     }
     
-    successMessage.value = "Your order has been successfully processed."
-    showSuccess.value = true
+    if (cancelledOrdersCount > 0 && newOrdersCount === 0) {
+      errorMessage.value = "Your order has been cancelled automatically due to insufficient stock. Please check 'Your Orders > Cancelled'."
+      showError.value = true
+    } else if (cancelledOrdersCount > 0 && newOrdersCount > 0) {
+      errorMessage.value = `${cancelledOrdersCount} order(s) were cancelled due to insufficient stock. Please check 'Your Orders > Cancelled' tab.`
+      showError.value = true
+    } else {
+      successMessage.value = "Your order has been successfully processed."
+      showSuccess.value = true
+    }
   } catch (e) {
     errorMessage.value = e?.message || "Failed to place order"
     showError.value = true
