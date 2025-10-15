@@ -58,14 +58,10 @@ watch(status, (newStatus) => {
 });
 
 const viewOrder = (orderId) => {
-  // Optimistically update UI: when buyer views, show as COMPLETED
   const idx = orderStore.orders.findIndex(o => o.id === orderId);
   if (idx !== -1) {
-    // If currently on NEW tab, remove the order from this list so it disappears immediately
     if (status.value === 'NEW') {
       orderStore.orders.splice(idx, 1);
-      // Decrement badge when order moves from NEW status
-      orderStore.decrementBadge();
     } else {
       orderStore.orders[idx] = { ...orderStore.orders[idx], orderStatus: 'COMPLETED' };
     }

@@ -163,14 +163,25 @@ async function placeOrder() {
 
   placing.value = true
   try {
-    await createOrder(orders)
+    const response = await createOrder(orders)
     cart.removeItemsByKeys(orderedKeys)
     selectedItems.value.clear()
-    orderStore.incrementBadge()
-    if (auth.user?.role === 'SELLER') {
-      const uniqueSellerIds = [...new Set(orders.map(o => o.sellerId))]
-      if (uniqueSellerIds.includes(auth.user.id)) {
-        sellerOrdersStore.incrementBadge()
+    
+    const createdOrders = response?.data || []
+    const newOrdersCount = createdOrders.filter(order => order.orderStatus === 'NEW').length
+    
+    if (newOrdersCount > 0) {
+      for (let i = 0; i < newOrdersCount; i++) {
+        orderStore.incrementBadge()
+      }
+            if (auth.user?.role === 'SELLER') {
+        const newOrdersForThisSeller = createdOrders.filter(
+          order => order.orderStatus === 'NEW' && order.seller?.id === auth.user.id
+        ).length
+        
+        for (let i = 0; i < newOrdersForThisSeller; i++) {
+          sellerOrdersStore.incrementBadge()
+        }
       }
     }
     
