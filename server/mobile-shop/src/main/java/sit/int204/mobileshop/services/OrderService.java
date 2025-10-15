@@ -226,17 +226,23 @@ public class OrderService {
 
         // Validate that all orders are for the authenticated user
         for (OrderRequestDto orderDto : orderDtos) {
+            // If buyerId is provided, it must match; if null, we'll use authenticated user
             if (orderDto.getBuyerId() != null && !orderDto.getBuyerId().equals(authenticatedUser.getId().intValue())) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Order buyer ID does not match authenticated user");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot create order for another user");
             }
+            
+            // Prevent seller from buying their own items
             if (orderDto.getSellerId() != null && orderDto.getSellerId().equals(authenticatedUser.getId().intValue())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Buyer and seller cannot be the same user");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot buy your own items");
             }
 
             // Guard: items must be provided
             if (orderDto.getItems() == null || orderDto.getItems().isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Order items must not be empty");
             }
+            
+            // Force buyerId to match authenticated user (override any provided value)
+            orderDto.setBuyerId(authenticatedUser.getId().intValue());
         }
 
         List<Order> orders = orderDtos.stream().map(orderDto -> {
