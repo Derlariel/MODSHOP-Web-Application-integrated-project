@@ -7,9 +7,10 @@ import CardHeader from "@/components/UI/cart/CardHeader.vue";
 import CardContent from "@/components/UI/cart/CardContent.vue";
 import CardTitle from "@/components/UI/cart/CartTitle.vue";
 import HistoryPath from "@/components/shared/HistoryPath.vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute()
+const router = useRouter()
 
 const orderStore = useOrderStore();
 const userStore = useAuthStore();
@@ -28,6 +29,20 @@ const fetchOrders = (
   orderStore.fetchOrderById(route.params.orderId)
 };
 
+const historyPathName = computed(() => {
+  const user = userStore.user;
+  let fromSaleOrders = false;
+  if (window.history.state && typeof window.history.state.back === 'string') {
+    fromSaleOrders = window.history.state.back.includes('/sale-orders');
+  } else if (document.referrer && document.referrer.includes('/sale-orders')) {
+    fromSaleOrders = true;
+  }
+  if (user && user.role === 'SELLER' && fromSaleOrders) {
+    return 'Your Sale Orders';
+  }
+  return 'Your Orders';
+});
+
 </script>
 
 <template>
@@ -37,7 +52,6 @@ const fetchOrders = (
       <p class="text-gray-400 mt-2">Track and view your completed purchases</p>
     </div>
 
-     <HistoryPath main="Your Orders" name-path="Order Details" :previous="1" :name-path="title" />
 
     <div v-if="orderStore.loading" class="text-gray-500 text-center py-20">
       Loading your orders...
@@ -55,7 +69,11 @@ const fetchOrders = (
       <div
         :key="date"
         class="space-y-6"
+
+        
       >
+        <HistoryPath :main="historyPathName" name-path="Order Details" :previous="1" :name-path="title" />
+
         <h2
           class="text-2xl font-semibold text-purple-400 border-b border-neutral-700 pb-2"
         >
