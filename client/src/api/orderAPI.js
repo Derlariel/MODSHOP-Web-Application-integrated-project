@@ -51,5 +51,10 @@ export async function getSellerNewOrdersCount(sellerId) {
     size: 1,
     sort: "id,desc",
   });
-  return res?.totalElements ?? (res?.totalItems ?? 0);
+  return res?.data?.totalElements ?? 0;
+}
+
+export async function getBuyerNewOrdersCount(userId) {
+  const res = await getOrdersWithStatus(userId, 0, 1, "id,desc", "NEW");
+  return res?.data?.totalElements ?? 0;
 }

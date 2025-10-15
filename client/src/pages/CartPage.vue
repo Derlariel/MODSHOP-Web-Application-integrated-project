@@ -9,11 +9,15 @@ import CardTitle from "@/components/UI/cart/CartTitle.vue"
 import { computed, ref } from "vue"
 import { createOrder } from "@/api/orderAPI"
 import { useAuthStore } from "@/stores/useAuthStore"
+import { useOrderStore } from "@/stores/useOrderStore"
+import { useSellerOrdersStore } from "@/stores/useSellerOrdersStore"
 import ErrorModal from "@/components/shared/modal/ErrorModal.vue"
 import SuccessModal from "@/components/shared/modal/SuccessModal.vue"
 
 const cart = useCartStore()
 const auth = useAuthStore()
+const orderStore = useOrderStore()
+const sellerOrdersStore = useSellerOrdersStore()
 
 const shippingAddress = ref("")
 const orderNote = ref("")
@@ -162,6 +166,14 @@ async function placeOrder() {
     await createOrder(orders)
     cart.removeItemsByKeys(orderedKeys)
     selectedItems.value.clear()
+    orderStore.incrementBadge()
+    if (auth.user?.role === 'SELLER') {
+      const uniqueSellerIds = [...new Set(orders.map(o => o.sellerId))]
+      if (uniqueSellerIds.includes(auth.user.id)) {
+        sellerOrdersStore.incrementBadge()
+      }
+    }
+    
     successMessage.value = "Your order has been successfully processed."
     showSuccess.value = true
   } catch (e) {

@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, computed, ref, watch } from "vue";
+import { onMounted, onActivated, computed, ref, watch } from "vue";
 import { useOrderStore } from "@/stores/useOrderStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 import Card from "@/components/UI/cart/Card.vue";
@@ -23,6 +23,9 @@ onMounted(() => {
   const savedPage = Number(sessionStorage.getItem("ordersActivePage")) || 1;
   orderStore.setActivePage(savedPage);
   fetchOrders();
+  if (userStore.user?.id) {
+    orderStore.refreshBadge(userStore.user.id);
+  }
 });
 
 const fetchOrders = (statusValue = status.value, page = orderStore.activePage) => {
@@ -61,12 +64,21 @@ const viewOrder = (orderId) => {
     // If currently on NEW tab, remove the order from this list so it disappears immediately
     if (status.value === 'NEW') {
       orderStore.orders.splice(idx, 1);
+      // Decrement badge when order moves from NEW status
+      orderStore.decrementBadge();
     } else {
       orderStore.orders[idx] = { ...orderStore.orders[idx], orderStatus: 'COMPLETED' };
     }
   }
   router.push({ name: 'YourOrderPage', params: { orderId } });
 }
+
+// Refresh badge when component is activated (e.g., returning from another page)
+onActivated(() => {
+  if (userStore.user?.id) {
+    orderStore.refreshBadge(userStore.user.id);
+  }
+});
 
 watch(() => orderStore.activePage, (newPage) => {
   sessionStorage.setItem("ordersActivePage", newPage);

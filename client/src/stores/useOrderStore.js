@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { getOrdersWithId, getOrdersWithStatus } from "@/api/orderAPI";
+import { getOrdersWithId, getOrdersWithStatus, getBuyerNewOrdersCount } from "@/api/orderAPI";
 
 export const useOrderStore = defineStore("orderStore", {
   state: () => ({
@@ -7,7 +7,8 @@ export const useOrderStore = defineStore("orderStore", {
     activePage: 1,
     orders: [],
     loading: false,
-    allPages: 0
+    allPages: 0,
+    newOrdersCount: 0
   }),
 
   getters: {
@@ -64,5 +65,24 @@ export const useOrderStore = defineStore("orderStore", {
     this.loading = false;
   }
 },
+
+    async refreshBadge(userId) {
+      try {
+        this.newOrdersCount = await getBuyerNewOrdersCount(userId);
+      } catch (err) {
+        console.error("Error fetching buyer new orders count:", err);
+        this.newOrdersCount = 0;
+      }
+    },
+
+    incrementBadge() {
+      this.newOrdersCount++;
+    },
+
+    decrementBadge() {
+      if (this.newOrdersCount > 0) {
+        this.newOrdersCount--;
+      }
+    },
   },
 });
