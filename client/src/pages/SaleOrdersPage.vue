@@ -164,6 +164,8 @@ const groupedOrders = computed(() => {
       </div>
     </div>
 
-    <Pagination v-if="store.totalPages > 1" :total-pages="store.totalPages" @send-pages="changePage" />
+    <div class="mt-8">
+      <Pagination v-if="store.totalPages > 1" :total-pages="store.totalPages" @send-pages="changePage" />
+    </div>
   </div>
 </template>
