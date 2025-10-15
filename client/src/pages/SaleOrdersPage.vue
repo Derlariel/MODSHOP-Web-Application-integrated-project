@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, onActivated, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useSellerOrdersStore } from '@/stores/useSellerOrdersStore';
@@ -29,6 +29,8 @@ onMounted(async () => {
     return;
   }
   await store.fetchOrders(auth.user.id);
+  // Refresh badge count when page loads
+  store.refreshBadge(auth.user.id);
 });
 
 const viewOrder = async (orderId) => {
@@ -40,6 +42,12 @@ const viewOrder = async (orderId) => {
     router.push({ name: 'YourOrderPage', params: { orderId } });
   }
 }
+
+onActivated(() => {
+  if (auth.user?.id) {
+    store.refreshBadge(auth.user.id);
+  }
+});
 
 function selectTab(key) {
   store.setTab(key);
@@ -126,7 +134,7 @@ const groupedOrders = computed(() => {
                   </button>
                 </div>
               </div>
-              <p class="mt-2 text-sm text-gray-300">Ship to: {{ order.shippingAddress }}</p>
+                <p class="mt-2 text-sm text-gray-300">Ship to: {{ order?.buyerName }}, {{ order?.shippingAddress }}</p>
               <p class="mt-1 text-sm text-gray-300">Note: {{ order.orderNote || '-' }}</p>
             </CardHeader>
 
@@ -156,6 +164,8 @@ const groupedOrders = computed(() => {
       </div>
     </div>
 
-    <Pagination v-if="store.totalPages > 1" :total-pages="store.totalPages" @send-pages="changePage" />
+    <div class="mt-8">
+      <Pagination v-if="store.totalPages > 1" :total-pages="store.totalPages" @send-pages="changePage" />
+    </div>
   </div>
 </template>

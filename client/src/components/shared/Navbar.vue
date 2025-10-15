@@ -6,6 +6,7 @@ import ConfirmModal from "@/components/shared/modal/ConfirmModal.vue";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useCartStore } from "@/stores/useCartStore";
 import { useSellerOrdersStore } from "@/stores/useSellerOrdersStore";
+import { useOrderStore } from "@/stores/useOrderStore";
 
 const route = useRoute();
 const router = useRouter();
@@ -17,6 +18,7 @@ const toggleMobileMenu = () => {
 const auth = useAuthStore();
 const cart = useCartStore();
 const sellerOrders = useSellerOrdersStore();
+const orderStore = useOrderStore();
 
 const greeting = computed(() => {
   return auth.isAuthenticated ? `${auth.nickname}` : "Login";
@@ -38,15 +40,25 @@ const cancelLogout = () => {
 };
 
 onMounted(() => {
-  if (auth.isAuthenticated && auth.user?.role === 'SELLER') {
-    sellerOrders.refreshBadge(auth.user.id);
+  if (auth.isAuthenticated && auth.user) {
+    if (auth.user.role === 'SELLER') {
+      sellerOrders.refreshBadge(auth.user.id);
+    }
+    if (auth.user.role === 'BUYER' || auth.user.role === 'SELLER') {
+      orderStore.refreshBadge(auth.user.id);
+    }
   }
 });
 
 watch(
   () => auth.user,
   (u) => {
-    if (u?.role === 'SELLER') sellerOrders.refreshBadge(u.id);
+    if (u?.role === 'SELLER') {
+      sellerOrders.refreshBadge(u.id);
+    }
+    if (u?.role === 'BUYER' || u?.role === 'SELLER') {
+      orderStore.refreshBadge(u.id);
+    }
   },
   { immediate: false }
 );
@@ -113,8 +125,14 @@ watch(
         </router-link>
 
         <!-- Your Orders link for both Seller and Buyer -->
-        <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="flex items-center gap-1">
-          <FileText class="w-5 h-5" />
+        <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="relative">
+          <FileText class="w-5 h-5 cursor-pointer hover:text-white" />
+          <span
+            v-if="orderStore.newOrdersCount > 0"
+            class="absolute -top-2 -right-2 bg-blue-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full"
+          >
+            {{ orderStore.newOrdersCount }}
+          </span>
         </router-link>
 
         <router-link to="/cart" class="relative">
@@ -193,6 +211,7 @@ watch(
       <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="block hover:text-purple-400 flex items-center gap-1 justify-center">
         <FileText class="w-5 h-5" />
         <span>Your Orders</span>
+        <span v-if="orderStore.newOrdersCount > 0" class="ml-2 bg-blue-500 text-white text-xs min-w-5 h-5 px-2 py-0.5 rounded-full">{{ orderStore.newOrdersCount }}</span>
       </router-link>
 
       <!-- Cart link -->

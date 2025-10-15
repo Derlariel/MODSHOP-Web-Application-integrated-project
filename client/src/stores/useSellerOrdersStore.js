@@ -28,6 +28,17 @@ export const useSellerOrdersStore = defineStore("sellerOrdersStore", {
         this.newOrdersCount = 0;
       }
     },
+
+    incrementBadge() {
+      this.newOrdersCount++;
+    },
+
+    decrementBadge() {
+      if (this.newOrdersCount > 0) {
+        this.newOrdersCount--;
+      }
+    },
+
     async fetchOrders(sellerId) {
       this.loading = true;
       try {

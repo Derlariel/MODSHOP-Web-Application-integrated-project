@@ -7,9 +7,10 @@ import CardHeader from "@/components/UI/cart/CardHeader.vue";
 import CardContent from "@/components/UI/cart/CardContent.vue";
 import CardTitle from "@/components/UI/cart/CartTitle.vue";
 import HistoryPath from "@/components/shared/HistoryPath.vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute()
+const router = useRouter()
 
 const orderStore = useOrderStore();
 const userStore = useAuthStore();
@@ -28,6 +29,20 @@ const fetchOrders = (
   orderStore.fetchOrderById(route.params.orderId)
 };
 
+const historyPathName = computed(() => {
+  const user = userStore.user;
+  let fromSaleOrders = false;
+  if (window.history.state && typeof window.history.state.back === 'string') {
+    fromSaleOrders = window.history.state.back.includes('/sale-orders');
+  } else if (document.referrer && document.referrer.includes('/sale-orders')) {
+    fromSaleOrders = true;
+  }
+  if (user && user.role === 'SELLER' && fromSaleOrders) {
+    return 'Your Sale Orders';
+  }
+  return 'Your Orders';
+});
+
 </script>
 
 <template>
@@ -37,7 +52,6 @@ const fetchOrders = (
       <p class="text-gray-400 mt-2">Track and view your completed purchases</p>
     </div>
 
-     <HistoryPath main="Your Orders" name-path="Order Details" :previous="1" :name-path="title" />
 
     <div v-if="orderStore.loading" class="text-gray-500 text-center py-20">
       Loading your orders...
@@ -51,100 +65,112 @@ const fetchOrders = (
       No orders found.
     </div>
 
-    <div v-if="orderStore.order" class="max-w-6xl mx-auto space-y-10">
-      <div
-        :key="date"
-        class="space-y-6"
-      >
-        <h2
-          class="text-2xl font-semibold text-purple-400 border-b border-neutral-700 pb-2"
-        >
-          {{ date }}
-        </h2>
+    <div v-if="orderStore.order" class="max-w-5xl mx-auto space-y-6">
+      <HistoryPath :main="historyPathName" name-path="Order Details" :previous="1" :name-path="title" />
 
-        <div class="itbms-row">
-          <Card
-            class="bg-neutral-900/80 border border-neutral-700 hover:border-purple-500 transition"
-          >
-            <CardHeader>
-              <div class="flex justify-between items-center flex-wrap gap-4">
-                <div class="space-y-1">
-                  <CardTitle class="itbms-nickname"
-                    >Seller: {{orderStore.order.seller.nickName }}</CardTitle
-                  >
-                  <p class="text-sm text-gray-400 itbms-order-id">
-                    Order #: {{orderStore.order.id }}
-                  </p>
+      <!-- Order Summary Card with enhanced styling -->
+      <div class="bg-gradient-to-br from-blue-900/20 to-neutral-900/80 border-2 border-blue-500/30 rounded-2xl shadow-2xl overflow-hidden">
+        <!-- Header Section -->
+        <div class="bg-blue-900/30 px-6 py-4 border-b border-blue-500/30">
+          <div class="flex justify-between items-start flex-wrap gap-4">
+            <div class="space-y-2">
+              <h2 class="text-2xl font-bold text-blue-300 itbms-nickname">
+                Seller: {{orderStore.order.seller.nickName }}
+              </h2>
+              <p class="text-sm text-gray-400 itbms-order-id">
+                Order #{{orderStore.order.id }}
+              </p>
+              <div class="flex items-center gap-2">
+                <span
+                  class="px-3 py-1 text-sm rounded-full font-semibold"
+                  :class="{
+                    'bg-green-600/20 text-green-400 border border-green-500/30': orderStore.order.orderStatus === 'COMPLETED',
+                    'bg-red-600/20 text-red-400 border border-red-500/30': orderStore.order.orderStatus === 'CANCELLED',
+                    'bg-blue-600/20 text-blue-400 border border-blue-500/30': orderStore.order.orderStatus === 'NEW',
+                  }"
+                >
+                  {{ orderStore.order.orderStatus }}
+                </span>
+              </div>
+            </div>
+            
+            <div class="text-right space-y-2">
+              <p class="text-4xl font-extrabold text-green-400 itbms-total-order-price">
+                ฿{{
+                  orderStore.order.orderItems
+                    .reduce((sum, i) => sum + i.price * i.quantity, 0)
+                    .toLocaleString()
+                }}
+              </p>
+              <div class="text-sm text-gray-400 space-y-1">
+                <div class="itbms-order-date">
+                  <span class="text-blue-300">Order:</span>
+                  {{ new Date(orderStore.order.orderDate).toLocaleDateString("th-TH") }}
                 </div>
-                <div class="text-sm text-gray-400 space-x-4">
-                  <span class="itbms-order-date">
-                    Order Date:
-                    {{ new Date(orderStore.order.orderDate).toLocaleDateString("th-TH") }}
-                  </span>
-                  <span class="itbms-payment-date">
-                    Payment Date:
-                    {{
-                      new Date(orderStore.order.paymentDate).toLocaleDateString("th-TH")
-                    }}
-                  </span>
-                </div>
-                <div class="text-right">
-                  <p
-                    class="text-green-400 font-bold text-lg itbms-total-order-price"
-                  >
-                    ฿{{
-                      orderStore.order.orderItems
-                        .reduce((sum, i) => sum + i.price * i.quantity, 0)
-                        .toLocaleString()
-                    }}
-                  </p>
-                  <p class="text-sm text-gray-400 itbms-order-status">
-                    Status: {{ orderStore.order.orderStatus }}
-                  </p>
+                <div class="itbms-payment-date">
+                  <span class="text-blue-300">Payment:</span>
+                  {{ new Date(orderStore.order.paymentDate).toLocaleDateString("th-TH") }}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
 
-              <p class="mt-2 text-sm text-gray-300 itbms-shipping-address">
-                <b>Shipped To: </b>
+        <!-- Shipping Info Section -->
+        <div class="px-6 py-4 bg-neutral-900/50 border-b border-neutral-700">
+          <div class="grid grid-cols-1 gap-3">
+            <div class="itbms-shipping-address">
+              <span class="text-blue-300 font-semibold">📦 Ship To:</span>
+              <span class="text-gray-300 ml-2">
                 <span v-if="orderStore.order.shippingAddress">
                   {{
                     orderStore.order?.buyerName
-                      ? orderStore.order.buyerName+ ", "
+                      ? orderStore.order.buyerName + ", "
                       : ""
                   }}{{ orderStore.order.shippingAddress }}
                 </span>
-              </p>
-              <p class="mt-1 text-sm text-gray-300 itbms-order-note">
-                <b>Note:</b> {{ orderStore.order.orderNote || "—" }}
-              </p>
-            </CardHeader>
+              </span>
+            </div>
+            <div class="itbms-order-note">
+              <span class="text-blue-300 font-semibold">📝 Note:</span>
+              <span class="text-gray-300 ml-2">{{ orderStore.order.orderNote || "—" }}</span>
+            </div>
+          </div>
+        </div>
 
-            <CardContent class="divide-y divide-neutral-800">
-              <div
-                v-for="item in orderStore.order.orderItems"
-                :key="item.saleItemId"
-                class="flex items-center gap-4 py-4 itbms-item-row"
-              >
-                <img
-                  :src="`${BASE_URL}/sale-items-images/${item.saleItemId}.jpg`"
-                  @error="(e) => (e.target.src = DEFAULT_IMAGE)"
-                  alt="Item Image"
-                  class="w-16 h-16 rounded object-cover"
-                />
-                <div class="flex-1">
-                  <p class="font-semibold text-lg itbms-item-description">
-                    {{ item.description }}
-                  </p>
-                  <p class="text-sm text-gray-400 itbms-item-quantity">
-                    Qty: {{ item.quantity }}
-                  </p>
-                </div>
-                <p class="text-right text-gray-300 itbms-item-total-price">
+        <!-- Items Section -->
+        <div class="px-6 py-4">
+          <h3 class="text-xl font-bold text-blue-300 mb-4">Order Items</h3>
+          <div class="space-y-4">
+            <div
+              v-for="item in orderStore.order.orderItems"
+              :key="item.saleItemId"
+              class="flex items-center gap-4 p-4 bg-neutral-800/50 rounded-xl border border-neutral-700 hover:border-blue-500/50 transition itbms-item-row"
+            >
+              <img
+                :src="`${BASE_URL}/sale-items-images/${item.saleItemId}.jpg`"
+                @error="(e) => (e.target.src = DEFAULT_IMAGE)"
+                alt="Item Image"
+                class="w-20 h-20 rounded-lg object-cover border-2 border-blue-500/30"
+              />
+              <div class="flex-1">
+                <p class="font-bold text-xl text-white itbms-item-description">
+                  {{ item.description }}
+                </p>
+                <p class="text-sm text-gray-400 itbms-item-quantity">
+                  Quantity: <span class="text-blue-300 font-semibold">{{ item.quantity }}</span>
+                </p>
+                <p class="text-sm text-gray-400">
+                  Unit Price: <span class="text-white">฿{{ item.price.toLocaleString() }}</span>
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-bold text-blue-300 itbms-item-total-price">
                   ฿{{ (item.price * item.quantity).toLocaleString() }}
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>
