@@ -5,7 +5,7 @@ import { useProductStore } from "@/stores/useProductStore";
 // Guards
 function requireAuth(to, from, next) {
   const auth = useAuthStore();
-  if (!auth.isAuthenticated || !auth.user) next({ name: "Login" });
+  if (!auth.isAuthenticated || !auth.user) next({ name: "product-gallery" });
   else next();
 }
 
