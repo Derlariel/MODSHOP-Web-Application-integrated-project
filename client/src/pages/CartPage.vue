@@ -6,8 +6,8 @@ import Card from "@/components/UI/cart/Card.vue"
 import CardHeader from "@/components/UI/cart/CardHeader.vue"
 import CardContent from "@/components/UI/cart/CardContent.vue"
 import CardTitle from "@/components/UI/cart/CartTitle.vue"
-import { computed, ref } from "vue"
-import { createOrder } from "@/api/orderAPI"
+import { computed, ref, onMounted } from "vue"
+import { createOrder, getOrders } from "@/api/orderAPI"
 import { useAuthStore } from "@/stores/useAuthStore"
 import { useOrderStore } from "@/stores/useOrderStore"
 import { useSellerOrdersStore } from "@/stores/useSellerOrdersStore"
@@ -21,10 +21,42 @@ const sellerOrdersStore = useSellerOrdersStore()
 
 const shippingAddress = ref("")
 const orderNote = ref("")
+const isDefaultAddress = ref(false)
 
 const buyerName = computed(() => {
   const u = auth.user || {}
   return (u.fullName && String(u.fullName).trim()) || ""
+})
+
+// Fetch previous order data on mount
+onMounted(async () => {
+  if (auth.isAuthenticated && auth.user?.id) {
+    try {
+      const response = await getOrders(auth.user.id, 0, 1, "orderDate,desc")
+      const orders = response?.data?.content || []
+      
+      if (orders.length > 0) {
+        const lastOrder = orders[0]
+        if (lastOrder.shippingAddress) {
+          shippingAddress.value = lastOrder.shippingAddress
+        }
+        if (lastOrder.orderNote) {
+          orderNote.value = lastOrder.orderNote
+        }
+      }
+      
+      // If no previous address found, use mock address
+      if (!shippingAddress.value || !shippingAddress.value.trim()) {
+        shippingAddress.value = "123 Mock Street, Subdistrict, District, Province, 10100"
+        isDefaultAddress.value = true
+      }
+    } catch (error) {
+      console.error("Failed to fetch previous order:", error)
+      // Use mock address on error
+      shippingAddress.value = "123 Mock Street, Subdistrict, District, Province, 10100"
+      isDefaultAddress.value = true
+    }
+  }
 })
 
 const shipToPreview = computed(() => {
@@ -302,12 +334,19 @@ async function placeOrder() {
                 <span class="text-white font-medium"> {{ buyerName }} </span>
                 <span v-if="shippingAddress && shippingAddress.trim()">, {{ shippingAddress }}</span>
               </div>
+              
+              <!-- Default Address Warning -->
+              <div v-if="isDefaultAddress" class="text-xs text-yellow-400 bg-yellow-900/20 border border-yellow-700/50 rounded-lg px-3 py-2">
+                ⚠️ Using default shipping address. Please update with your real address.
+              </div>
+              
               <label class="block text-sm text-gray-400">Address<span class="text-red-500">*</span> (Address No, Street, Subdistrict, District, Province, Postal Code)</label>
               <textarea
                 class="itbms-shipping-address w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-white focus:border-neutral-500 transition-all bg-neutral-800 text-white border-neutral-700"
                 rows="3"
                 v-model="shippingAddress"
                 placeholder="Enter shipping address"
+                @input="isDefaultAddress = false"
               ></textarea>
 
               <label class="block text-sm text-gray-400">Note</label>
@@ -329,7 +368,7 @@ async function placeOrder() {
             isButton
             buttonText="Place Order"
             variant="primary"
-            :disabled="selectedTotalItems === 0 || placing || !shippingAddress.trim()"
+            :disabled="selectedTotalItems === 0 || placing || !shippingAddress || !shippingAddress.trim()"
             class="w-full py-4 text-lg font-semibold rounded-xl"
             @click="placeOrder"
           />
