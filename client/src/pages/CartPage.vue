@@ -261,14 +261,17 @@ async function placeOrder() {
         <div v-for="(items, sellerId) in groupedCart" :key="sellerId" class="space-y-6">
           <Card>
             <CardHeader>
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-1">
                 <input
                   type="checkbox"
                   :checked="items.every(i => selectedItems.has(i.saleItemId + '-' + i.sellerId)) && items.length > 0"
                   @change="(e) => toggleSeller(sellerId, e.target.checked)"
                   class="w-5 h-5 accent-blue-500"
                 />
-                <CardTitle>Seller: {{ items[0].sellerNickname }}</CardTitle>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                <CardTitle>{{ items[0].sellerNickname }} <span class="text-sm text-gray-400 "> (SELLER)</span></CardTitle>
               </div>
             </CardHeader>
 
