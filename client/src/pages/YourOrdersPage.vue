@@ -8,6 +8,7 @@ import CardContent from "@/components/UI/cart/CardContent.vue";
 import CardTitle from "@/components/UI/cart/CartTitle.vue";
 import Pagination from "@/components/shared/Pagination.vue";
 import { useRouter } from "vue-router";
+import { getOrdersWithStatus } from "@/api/orderAPI";
 
 const router = useRouter()
 
@@ -19,13 +20,48 @@ const DEFAULT_IMAGE = new URL("@/assets/default.jpg", import.meta.url).href;
 
 const status = ref("NEW");
 
-onMounted(() => {
+onMounted(async () => {
   const savedPage = Number(sessionStorage.getItem("ordersActivePage")) || 1;
   orderStore.setActivePage(savedPage);
-  fetchOrders();
+  
+  // Determine which tab to show based on available orders
   if (userStore.user?.id) {
+    try {
+      // Check for NEW orders first (priority 1)
+      const newRes = await getOrdersWithStatus(userStore.user.id, 0, 1, "id,desc", "NEW");
+      const hasNew = (newRes?.data?.totalElements ?? 0) > 0;
+      
+      if (hasNew) {
+        status.value = "NEW";
+      } else {
+        // Check for COMPLETED orders (priority 2)
+        const completedRes = await getOrdersWithStatus(userStore.user.id, 0, 1, "id,desc", "COMPLETED");
+        const hasCompleted = (completedRes?.data?.totalElements ?? 0) > 0;
+        
+        if (hasCompleted) {
+          status.value = "COMPLETED";
+        } else {
+          // Check for CANCELLED orders (priority 3)
+          const cancelledRes = await getOrdersWithStatus(userStore.user.id, 0, 1, "id,desc", "CANCELLED");
+          const hasCancelled = (cancelledRes?.data?.totalElements ?? 0) > 0;
+          
+          if (hasCancelled) {
+            status.value = "CANCELLED";
+          } else {
+            // No orders at all, default to NEW
+            status.value = "NEW";
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error checking order counts:", error);
+      status.value = "NEW"; // fallback to NEW on error
+    }
+    
     orderStore.refreshBadge(userStore.user.id);
   }
+  
+  fetchOrders();
 });
 
 const fetchOrders = (statusValue = status.value, page = orderStore.activePage) => {
@@ -158,6 +194,7 @@ const groupedOrders = computed(() => {
             <CardHeader>
               <div class="flex justify-between items-center flex-wrap gap-4">
                 <div class="space-y-1">
+                  
                   <CardTitle class="itbms-nickname"
                     >Seller: {{ order.seller.nickName }}</CardTitle
                   >

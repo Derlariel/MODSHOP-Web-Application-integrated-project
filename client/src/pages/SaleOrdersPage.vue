@@ -8,7 +8,7 @@ import Card from '@/components/UI/cart/Card.vue';
 import CardHeader from '@/components/UI/cart/CardHeader.vue';
 import CardContent from '@/components/UI/cart/CardContent.vue';
 import DEFAULT_IMAGE from '@/assets/default.jpg';
-import { getOrdersWithId } from '@/api/orderAPI';
+import { getOrdersWithId, getSellerOrders } from '@/api/orderAPI';
 
 
 const BASE_IMG_URL = `${import.meta.env.VITE_BASE_URL}/sale-items-images/`;
@@ -28,6 +28,55 @@ onMounted(async () => {
     router.replace({ name: 'product-gallery' });
     return;
   }
+  
+  // Determine which tab to show based on available orders
+  try {
+    // Check for NEW orders first (priority 1)
+    const newRes = await getSellerOrders(auth.user.id, {
+      tab: 'new',
+      page: 0,
+      size: 1,
+      sort: 'id,desc',
+    });
+    const hasNew = (newRes?.data?.totalElements ?? 0) > 0;
+    
+    if (hasNew) {
+      store.setTab('new');
+    } else {
+      // Check for ALL orders (priority 2)
+      const allRes = await getSellerOrders(auth.user.id, {
+        tab: 'all',
+        page: 0,
+        size: 1,
+        sort: 'id,desc',
+      });
+      const hasAll = (allRes?.data?.totalElements ?? 0) > 0;
+      
+      if (hasAll) {
+        store.setTab('all');
+      } else {
+        // Check for CANCELLED orders (priority 3)
+        const cancelledRes = await getSellerOrders(auth.user.id, {
+          tab: 'cancelled',
+          page: 0,
+          size: 1,
+          sort: 'id,desc',
+        });
+        const hasCancelled = (cancelledRes?.data?.totalElements ?? 0) > 0;
+        
+        if (hasCancelled) {
+          store.setTab('cancelled');
+        } else {
+          // No orders at all, default to NEW
+          store.setTab('new');
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error checking seller order counts:", error);
+    store.setTab('new'); // fallback to new on error
+  }
+  
   await store.fetchOrders(auth.user.id);
   // Refresh badge count when page loads
   store.refreshBadge(auth.user.id);
