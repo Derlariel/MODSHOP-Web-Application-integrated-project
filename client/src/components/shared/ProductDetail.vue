@@ -238,7 +238,7 @@ onMounted(async () => {
                 </button>
 
                 <span class="text-2xl font-semibold min-w-[2rem] text-center">
-                  {{ selectedQuantity }}
+                  {{ product && product.quantity === 0 ? 0 : selectedQuantity }}
                 </span>
 
                 <button
@@ -251,16 +251,19 @@ onMounted(async () => {
               </div>
 
               <button
+                v-if="product.quantity === 0"
+                class="w-full bg-gray-700 text-gray-400 rounded-full py-3.5 font-medium text-sm cursor-not-allowed opacity-60 hover:bg-gray-600 hover:text-gray-300"
+                disabled
+                title="Out of Stock"
+              >
+                Out of Stock
+              </button>
+              <button
+                v-else
                 @click.stop="addToCart"
                 class="w-full bg-white text-black rounded-full py-3.5 font-medium text-sm hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                :disabled="product.quantity === 0 || isCoolingDown"
-                :title="
-                  product.quantity === 0
-                    ? 'Out of stock'
-                    : isCoolingDown
-                    ? 'Please wait...'
-                    : ''
-                "
+                :disabled="isCoolingDown"
+                :title="isCoolingDown ? 'Please wait...' : ''"
               >
                 Add to Cart
               </button>
