@@ -131,19 +131,19 @@ public class SaleItemController {
         return ResponseEntity.ok(updatedItem);
     }
 
-//    @Operation(summary = "Delete product", description = "Delete product by specified ID")
-//    @ApiResponses({
-//        @ApiResponse(responseCode = "204", description = "Product deleted successfully",
-//                    content = @Content),
-//        @ApiResponse(responseCode = "404", description = "Product not found",
-//                    content = @Content)
-//    })
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> deleteSaleItemById(
-//            @Parameter(description = "ID of the product to delete", required = true)
-//            @PathVariable Integer id) {
-//        saleItemService.deleteSaleItemById(id);
-//        return ResponseEntity.noContent().build();
-//    }
+   @Operation(summary = "Delete product", description = "Delete product by specified ID")
+   @ApiResponses({
+       @ApiResponse(responseCode = "204", description = "Product deleted successfully",
+                   content = @Content),
+       @ApiResponse(responseCode = "404", description = "Product not found",
+                   content = @Content)
+   })
+   @DeleteMapping("/{id}")
+   public ResponseEntity<Void> deleteSaleItemById(
+           @Parameter(description = "ID of the product to delete", required = true)
+           @PathVariable Integer id) {
+       saleItemService.deleteSaleItemById(id);
+       return ResponseEntity.noContent().build();
+   }
 
 }

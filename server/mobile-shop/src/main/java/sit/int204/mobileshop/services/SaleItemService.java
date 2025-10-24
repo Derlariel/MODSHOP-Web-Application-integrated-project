@@ -28,6 +28,7 @@ import sit.int204.mobileshop.config.FileStorageProperties;
 import sit.int204.mobileshop.dtos.*;
 import sit.int204.mobileshop.entities.*;
 import sit.int204.mobileshop.exceptions.ItemNotFoundException;
+import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
 import sit.int204.mobileshop.repositories.SellerRepository;
@@ -283,9 +284,20 @@ public class SaleItemService {
 
     @Transactional
     public void deleteSaleItemById(Integer id) {
-        if(!saleItemRepository.findById(id).isPresent()) {
-            throw new ItemNotFoundException("SaleItem not found for this id :: " + id);
+        SaleItem existingItem = saleItemRepository.findById(id)
+                .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
+        
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserResponseDto) {
+            UserResponseDto principal = (UserResponseDto) authentication.getPrincipal();
+            
+            if (existingItem.getSeller() != null && 
+                !principal.getId().equals(existingItem.getSeller().getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "You are not authorized to delete this sale item. Only the owner can delete it.");
+            }
         }
+        
         saleItemRepository.deleteById(id);
     }
 
@@ -358,7 +370,20 @@ public class SaleItemService {
         // 1. โหลดข้อมูลเก่า
         SaleItem existingItem = getSaleItemByIdOld(id);
 
-        // 2. validate brand
+        // 2. Check seller ownership authorization
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserResponseDto) {
+            UserResponseDto principal = (UserResponseDto) authentication.getPrincipal();
+            
+            // Verify that the authenticated seller is the owner of this sale item
+            if (existingItem.getSeller() != null && 
+                !principal.getId().equals(existingItem.getSeller().getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "You are not authorized to update this sale item. Only the owner can update it.");
+            }
+        }
+
+        // 3. validate brand
         if (saleItemWithImageInfo.getSaleItem() == null ||
                 saleItemWithImageInfo.getSaleItem().getBrand() == null ||
                 saleItemWithImageInfo.getSaleItem().getBrand().getId() == null) {
