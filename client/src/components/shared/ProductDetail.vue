@@ -79,9 +79,13 @@ const confirm = async () => {
     sessionStorage.setItem("activePage", 1);
     productStore.setActivePage(1);
   } catch (error) {
-    sessionStorage.setItem("error-message", "true");
-    console.log(sessionStorage.getItem("error-message"));
-    router.push("/sale-items");
+    if (error && error.status === 409) {
+      errorMessage.value = "This sale item cannot be deleted because it is already included in one or more orders.";
+      showError.value = true;
+    } else {
+      errorMessage.value = "Unable to delete this sale item at the moment. Please try again.";
+      showError.value = true;
+    }
   }
 };
 

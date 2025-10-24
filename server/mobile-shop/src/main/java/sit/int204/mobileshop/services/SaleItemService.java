@@ -35,7 +35,7 @@ import sit.int204.mobileshop.repositories.SellerRepository;
 import sit.int204.mobileshop.repositories.UserRepository;
 import sit.int204.mobileshop.specifications.SaleItemSpecs;
 import sit.int204.mobileshop.utils.ListMapper;
-
+import sit.int204.mobileshop.repositories.OrderItemRepository;
 
 @Service
 public class SaleItemService {
@@ -71,6 +71,9 @@ public class SaleItemService {
 
     @Autowired
     private FileService fileService;
+
+    @Autowired
+    private OrderItemRepository orderItemRepository;
 
     public List<SaleItem> getAllSaleItems() {
         return saleItemRepository.findAll();
@@ -296,6 +299,14 @@ public class SaleItemService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "You are not authorized to delete this sale item. Only the owner can delete it.");
             }
+        }
+        // Prevent deleting sale items that have already been ordered
+        boolean hasOrders = orderItemRepository.existsBySaleItem_Id(id);
+        if (hasOrders) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Cannot delete this sale item because it has already been ordered."
+            );
         }
         
         saleItemRepository.deleteById(id);

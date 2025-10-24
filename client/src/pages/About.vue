@@ -1,6 +1,6 @@
 <script setup>
-// import Advisor from '@/assets/group-about/teacher.png';
-// import Kongphob from '@/assets/team-pics/kongphob.JPG';
+import Advisor from '@/assets/group-about/teacher.png';
+import Kongphob from '@/assets/team-pics/kongphob.JPG';
 </script>
 
 <template>
@@ -11,7 +11,7 @@
         <img :src="Advisor" alt="Advisor" class="w-48 h-48 rounded-full border-4 border-blue-200 shadow mb-4" />
         <div>
           <h2 class="text-xl font-semibold text-gray-800">Asst. Prof. Dr. Kriengkrai Porkaew</h2>
-          <p class="text-gray-500">อาจารย์ที่ปรึกษากลุ่ม KK-1 วิชา INT221</p>
+          <p class="text-gray-500">อาจารย์ที่ปรึกษากลุ่ม KK-1 วิชา INT222 Integrated Project II</p>
         </div>
       </div>
     </div>
