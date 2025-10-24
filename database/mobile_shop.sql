@@ -263,8 +263,7 @@ CREATE TABLE order_items (
 
 INSERT INTO orders (user_id, seller_id, order_date, shipping_address, order_note, order_status) VALUES
 (1, 3, '2025-10-01 09:00:00', '126 Pracha Utid Rd, Bangkok', 'School of IT (N11)', 'NEW'),
-(1, 4, '2025-10-01 10:00:00', '126 Pracha Utid Rd, Bangkok', NULL, 'CANCELLED'),
-(2, 3, '2025-10-01 11:00:00', '126 Pracha Utid Rd, Bangkok', 'ส่งด่วน', 'COMPLETED');
+(1, 4, '2025-10-01 10:00:00', '126 Pracha Utid Rd, Bangkok', NULL, 'CANCELLED');
 
 
 INSERT INTO order_items (order_id, sale_item_id, price, quantity, description) VALUES
