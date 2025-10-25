@@ -7,6 +7,7 @@ import CardHeader from "@/components/UI/cart/CardHeader.vue";
 import CardContent from "@/components/UI/cart/CardContent.vue";
 import CardTitle from "@/components/UI/cart/CartTitle.vue";
 import Pagination from "@/components/shared/Pagination.vue";
+import OrderFilterSearch from "@/components/shared/OrderFilterSearch.vue";
 import { useRouter } from "vue-router";
 import { getOrdersWithStatus } from "@/api/orderAPI";
 
@@ -19,6 +20,17 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 const DEFAULT_IMAGE = new URL("@/assets/default.jpg", import.meta.url).href;
 
 const status = ref("NEW");
+const searchFilters = ref({
+  keyword: '',
+  sellerName: '',
+  brandName: '',
+  model: '',
+  startDate: null,
+  endDate: null
+});
+const isSearchActive = ref(false);
+const searchResults = ref([]);
+const searchTotalPages = ref(0);
 
 onMounted(async () => {
   const savedPage = Number(sessionStorage.getItem("ordersActivePage")) || 1;
@@ -69,12 +81,137 @@ const fetchOrders = (statusValue = status.value, page = orderStore.activePage) =
   orderStore.fetchOrders(userStore.user.id, statusValue, page);
 };
 
+const handleSearch = async (filterData) => {
+  if (!userStore.user?.id) return;
+  
+  isSearchActive.value = true;
+  orderStore.setActivePage(1);
+  
+  try {
+    const params = new URLSearchParams();
+    params.append('userId', userStore.user.id);
+    params.append('page', 0);
+    params.append('size', 10);
+    params.append('sortField', 'orderDate');
+    params.append('sortDirection', 'desc');
+    
+    // Always use current status tab
+    params.append('orderStatus', status.value);
+    
+    if (filterData.keyword?.trim()) {
+      params.append('keyword', filterData.keyword.trim());
+    }
+    if (filterData.sellerName?.trim()) {
+      params.append('sellerName', filterData.sellerName.trim());
+    }
+    if (filterData.brandName?.trim()) {
+      params.append('brandName', filterData.brandName.trim());
+    }
+    if (filterData.model?.trim()) {
+      params.append('model', filterData.model.trim());
+    }
+    if (filterData.startDate) {
+      params.append('startDate', filterData.startDate);
+    }
+    if (filterData.endDate) {
+      params.append('endDate', filterData.endDate);
+    }
+    
+    const response = await fetch(`${BASE_URL}/v2/orders/search?${params.toString()}`, {
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to search orders');
+    }
+    
+    const data = await response.json();
+    searchResults.value = data.content || [];
+    searchTotalPages.value = data.totalPages || 0;
+  } catch (error) {
+    console.error('Error searching orders:', error);
+    searchResults.value = [];
+    searchTotalPages.value = 0;
+  }
+};
+
+const handleClearSearch = () => {
+  isSearchActive.value = false;
+  searchResults.value = [];
+  searchTotalPages.value = 0;
+  searchFilters.value = {
+    keyword: '',
+    sellerName: '',
+    brandName: '',
+    model: '',
+    startDate: null,
+    endDate: null
+  };
+  orderStore.setActivePage(1);
+  fetchOrders(status.value, 1);
+};
+
+const updateSearchPage = async (page) => {
+  if (!userStore.user?.id) return;
+  
+  try {
+    const params = new URLSearchParams();
+    params.append('userId', userStore.user.id);
+    params.append('page', page - 1); // Convert to 0-based
+    params.append('size', 10);
+    params.append('sortField', 'orderDate');
+    params.append('sortDirection', 'desc');
+    
+    // Always use current status tab
+    params.append('orderStatus', status.value);
+    
+    if (searchFilters.value.keyword?.trim()) {
+      params.append('keyword', searchFilters.value.keyword.trim());
+    }
+    if (searchFilters.value.sellerName?.trim()) {
+      params.append('sellerName', searchFilters.value.sellerName.trim());
+    }
+    if (searchFilters.value.brandName?.trim()) {
+      params.append('brandName', searchFilters.value.brandName.trim());
+    }
+    if (searchFilters.value.model?.trim()) {
+      params.append('model', searchFilters.value.model.trim());
+    }
+    if (searchFilters.value.startDate) {
+      params.append('startDate', searchFilters.value.startDate);
+    }
+    if (searchFilters.value.endDate) {
+      params.append('endDate', searchFilters.value.endDate);
+    }
+    
+    const response = await fetch(`${BASE_URL}/v2/orders/search?${params.toString()}`, {
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to search orders');
+    }
+    
+    const data = await response.json();
+    searchResults.value = data.content || [];
+    orderStore.setActivePage(page);
+  } catch (error) {
+    console.error('Error searching orders:', error);
+  }
+};
+
 const changeStatus = (newStatus) => {
   if (status.value === newStatus) return;
   status.value = newStatus;
   orderStore.setActivePage(1);
   sessionStorage.setItem("ordersActivePage", 1);
-  fetchOrders(newStatus, 1);
+  
+  // If search is active, re-run search with new status
+  if (isSearchActive.value) {
+    handleSearch(searchFilters.value);
+  } else {
+    fetchOrders(newStatus, 1);
+  }
 };
 
 const updatePages = (page) => {
@@ -120,7 +257,7 @@ watch(() => orderStore.activePage, (newPage) => {
 const groupedOrders = computed(() => {
   console.log('Recomputing groupedOrders...');
   const grouped = {};
-  const orders = orderStore.orders.slice();
+  const orders = isSearchActive.value ? searchResults.value : orderStore.orders.slice();
 
   orders.forEach((order) => {
     const date = new Date(order.orderDate).toLocaleDateString("th-TH");
@@ -130,6 +267,18 @@ const groupedOrders = computed(() => {
   console.log(grouped)
   return grouped;
 });
+
+const displayTotalPages = computed(() => {
+  return isSearchActive.value ? searchTotalPages.value : orderStore.allPages;
+});
+
+const handlePageUpdate = (page) => {
+  if (isSearchActive.value) {
+    updateSearchPage(page);
+  } else {
+    updatePages(page);
+  }
+};
 </script>
 
 <template>
@@ -139,11 +288,21 @@ const groupedOrders = computed(() => {
       <p class="text-gray-400 mt-2">Track and view your completed purchases</p>
     </div>
 
+    <!-- Search Filter Component -->
+    <div class="max-w-6xl mx-auto mb-8">
+      <OrderFilterSearch
+        v-model="searchFilters"
+        @search="handleSearch"
+        @clear="handleClearSearch"
+      />
+    </div>
+
     <div v-if="orderStore.loading" class="text-gray-500 text-center py-20">
       Loading your orders...
     </div>
 
     <div v-else class="max-w-6xl mx-auto space-y-10">
+      <!-- Tab Buttons (always visible) -->
       <div class="mb-6 flex gap-4 justify-center">
         <button
           @click="changeStatus('NEW')"
@@ -166,6 +325,13 @@ const groupedOrders = computed(() => {
         >
           Cancelled
         </button>
+      </div>
+
+      <!-- Search Results Info -->
+      <div v-if="isSearchActive" class="text-center mb-4">
+        <p class="text-gray-400">
+          Found <span class="font-semibold text-purple-400">{{ searchResults.length }}</span> orders in <span class="font-semibold text-purple-400">{{ status }}</span> status
+        </p>
       </div>
 
       <div
@@ -288,9 +454,9 @@ const groupedOrders = computed(() => {
     <!-- Pagination -->
     <div class="mt-8">
       <Pagination
-        v-if="orderStore.allPages > 1"
-        :total-pages="orderStore.allPages"
-        @send-pages="updatePages"
+        v-if="displayTotalPages > 1"
+        :total-pages="displayTotalPages"
+        @send-pages="handlePageUpdate"
       />
     </div>
   </div>
