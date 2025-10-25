@@ -275,6 +275,7 @@ public class OrderService {
                 return saleItem;
             }).collect(Collectors.toList());
 
+            // ตรวจสอบสต็อกทุกรายการก่อน
             boolean hasInsufficientStock = false;
             for (int i = 0; i < orderDto.getItems().size(); i++) {
                 var itemDto = orderDto.getItems().get(i);
@@ -286,10 +287,9 @@ public class OrderService {
             }
 
             if (hasInsufficientStock) {
-                // CANCELLED: do not deduct any stock
                 order.setOrderStatus(OrderStatus.CANCELLED);
             } else {
-                // NEW: deduct stock now under the same lock/transaction to prevent negatives
+                // หักสต็อก
                 for (int i = 0; i < orderDto.getItems().size(); i++) {
                     var itemDto = orderDto.getItems().get(i);
                     var saleItem = lockedItems.get(i);
