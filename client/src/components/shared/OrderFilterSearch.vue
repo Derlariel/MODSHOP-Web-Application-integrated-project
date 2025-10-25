@@ -89,13 +89,15 @@ const toggleAdvanced = () => {
       </div>
 
       <!-- Search Button -->
-      <button
-        @click="handleSearch"
-        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium whitespace-nowrap"
-        type="button"
-      >
-        Search
-      </button>
+        <button
+          @click="handleSearch"
+          :disabled="!hasActiveFilters"
+          class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium whitespace-nowrap"
+          :class="!hasActiveFilters ? 'opacity-50 cursor-not-allowed' : ''"
+          type="button"
+        >
+          Search
+        </button>
 
       <!-- Advanced Filter Toggle -->
       <button
