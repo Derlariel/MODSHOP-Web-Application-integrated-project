@@ -15,8 +15,10 @@ import SkeletonLoader from "@/components/shared/SkeletonLoader.vue";
 
 // const BASE_URL = "http://localhost:8080/itb-mshop/sale-items-images/";
 // const BASE_URL = "http://intproj24.sit.kmutt.ac.th/kk1/itb-mshop/sale-items-images/";
-const BASE_URL = `${import.meta.env.VITE_BASE_URL}/sale-items-images/`;
-
+// const BASE_URL = `${import.meta.env.VITE_BASE_URL}/sale-items-images/`;
+const BASE_URL = import.meta.env.DEV
+  ? "http://localhost:8080/itb-mshop/sale-items-images/"
+  : `${window.location.origin}${import.meta.env.BASE_URL}sale-items-images/`;
 const router = useRouter();
 const route = useRoute();
 
@@ -132,9 +134,9 @@ const handleAddToCart = async (item) => {
 
   // If this item is cooling down, ignore rapid clicks
   if (cooldown[item?.id]) return;
-  let detail
+  let detail;
   try {
-    detail = await productStore.fetchProductDetail(item.id)
+    detail = await productStore.fetchProductDetail(item.id);
   } catch (e) {
     errorMessage.value = "Unable to add to cart at the moment.";
     showError.value = true;
@@ -151,7 +153,8 @@ const handleAddToCart = async (item) => {
     return;
   }
 
-  const name = `${detail.brandName} ${detail.model} ${detail.ramGb}/${detail.storageGb}GB ${detail.color}`.trim()
+  const name =
+    `${detail.brandName} ${detail.model} ${detail.ramGb}/${detail.storageGb}GB ${detail.color}`.trim();
 
   const ok = cart.addToCart(
     {
@@ -181,7 +184,6 @@ const handleAddToCart = async (item) => {
 };
 
 onMounted(async () => {
-
   const filtersCleared = sessionStorage.getItem("filters-cleared-from-error");
   if (filtersCleared) {
     sessionStorage.removeItem("filters-cleared-from-error");
@@ -380,9 +382,8 @@ watch(
                   class="absolute inset-0 flex items-center justify-center transition-transform duration-700 py-6"
                 >
                   <img
-                    :src="`${BASE_URL}${product.image}`"
+                    v-img="product.image ? `${BASE_URL}${product.image}` : null"
                     class="max-h-full max-w-full object-contain transform transition-transform duration-700 -mt-10 group-hover:scale-110"
-                    alt=""
                   />
                   <div
                     class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/30 to-transparent"
@@ -433,7 +434,13 @@ watch(
                   <button
                     class="w-full rounded-full py-1 font-medium bg-white text-black hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     :disabled="product.quantity === 0 || cooldown[product.id]"
-                    :title="product.quantity === 0 ? 'Out of stock' : (cooldown[product.id] ? 'Please wait...' : '')"
+                    :title="
+                      product.quantity === 0
+                        ? 'Out of stock'
+                        : cooldown[product.id]
+                        ? 'Please wait...'
+                        : ''
+                    "
                     @click.stop.prevent="handleAddToCart(product)"
                   >
                     Add to cart
@@ -456,10 +463,9 @@ watch(
                     class="transform-style-3d hover:rotate-y-10 transition-transform duration-500 w-full h-full flex items-center justify-center"
                   >
                     <img
-                      :src="DEFAULT_IMAGE"
-                      class="itbms-image max-h-full max-w-full object-contain hover:scale-105 transition-transform duration-500"
-                      alt=""
-                    />
+  v-img="product.image ? `${BASE_URL}${product.image}` : null"
+  class="max-h-full max-w-full object-contain transform transition-transform duration-700 -mt-10 group-hover:scale-110"
+/>
                   </div>
                 </div>
                 <div class="itbms-brand font-medium">

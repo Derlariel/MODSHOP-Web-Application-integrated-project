@@ -31,6 +31,16 @@ public class MobileShopApplication {
             mapper.map(src -> src.getBrand().getName(), SaleItemDto::setBrandName);
         });
 
+        modelMapper.typeMap(SaleItem.class, sit.int204.mobileshop.dtos.SaleItemWithImageInfo.class)
+                .addMappings(mapper -> {
+                    mapper.map(src -> {
+                        if (src.getImages() == null || src.getImages().isEmpty()) {
+                            return "default.png";
+                        }
+                        return src.getImages().get(0).getFileName(); // ใช้รูปแรกเป็น thumbnail
+                    }, sit.int204.mobileshop.dtos.SaleItemWithImageInfo::setImage);
+                });
+
         return modelMapper;
     }
 
