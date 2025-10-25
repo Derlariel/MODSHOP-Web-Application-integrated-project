@@ -58,3 +58,15 @@ export async function getBuyerNewOrdersCount(userId) {
   const res = await getOrdersWithStatus(userId, 0, 1, "id,desc", "NEW");
   return res?.data?.totalElements ?? 0;
 }
+
+export async function getSellerNamesForUser(userId) {
+  return await request(`/v2/users/${userId}/sellers/names`, {
+    method: "GET",
+  });
+}
+
+export async function getBuyerNamesForSeller(sellerId) {
+  return await request(`/v2/sellers/${sellerId}/buyers/names`, {
+    method: "GET",
+  });
+}

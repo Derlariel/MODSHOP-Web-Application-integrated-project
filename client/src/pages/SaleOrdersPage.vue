@@ -4,17 +4,20 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useSellerOrdersStore } from '@/stores/useSellerOrdersStore';
 import Pagination from '@/components/shared/Pagination.vue';
+import OrderFilterSearch from '@/components/shared/OrderFilterSearch.vue';
+import { useBrandStore } from '@/stores/useBrandStore';
 import Card from '@/components/UI/cart/Card.vue';
 import CardHeader from '@/components/UI/cart/CardHeader.vue';
 import CardContent from '@/components/UI/cart/CardContent.vue';
 import DEFAULT_IMAGE from '@/assets/default.jpg';
-import { getOrdersWithId, getSellerOrders } from '@/api/orderAPI';
+import { getOrdersWithId, getSellerOrders, getBuyerNamesForSeller } from '@/api/orderAPI';
 
 
 const BASE_IMG_URL = `${import.meta.env.VITE_BASE_URL}/sale-items-images/`;
 
 const auth = useAuthStore();
 const store = useSellerOrdersStore();
+const brandStore = useBrandStore();
 const router = useRouter();
 
 const tabs = [
@@ -24,9 +27,21 @@ const tabs = [
 ];
 
 onMounted(async () => {
+  // preload brands for dropdown
+  try { await brandStore.loadBrands(); } catch (e) {}
+  
   if (!auth.user || auth.user.role !== 'SELLER') {
     router.replace({ name: 'product-gallery' });
     return;
+  }
+  
+  // preload buyer names for dropdown - only buyers who have ordered from this seller
+  try {
+    const buyersRes = await getBuyerNamesForSeller(auth.user.id);
+    const list = Array.isArray(buyersRes?.data) ? buyersRes.data : buyersRes;
+    allBuyerNames.value = (list || []).filter(x => typeof x === 'string').sort((a,b) => a.localeCompare(b));
+  } catch (_) {
+    allBuyerNames.value = [];
   }
   
   // Determine which tab to show based on available orders
@@ -80,6 +95,11 @@ onMounted(async () => {
   await store.fetchOrders(auth.user.id);
   // Refresh badge count when page loads
   store.refreshBadge(auth.user.id);
+  
+  // Restore search if it was active
+  if (isSearchActive.value && savedFilters) {
+    await handleSearch(searchFilters.value);
+  }
 });
 
 const viewOrder = async (orderId) => {
@@ -100,23 +120,184 @@ onActivated(() => {
 
 function selectTab(key) {
   store.setTab(key);
-  store.fetchOrders(auth.user.id);
+  if (isSearchActive.value) {
+    handleSearch(searchFilters.value);
+  } else {
+    store.fetchOrders(auth.user.id);
+  }
 }
 
 function changePage(p) {
-  store.setPage(p);
-  store.fetchOrders(auth.user.id);
+  if (isSearchActive.value) {
+    updateSearchPage(p);
+  } else {
+    store.setPage(p);
+    store.fetchOrders(auth.user.id);
+  }
 }
+
+// Search state with persistence
+const STORAGE_KEY_FILTERS = 'saleOrdersFilters';
+const STORAGE_KEY_SEARCH_ACTIVE = 'saleOrdersSearchActive';
+
+const loadFiltersFromStorage = () => {
+  try {
+    const saved = sessionStorage.getItem(STORAGE_KEY_FILTERS);
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveFiltersToStorage = (filters) => {
+  try {
+    sessionStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters));
+  } catch (e) {
+    console.error('Failed to save filters:', e);
+  }
+};
+
+const loadSearchActiveFromStorage = () => {
+  try {
+    const saved = sessionStorage.getItem(STORAGE_KEY_SEARCH_ACTIVE);
+    return saved === 'true';
+  } catch {
+    return false;
+  }
+};
+
+const saveSearchActiveToStorage = (active) => {
+  try {
+    sessionStorage.setItem(STORAGE_KEY_SEARCH_ACTIVE, active.toString());
+  } catch (e) {
+    console.error('Failed to save search active state:', e);
+  }
+};
+
+const savedFilters = loadFiltersFromStorage();
+const isSearchActive = ref(loadSearchActiveFromStorage());
+const searchFilters = ref(savedFilters || {
+  keyword: '',
+  buyerName: '',
+  sellerName: '',
+  brandName: '',
+  model: '',
+  startDate: null,
+  endDate: null
+});
+const searchResults = ref([]);
+const searchTotalPages = ref(0);
+const allBuyerNames = ref([]);
+
+const brandOptions = computed(() => {
+  try { return brandStore.filterBrands(); } catch { return []; }
+});
+
+const buyerOptions = computed(() => allBuyerNames.value);
 
 const groupedOrders = computed(() => {
   const grouped = {};
-  (store.orders || []).forEach((order) => {
+  const source = isSearchActive.value ? searchResults.value : store.orders;
+  (source || []).forEach((order) => {
     const date = new Date(order.orderDate).toLocaleDateString('th-TH');
     if (!grouped[date]) grouped[date] = [];
     grouped[date].push(order);
   });
   return grouped;
 });
+
+const displayTotalPages = computed(() => isSearchActive.value ? searchTotalPages.value : store.totalPages);
+
+const mapTabToStatus = (tab) => {
+  if (tab === 'new') return 'NEW';
+  if (tab === 'cancelled') return 'CANCELLED';
+  return null; // 'all' => no status filter
+};
+
+const handleSearch = async (filterData) => {
+  if (!auth.user?.id) return;
+  isSearchActive.value = true;
+  saveSearchActiveToStorage(true);
+  saveFiltersToStorage(filterData);
+  store.setPage(1);
+  try {
+    const params = new URLSearchParams();
+    params.append('sellerId', auth.user.id);
+    params.append('page', 0);
+    params.append('size', 10);
+    params.append('sortField', 'orderDate');
+    params.append('sortDirection', 'desc');
+
+    const status = mapTabToStatus(store.tab);
+    if (status) params.append('orderStatus', status);
+
+    if (filterData.keyword?.trim()) params.append('keyword', filterData.keyword.trim());
+  if (filterData.buyerName?.trim()) params.append('buyerName', filterData.buyerName.trim());
+    if (filterData.brandName?.trim()) params.append('brandName', filterData.brandName.trim());
+    if (filterData.model?.trim()) params.append('model', filterData.model.trim());
+    if (filterData.startDate) params.append('startDate', filterData.startDate);
+    if (filterData.endDate) params.append('endDate', filterData.endDate);
+
+    const res = await fetch(`${import.meta.env.VITE_BASE_URL}/v2/orders/search?${params.toString()}`, { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to search seller orders');
+    const data = await res.json();
+    searchResults.value = data.content || [];
+    searchTotalPages.value = data.totalPages || 0;
+  } catch (e) {
+    console.error('Seller search error:', e);
+    searchResults.value = [];
+    searchTotalPages.value = 0;
+  }
+};
+
+const handleClearSearch = () => {
+  isSearchActive.value = false;
+  saveSearchActiveToStorage(false);
+  searchResults.value = [];
+  searchTotalPages.value = 0;
+  searchFilters.value = {
+    keyword: '',
+    buyerName: '',
+    sellerName: '',
+    brandName: '',
+    model: '',
+    startDate: null,
+    endDate: null
+  };
+  saveFiltersToStorage(searchFilters.value);
+  store.setPage(1);
+  store.fetchOrders(auth.user.id);
+};
+
+const updateSearchPage = async (page) => {
+  if (!auth.user?.id) return;
+  try {
+    const params = new URLSearchParams();
+    params.append('sellerId', auth.user.id);
+    params.append('page', page - 1);
+    params.append('size', 10);
+    params.append('sortField', 'orderDate');
+    params.append('sortDirection', 'desc');
+
+    const status = mapTabToStatus(store.tab);
+    if (status) params.append('orderStatus', status);
+
+    if (searchFilters.value.keyword?.trim()) params.append('keyword', searchFilters.value.keyword.trim());
+  if (searchFilters.value.buyerName?.trim()) params.append('buyerName', searchFilters.value.buyerName.trim());
+    if (searchFilters.value.brandName?.trim()) params.append('brandName', searchFilters.value.brandName.trim());
+    if (searchFilters.value.model?.trim()) params.append('model', searchFilters.value.model.trim());
+    if (searchFilters.value.startDate) params.append('startDate', searchFilters.value.startDate);
+    if (searchFilters.value.endDate) params.append('endDate', searchFilters.value.endDate);
+
+    const res = await fetch(`${import.meta.env.VITE_BASE_URL}/v2/orders/search?${params.toString()}`, { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to search seller orders');
+    const data = await res.json();
+    searchResults.value = data.content || [];
+    store.setPage(page);
+  } catch (e) {
+    console.error('Seller search page error:', e);
+  }
+};
 </script>
 
 <template>
@@ -124,6 +305,20 @@ const groupedOrders = computed(() => {
     <div class="text-center mb-8">
       <h1 class="text-4xl font-extrabold tracking-tight">🛍️ Sales Orders</h1>
       <p class="text-gray-400 mt-2">Manage your incoming and past orders</p>
+    </div>
+
+    <!-- Search Filter Component -->
+    <div class="max-w-6xl mx-auto mb-8">
+      <OrderFilterSearch
+        v-model="searchFilters"
+        :brand-options="brandOptions"
+        :buyer-options="buyerOptions"
+        :show-seller-filter="false"
+        :show-buyer-filter="true"
+        :keywordPlaceholder="'Search orders by buyer, brand, or model...'"
+        @search="handleSearch"
+        @clear="handleClearSearch"
+      />
     </div>
 
     <!-- Tabs -->
@@ -149,6 +344,12 @@ const groupedOrders = computed(() => {
     </div>
 
     <div v-else class="max-w-6xl mx-auto space-y-10">
+      <!-- Search Results Info -->
+      <div v-if="isSearchActive" class="text-center mb-4">
+        <p class="text-gray-400">
+          Found <span class="font-semibold text-purple-400">{{ (Object.values(groupedOrders).flat()).length }}</span> orders
+        </p>
+      </div>
       <div v-for="(orders, date) in groupedOrders" :key="date" class="space-y-6">
         <h2 class="text-2xl font-semibold text-purple-400 border-b border-neutral-700 pb-2">
           {{ date }}
@@ -214,7 +415,7 @@ const groupedOrders = computed(() => {
     </div>
 
     <div class="mt-8">
-      <Pagination v-if="store.totalPages > 1" :total-pages="store.totalPages" @send-pages="changePage" />
+      <Pagination v-if="displayTotalPages > 1" :total-pages="displayTotalPages" @send-pages="changePage" />
     </div>
   </div>
 </template>

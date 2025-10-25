@@ -26,6 +26,20 @@ public class OrderSpecs {
     }
 
     /**
+     * Search by buyer name (fullName or nickName)
+     */
+    public static Specification<Order> buyerNameContains(String buyerName) {
+        if (buyerName == null || buyerName.isBlank()) return null;
+        return (root, query, cb) -> {
+            String like = "%" + buyerName.trim() + "%";
+            return cb.or(
+                    cb.like(root.get("user").get("fullName"), like),
+                    cb.like(root.get("user").get("nickName"), like)
+            );
+        };
+    }
+
+    /**
      * Filter by order date (exact date match)
      */
     public static Specification<Order> orderDateEquals(LocalDate date) {
@@ -96,9 +110,9 @@ public class OrderSpecs {
     }
 
     /**
-     * General keyword search across seller, brand, and model
+     * General keyword search across seller, brand, and model (for buyer)
      */
-    public static Specification<Order> keywordSearch(String keyword) {
+    public static Specification<Order> keywordSearchForBuyer(String keyword) {
         if (keyword == null || keyword.isBlank()) return null;
         return (root, query, cb) -> {
             String like = "%" + keyword.trim() + "%";
@@ -114,6 +128,31 @@ public class OrderSpecs {
             return cb.or(
                     cb.like(root.get("seller").get("fullName"), like),
                     cb.like(root.get("seller").get("nickName"), like),
+                    cb.like(brand.get("name"), like),
+                    cb.like(saleItem.get("model"), like)
+            );
+        };
+    }
+
+    /**
+     * General keyword search across buyer, brand, and model (for seller)
+     */
+    public static Specification<Order> keywordSearchForSeller(String keyword) {
+        if (keyword == null || keyword.isBlank()) return null;
+        return (root, query, cb) -> {
+            String like = "%" + keyword.trim() + "%";
+            
+            Join<Object, Object> orderItems = root.join("orderItems", JoinType.LEFT);
+            Join<Object, Object> saleItem = orderItems.join("saleItem", JoinType.LEFT);
+            Join<Object, Object> brand = saleItem.join("brand", JoinType.LEFT);
+            
+            if (query != null) {
+                query.distinct(true); // Prevent duplicate orders
+            }
+            
+            return cb.or(
+                    cb.like(root.get("user").get("fullName"), like),
+                    cb.like(root.get("user").get("nickName"), like),
                     cb.like(brand.get("name"), like),
                     cb.like(saleItem.get("model"), like)
             );

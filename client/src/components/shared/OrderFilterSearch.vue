@@ -8,13 +8,40 @@ const props = defineProps({
     type: Object,
     default: () => ({
       keyword: '',
+      buyerName: '',
       sellerName: '',
       brandName: '',
       model: '',
       startDate: null,
       endDate: null
     })
-  }
+  },
+  sellerOptions: {
+    type: Array,
+    default: () => []
+  },
+  brandOptions: {
+    type: Array,
+    default: () => []
+  },
+  buyerOptions: {
+    type: Array,
+    default: () => []
+  },
+  showSellerFilter: {
+    type: Boolean,
+    default: true
+  },
+  showBuyerFilter: {
+    type: Boolean,
+    default: false
+  },
+    keywordPlaceholder: {
+        type: String,
+        default: 'Search orders by seller, brand, or model...'
+    }
+
+
 })
 
 const emit = defineEmits(['update:modelValue', 'search', 'clear'])
@@ -39,6 +66,7 @@ const handleSearch = () => {
 const handleClear = () => {
   filters.value = {
     keyword: '',
+    buyerName: '',
     sellerName: '',
     brandName: '',
     model: '',
@@ -58,6 +86,7 @@ const handleKeyDown = (event) => {
 
 const hasActiveFilters = computed(() => {
   return filters.value.keyword ||
+    filters.value.buyerName ||
     filters.value.sellerName ||
     filters.value.brandName ||
     filters.value.model ||
@@ -78,7 +107,7 @@ const toggleAdvanced = () => {
       <div class="flex-1 relative">
         <BaseInput
           v-model="filters.keyword"
-          placeholder="Search orders by seller, brand, or model..."
+          :placeholder="keywordPlaceholder"
           type="text"
           @keydown="handleKeyDown"
           class="w-full"
@@ -124,26 +153,40 @@ const toggleAdvanced = () => {
     <!-- Advanced Filters -->
     <div v-show="showAdvanced" class="bg-neutral-900 p-4 rounded-lg border border-neutral-700 space-y-4">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Seller Name -->
-        <div>
-          <label class="block text-sm font-medium text-gray-300 mb-1">Seller Name</label>
-          <BaseInput
+        <!-- Seller Name Dropdown -->
+        <div v-if="showSellerFilter">
+          <label class="block text-sm font-medium text-gray-300 mb-1">Your Seller</label>
+          <select
             v-model="filters.sellerName"
-            placeholder="Filter by seller..."
-            type="text"
-            @keydown="handleKeyDown"
-          />
+            class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="">All Sellers</option>
+            <option v-for="s in sellerOptions" :key="s" :value="s">{{ s }}</option>
+          </select>
         </div>
 
-        <!-- Brand Name -->
+        <!-- Buyer Name Text Input -->
+        <div v-if="showBuyerFilter">
+          <label class="block text-sm font-medium text-gray-300 mb-1">Your Buyer</label>
+          <select
+            v-model="filters.buyerName"
+            class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="">All Buyers</option>
+            <option v-for="b in buyerOptions" :key="b" :value="b">{{ b }}</option>
+          </select>
+        </div>
+
+        <!-- Brand Dropdown -->
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-1">Brand</label>
-          <BaseInput
+          <select
             v-model="filters.brandName"
-            placeholder="Filter by brand..."
-            type="text"
-            @keydown="handleKeyDown"
-          />
+            class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="">All Brands</option>
+            <option v-for="b in brandOptions" :key="b" :value="b">{{ b }}</option>
+          </select>
         </div>
 
         <!-- Model -->

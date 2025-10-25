@@ -8,31 +8,88 @@ import CardContent from "@/components/UI/cart/CardContent.vue";
 import CardTitle from "@/components/UI/cart/CartTitle.vue";
 import Pagination from "@/components/shared/Pagination.vue";
 import OrderFilterSearch from "@/components/shared/OrderFilterSearch.vue";
+import { useBrandStore } from "@/stores/useBrandStore";
 import { useRouter } from "vue-router";
-import { getOrdersWithStatus } from "@/api/orderAPI";
+import { getOrdersWithStatus, getSellerNamesForUser } from "@/api/orderAPI";
 
 const router = useRouter()
 
 const orderStore = useOrderStore();
 const userStore = useAuthStore();
+const brandStore = useBrandStore();
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const DEFAULT_IMAGE = new URL("@/assets/default.jpg", import.meta.url).href;
 
+// Search state with persistence
+const STORAGE_KEY_FILTERS = 'yourOrdersFilters';
+const STORAGE_KEY_SEARCH_ACTIVE = 'yourOrdersSearchActive';
+
+const loadFiltersFromStorage = () => {
+  try {
+    const saved = sessionStorage.getItem(STORAGE_KEY_FILTERS);
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveFiltersToStorage = (filters) => {
+  try {
+    sessionStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters));
+  } catch (e) {
+    console.error('Failed to save filters:', e);
+  }
+};
+
+const loadSearchActiveFromStorage = () => {
+  try {
+    const saved = sessionStorage.getItem(STORAGE_KEY_SEARCH_ACTIVE);
+    return saved === 'true';
+  } catch {
+    return false;
+  }
+};
+
+const saveSearchActiveToStorage = (active) => {
+  try {
+    sessionStorage.setItem(STORAGE_KEY_SEARCH_ACTIVE, active.toString());
+  } catch (e) {
+    console.error('Failed to save search active state:', e);
+  }
+};
+
 const status = ref("NEW");
-const searchFilters = ref({
+const savedFilters = loadFiltersFromStorage();
+const searchFilters = ref(savedFilters || {
   keyword: '',
+  buyerName: '',
   sellerName: '',
   brandName: '',
   model: '',
   startDate: null,
   endDate: null
 });
-const isSearchActive = ref(false);
+const isSearchActive = ref(loadSearchActiveFromStorage());
 const searchResults = ref([]);
 const searchTotalPages = ref(0);
+const allSellerNames = ref([]);
 
 onMounted(async () => {
+  // Ensure brands are loaded for dropdown options
+  try { await brandStore.loadBrands(); } catch (_) {}
+  
+  // Load seller names only for this user's orders
+  if (userStore.user?.id) {
+    try {
+      const sellersRes = await getSellerNamesForUser(userStore.user.id);
+      const list = Array.isArray(sellersRes?.data) ? sellersRes.data : sellersRes;
+      allSellerNames.value = (list || []).filter(x => typeof x === 'string').sort((a,b) => a.localeCompare(b));
+    } catch (_) {
+      allSellerNames.value = [];
+    }
+  }
+  
   const savedPage = Number(sessionStorage.getItem("ordersActivePage")) || 1;
   orderStore.setActivePage(savedPage);
   
@@ -74,6 +131,11 @@ onMounted(async () => {
   }
   
   fetchOrders();
+  
+  // Restore search if it was active
+  if (isSearchActive.value && savedFilters) {
+    await handleSearch(searchFilters.value);
+  }
 });
 
 const fetchOrders = (statusValue = status.value, page = orderStore.activePage) => {
@@ -85,6 +147,8 @@ const handleSearch = async (filterData) => {
   if (!userStore.user?.id) return;
   
   isSearchActive.value = true;
+  saveSearchActiveToStorage(true);
+  saveFiltersToStorage(filterData);
   orderStore.setActivePage(1);
   
   try {
@@ -137,16 +201,19 @@ const handleSearch = async (filterData) => {
 
 const handleClearSearch = () => {
   isSearchActive.value = false;
+  saveSearchActiveToStorage(false);
   searchResults.value = [];
   searchTotalPages.value = 0;
   searchFilters.value = {
     keyword: '',
+    buyerName: '',
     sellerName: '',
     brandName: '',
     model: '',
     startDate: null,
     endDate: null
   };
+  saveFiltersToStorage(searchFilters.value);
   orderStore.setActivePage(1);
   fetchOrders(status.value, 1);
 };
@@ -268,6 +335,17 @@ const groupedOrders = computed(() => {
   return grouped;
 });
 
+// Dropdown options
+const brandOptions = computed(() => {
+  try {
+    return Array.isArray(brandStore.filterBrands?.()) ? brandStore.filterBrands() : [];
+  } catch {
+    return [];
+  }
+});
+
+const sellerOptions = computed(() => allSellerNames.value);
+
 const displayTotalPages = computed(() => {
   return isSearchActive.value ? searchTotalPages.value : orderStore.allPages;
 });
@@ -292,6 +370,9 @@ const handlePageUpdate = (page) => {
     <div class="max-w-6xl mx-auto mb-8">
       <OrderFilterSearch
         v-model="searchFilters"
+        :seller-options="sellerOptions"
+        :brand-options="brandOptions"
+        :keywordPlaceholder="'Search orders by seller, brand, or model...'"
         @search="handleSearch"
         @clear="handleClearSearch"
       />

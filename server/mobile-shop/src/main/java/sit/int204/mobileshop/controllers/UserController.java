@@ -1,9 +1,11 @@
 package sit.int204.mobileshop.controllers;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,8 +36,6 @@ import sit.int204.mobileshop.services.UserService;
 @RequestMapping("/v2/users")
 @Tag(name = "User API", description = "API for user registration and email verification")
 public class UserController {
-
-    // Environment env; // removed unused field
 
     @Autowired
     private UserService userService;
@@ -109,6 +110,23 @@ public class UserController {
         UserResponseDto principal =  (UserResponseDto) authentication.getPrincipal();
         userService.changePassword(principal.getId(), changePasswordDto.getOldPassword() , changePasswordDto.getNewPassword());
         return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+    }
+
+    @GetMapping("/{userId}/sellers/names")
+    public ResponseEntity<List<String>> getSellerNamesForUser(
+            @PathVariable Long userId,
+            Authentication authentication) {
+        try {
+            UserResponseDto authenticatedUser = (UserResponseDto) authentication.getPrincipal();
+            if (!authenticatedUser.getId().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            
+            List<String> names = orderService.getSellerNamesForUser(userId);
+            return ResponseEntity.ok(names);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
     }
 
 }

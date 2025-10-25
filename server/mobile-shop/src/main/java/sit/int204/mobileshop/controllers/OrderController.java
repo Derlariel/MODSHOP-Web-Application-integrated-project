@@ -41,6 +41,7 @@ public class OrderController {
     public ResponseEntity<Optional<PageDto<OrderResponseDto>>> searchOrders(
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) Long sellerId,
+        @RequestParam(required = false) String buyerName,
             @RequestParam(required = false) String sellerName,
             @RequestParam(required = false) String brandName,
             @RequestParam(required = false) String model,
@@ -53,8 +54,8 @@ public class OrderController {
             @RequestParam(defaultValue = "orderDate") String sortField,
             @RequestParam(defaultValue = "desc") String sortDirection) {
 
-        Optional<PageDto<OrderResponseDto>> result = orderService.findOrdersWithFilters(
-                userId, sellerId, sellerName, brandName, model, keyword,
+    Optional<PageDto<OrderResponseDto>> result = orderService.findOrdersWithFilters(
+        userId, sellerId, buyerName, sellerName, brandName, model, keyword,
                 startDate, endDate, orderStatus,
                 page, size, sortField, sortDirection
         );

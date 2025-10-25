@@ -386,10 +386,11 @@ public class OrderService {
      * Filter and search orders with multiple criteria
      * @param userId - Filter by buyer (optional)
      * @param sellerId - Filter by seller (optional)
+     * @param buyerName - Search by buyer name (optional)
      * @param sellerName - Search by seller name (optional)
      * @param brandName - Search by brand name (optional)
      * @param model - Search by model (optional)
-     * @param keyword - General keyword search across seller, brand, model (optional)
+     * @param keyword - General keyword search (optional)
      * @param startDate - Filter by start date (optional)
      * @param endDate - Filter by end date (optional)
      * @param orderStatus - Filter by order status (optional)
@@ -402,6 +403,7 @@ public class OrderService {
     public Optional<PageDto<OrderResponseDto>> findOrdersWithFilters(
             Long userId,
             Long sellerId,
+            String buyerName,
             String sellerName,
             String brandName,
             String model,
@@ -425,6 +427,10 @@ public class OrderService {
             spec = spec.and(OrderSpecs.sellerEquals(sellerId));
         }
 
+        if (buyerName != null && !buyerName.isBlank()) {
+            spec = spec.and(OrderSpecs.buyerNameContains(buyerName));
+        }
+
         if (sellerName != null && !sellerName.isBlank()) {
             spec = spec.and(OrderSpecs.sellerNameContains(sellerName));
         }
@@ -438,7 +444,14 @@ public class OrderService {
         }
 
         if (keyword != null && !keyword.isBlank()) {
-            spec = spec.and(OrderSpecs.keywordSearch(keyword));
+            // Use appropriate keyword search based on whether it's a buyer or seller search
+            if (sellerId != null) {
+                // Seller searching their orders - search by buyer
+                spec = spec.and(OrderSpecs.keywordSearchForSeller(keyword));
+            } else {
+                // Buyer searching their orders - search by seller
+                spec = spec.and(OrderSpecs.keywordSearchForBuyer(keyword));
+            }
         }
 
         if (startDate != null || endDate != null) {
@@ -536,5 +549,22 @@ public class OrderService {
         return oid;
     }
 
+    /**
+     * Get distinct buyer names for a seller's orders
+     * @param sellerId - The seller ID
+     * @return List of buyer full names
+     */
+    public List<String> getBuyerNamesForSeller(Long sellerId) {
+        return orderRepository.findDistinctBuyerNamesBySellerId(sellerId);
+    }
+
+    /**
+     * Get distinct seller names for a user's orders
+     * @param userId - The user ID
+     * @return List of seller full names
+     */
+    public List<String> getSellerNamesForUser(Long userId) {
+        return orderRepository.findDistinctSellerNamesByUserId(userId);
+    }
 
 }

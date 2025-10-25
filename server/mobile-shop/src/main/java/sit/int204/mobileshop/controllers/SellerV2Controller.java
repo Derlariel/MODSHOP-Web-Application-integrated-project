@@ -3,18 +3,14 @@ package sit.int204.mobileshop.controllers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.Jwt;
 
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int204.mobileshop.dtos.*;
-import sit.int204.mobileshop.repositories.OrderRepository;
 import sit.int204.mobileshop.services.OrderService;
 import sit.int204.mobileshop.services.SaleItemImageService;
 import sit.int204.mobileshop.services.SaleItemService;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -23,12 +19,11 @@ public class SellerV2Controller {
     private final SaleItemService saleItemService;
     private final SaleItemImageService  saleItemImageService;
     private final OrderService orderService;
-    private final OrderRepository orderRepository;
-    public SellerV2Controller(SaleItemService saleItemService , SaleItemImageService saleItemImageService , OrderService orderService , OrderRepository orderRepository) {
+    
+    public SellerV2Controller(SaleItemService saleItemService , SaleItemImageService saleItemImageService , OrderService orderService) {
         this.saleItemService = saleItemService;
         this.saleItemImageService = saleItemImageService;
         this.orderService = orderService;
-        this.orderRepository = orderRepository;
     }
 
     @GetMapping("/{id}/sale-items")
@@ -74,6 +69,23 @@ public class SellerV2Controller {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("Invalid token or user not found");
+        }
+    }
+
+    @GetMapping("/{sid}/buyers/names")
+    public ResponseEntity<List<String>> getBuyerNamesForSeller(
+            @PathVariable Long sid,
+            Authentication authentication) {
+        try {
+            UserResponseDto authenticatedUser = (UserResponseDto) authentication.getPrincipal();
+            if (!authenticatedUser.getId().equals(sid)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            
+            List<String> names = orderService.getBuyerNamesForSeller(sid);
+            return ResponseEntity.ok(names);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
         }
     }
 
