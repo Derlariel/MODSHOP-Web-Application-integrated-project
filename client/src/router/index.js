@@ -5,7 +5,7 @@ import { useProductStore } from "@/stores/useProductStore";
 // Guards
 function requireAuth(to, from, next) {
   const auth = useAuthStore();
-  if (!auth.isAuthenticated || !auth.user) next({ name: "product-gallery" });
+  if (!auth.isAuthenticated || !auth.user) next({ name: "Login" });
   else next();
 }
 
@@ -18,7 +18,8 @@ function requireSeller(to, from, next) {
 
 async function requireOwner(to, from, next) {
   const auth = useAuthStore();
-  if (!auth.isAuthenticated || !auth.user || auth.user.role !== "SELLER") return next({ name: "product-gallery" });
+  if (!auth.isAuthenticated || !auth.user || auth.user.role !== "SELLER") 
+    return next({ name: "product-gallery" });
 
   try {
     const productStore = useProductStore();

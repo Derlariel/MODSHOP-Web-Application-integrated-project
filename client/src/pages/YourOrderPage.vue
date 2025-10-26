@@ -60,9 +60,19 @@ const historyPathName = computed(() => {
 
     <div
       v-if="!orderStore.order"
-      class="text-center text-gray-400 py-20"
+      class="flex flex-col items-center justify-center text-center text-gray-400 py-20 gap-4"
     >
-      No orders found.
+      <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-purple-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+      <div class="text-lg font-semibold text-gray-300">No orders found.</div>
+      <button
+        type="button"
+        class="mt-4 px-5 py-2 rounded-lg bg-purple-600 text-white font-semibold shadow hover:bg-purple-700 transition"
+        @click="router.back()"
+      >
+        Back
+      </button>
     </div>
 
     <div v-if="orderStore.order" class="max-w-5xl mx-auto space-y-6">

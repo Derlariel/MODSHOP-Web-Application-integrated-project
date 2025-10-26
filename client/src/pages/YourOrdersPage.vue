@@ -360,7 +360,7 @@ const handlePageUpdate = (page) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-black text-white px-6 py-20">
+  <div class="min-h-screen bg-black text-white flex flex-col px-6 pt-20">
     <div class="text-center mb-12">
       <h1 class="text-5xl font-extrabold tracking-tight">📦 Your Orders</h1>
       <p class="text-gray-400 mt-2">Track and view your completed purchases</p>
@@ -382,163 +382,171 @@ const handlePageUpdate = (page) => {
       Loading your orders...
     </div>
 
-    <div v-else class="max-w-6xl mx-auto space-y-10">
-      <!-- Tab Buttons (always visible) -->
-      <div class="mb-6 flex gap-4 justify-center">
-        <button
-          @click="changeStatus('NEW')"
-          class="py-1 px-4 text-lg font-semibold rounded-lg"
-          :class="status === 'NEW' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
-        >
-          New
-        </button>
-        <button
-          @click="changeStatus('COMPLETED')"
-          class="py-1 px-4 text-lg font-semibold rounded-lg"
-          :class="status === 'COMPLETED' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
-        >
-          Completed
-        </button>
-        <button
-          @click="changeStatus('CANCELLED')"
-          class="py-1 px-4 text-lg font-semibold rounded-lg"
-          :class="status === 'CANCELLED' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
-        >
-          Cancelled
-        </button>
-      </div>
-
-      <!-- Search Results Info -->
-      <div v-if="isSearchActive" class="text-center mb-4">
-        <p class="text-gray-400">
-          Found <span class="font-semibold text-purple-400">{{ searchResults.length }}</span> orders in <span class="font-semibold text-purple-400">{{ status }}</span> status
-        </p>
-      </div>
-
-      <div
-      v-if="Object.keys(groupedOrders).length === 0"
-      class="text-center text-gray-400 py-20"
-    >
-      No orders found.
-    </div>
-
-    
-      <div
-        v-for="(orders, date) in groupedOrders"
-        :key="date"
-        class="space-y-6"
-      >
-        <h2
-          class="text-2xl font-semibold text-purple-400 border-b border-neutral-700 pb-2"
-        >
-          {{ date }}
-        </h2>
-
-        <div v-for="order in orders" :key="order.id" class="itbms-row">
-          <Card
-            class="bg-neutral-900/80 border border-neutral-700 hover:border-purple-500 transition"
+    <div v-else class="flex-1 flex flex-col">
+      <div class="max-w-6xl mx-auto w-full space-y-10 flex-1">
+        <div class="mb-6 flex gap-4 justify-center">
+          <button
+            @click="changeStatus('NEW')"
+            class="py-1 px-4 text-lg font-semibold rounded-lg"
+            :class="status === 'NEW' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
           >
-            <CardHeader>
-              <div class="flex justify-between items-center flex-wrap gap-4">
-                <div class="space-y-1">
-                  
-                  <CardTitle class="itbms-nickname"
-                    >Seller: {{ order.seller.nickName }}</CardTitle
-                  >
-                  <p class="text-sm text-gray-400 itbms-order-id">
-                    Order #: {{ order.id }}
-                  </p>
-                </div>
-                <div class="text-sm text-gray-400 space-x-4">
-                  <span class="itbms-order-date">
-                    Order Date:
-                    {{ new Date(order.orderDate).toLocaleDateString("th-TH") }}
-                  </span>
-                  <span class="itbms-payment-date">
-                    Payment Date:
-                    {{
-                      new Date(order.paymentDate).toLocaleDateString("th-TH")
-                    }}
-                  </span>
-                </div>
-                <div class="text-right">
-                  <p
-                    class="text-green-400 font-bold text-lg itbms-total-order-price"
-                  >
-                    ฿{{
-                      order.orderItems
-                        .reduce((sum, i) => sum + i.price * i.quantity, 0)
-                        .toLocaleString()
-                    }}
-                  </p>
-                  <p class="text-sm text-gray-400 itbms-order-status">
-                    Status: {{ order.orderStatus }}
-                  </p>
-                  <div class="mt-2">
-                    <button
-                      type="button"
-                      @click.stop="viewOrder(order.id)"
-                      class="text-xs md:text-sm font-semibold px-3 py-1 rounded-lg border border-purple-500 text-purple-300 hover:bg-purple-600/20 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                      aria-label="View order details"
+            NEW
+          </button>
+          <button
+            @click="changeStatus('COMPLETED')"
+            class="py-1 px-4 text-lg font-semibold rounded-lg"
+            :class="status === 'COMPLETED' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
+          >
+            COMPLETED
+          </button>
+          <button
+            @click="changeStatus('CANCELLED')"
+            class="py-1 px-4 text-lg font-semibold rounded-lg"
+            :class="status === 'CANCELLED' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
+          >
+            CANCELLED
+          </button>
+        </div>
+
+        <div
+          v-if="Object.keys(groupedOrders).length === 0"
+          class="flex flex-col items-center justify-center text-center text-gray-400 py-20 gap-4 flex-1"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-purple-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          <div>
+            <div class="text-lg font-semibold text-gray-300">No orders found.</div>
+            <div class="text-sm text-gray-400 mt-2">Your <span class="font-bold text-purple-400">{{ status }}</span> orders will be displayed here.</div>
+          </div>
+          <button
+            v-if="status === 'NEW'"
+            type="button"
+            class="mt-6 px-5 py-2 rounded-lg bg-white text-black font-semibold shadow hover:opacity-80 border border-black transition"
+            @click="router.push('/sale-items')"
+          >
+            Browse Products & Add to Cart
+          </button>
+        </div>
+
+        <div
+          v-for="(orders, date) in groupedOrders"
+          :key="date"
+          class="space-y-6"
+        >
+          <h2
+            class="text-2xl font-semibold text-purple-400 border-b border-neutral-700 pb-2"
+          >
+            {{ date }}
+          </h2>
+
+          <div v-for="(order, idx) in orders" :key="order.id" class="itbms-row"
+            :class="idx === orders.length - 1 ? 'mb-8' : ''">
+            <Card
+              class="bg-neutral-900/80 border border-neutral-700 hover:border-purple-500 transition"
+            >
+              <CardHeader>
+                <div class="flex justify-between items-center flex-wrap gap-4">
+                  <div class="space-y-1">
+                    <CardTitle class="itbms-nickname"
+                      >Seller: {{ order.seller.nickName }}</CardTitle
                     >
-                      VIEW
-                    </button>
+                    <p class="text-sm text-gray-400 itbms-order-id">
+                      Order #: {{ order.id }}
+                    </p>
+                  </div>
+                  <div class="text-sm text-gray-400 space-x-4">
+                    <span class="itbms-order-date">
+                      Order Date:
+                      {{ new Date(order.orderDate).toLocaleDateString("th-TH") }}
+                    </span>
+                    <span class="itbms-payment-date">
+                      Payment Date:
+                      {{
+                        new Date(order.paymentDate).toLocaleDateString("th-TH")
+                      }}
+                    </span>
+                  </div>
+                  <div class="text-right">
+                    <p
+                      class="text-green-400 font-bold text-lg itbms-total-order-price"
+                    >
+                      ฿{{
+                        order.orderItems
+                          .reduce((sum, i) => sum + i.price * i.quantity, 0)
+                          .toLocaleString()
+                      }}
+                    </p>
+                    <p class="text-sm text-gray-400 itbms-order-status">
+                      Status: {{ order.orderStatus }}
+                    </p>
+                    <div class="mt-2">
+                      <button
+                        type="button"
+                        @click.stop="viewOrder(order.id)"
+                        class="text-xs md:text-sm font-semibold px-3 py-1 rounded-lg border border-purple-500 text-purple-300 hover:bg-purple-600/20 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        aria-label="View order details"
+                      >
+                        VIEW
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <p class="mt-2 text-sm text-gray-300 itbms-shipping-address">
-                <b>Shipped To: </b>
-                <span v-if="order.shippingAddress">
-                  {{
-                    userStore.user?.fullName
-                      ? userStore.user.fullName + ", "
-                      : ""
-                  }}{{ order.shippingAddress }}
-                </span>
-              </p>
-              <p class="mt-1 text-sm text-gray-300 itbms-order-note">
-                <b>Note:</b> {{ order.orderNote || "—" }}
-              </p>
-            </CardHeader>
+                <p class="mt-2 text-sm text-gray-300 itbms-shipping-address">
+                  <b>Shipped To: </b>
+                  <span v-if="order.shippingAddress">
+                    {{
+                      userStore.user?.fullName
+                        ? userStore.user.fullName + ", "
+                        : ""
+                    }}{{ order.shippingAddress }}
+                  </span>
+                </p>
+                <p class="mt-1 text-sm text-gray-300 itbms-order-note">
+                  <b>Note:</b> {{ order.orderNote || "—" }}
+                </p>
+              </CardHeader>
 
-            <CardContent class="divide-y divide-neutral-800">
-              <div
-                v-for="item in order.orderItems"
-                :key="item.saleItemId"
-                class="flex items-center gap-4 py-4 itbms-item-row"
-              >
-                <img
-                  :src="`${BASE_URL}/sale-items-images/${item.saleItemId}.jpg`"
-                  @error="(e) => (e.target.src = DEFAULT_IMAGE)"
-                  alt="Item Image"
-                  class="w-16 h-16 rounded object-cover"
-                />
-                <div class="flex-1">
-                  <p class="font-semibold text-lg itbms-item-description">
-                    {{ item.description }}
-                  </p>
-                  <p class="text-sm text-gray-400 itbms-item-quantity">
-                    Qty: {{ item.quantity }}
+              <CardContent class="divide-y divide-neutral-800">
+                <div
+                  v-for="item in order.orderItems"
+                  :key="item.saleItemId"
+                  class="flex items-center gap-4 py-4 itbms-item-row"
+                >
+                  <img
+                    :src="`${BASE_URL}/sale-items-images/${item.saleItemId}.jpg`"
+                    @error="(e) => (e.target.src = DEFAULT_IMAGE)"
+                    alt="Item Image"
+                    class="w-16 h-16 rounded object-cover"
+                  />
+                  <div class="flex-1">
+                    <p class="font-semibold text-lg itbms-item-description">
+                      {{ item.description }}
+                    </p>
+                    <p class="text-sm text-gray-400 itbms-item-quantity">
+                      Qty: {{ item.quantity }}
+                    </p>
+                  </div>
+                  <p class="text-right text-gray-300 itbms-item-total-price">
+                    ฿{{ (item.price * item.quantity).toLocaleString() }}
                   </p>
                 </div>
-                <p class="text-right text-gray-300 itbms-item-total-price">
-                  ฿{{ (item.price * item.quantity).toLocaleString() }}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Pagination -->
-    <div class="mt-8">
-      <Pagination
-        v-if="displayTotalPages > 1"
-        :total-pages="displayTotalPages"
-        @send-pages="handlePageUpdate"
-      />
+    <div class="flex justify-center items-end w-full flex-shrink-0" style="min-height:80px;">
+      <div class="w-full">
+        <Pagination
+          v-if="orderStore.allPages > 1"
+          :total-pages="orderStore.allPages"
+          @send-pages="updatePages"
+        />
+      </div>
     </div>
   </div>
 </template>

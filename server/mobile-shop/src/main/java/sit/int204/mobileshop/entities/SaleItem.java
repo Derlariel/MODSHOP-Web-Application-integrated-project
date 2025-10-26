@@ -12,6 +12,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -28,7 +29,9 @@ public class SaleItem {
     @Column(name = "model", nullable = false, length = 60)
     private String model;
 
-    
+    @OneToMany(mappedBy = "saleItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("imageViewOrder ASC")
+    private List<SaleItemImage> images;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

@@ -21,9 +21,9 @@ const brandStore = useBrandStore();
 const router = useRouter();
 
 const tabs = [
-  { key: 'new', label: 'New Orders' },
-  { key: 'cancelled', label: 'Cancelled Orders' },
-  { key: 'all', label: 'All Orders' },
+  { key: 'new', label: 'NEW ' },
+  { key: 'cancelled', label: 'CANCELLED' },
+  { key: 'all', label: 'ALL ORDERS' },
 ];
 
 onMounted(async () => {
@@ -301,7 +301,7 @@ const updateSearchPage = async (page) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-black text-white px-6 py-20">
+  <div class="min-h-screen bg-black text-white pt-20 flex flex-col">
     <div class="text-center mb-8">
       <h1 class="text-4xl font-extrabold tracking-tight">🛍️ Sales Orders</h1>
       <p class="text-gray-400 mt-2">Manage your incoming and past orders</p>
@@ -334,88 +334,92 @@ const updateSearchPage = async (page) => {
       </button>
     </div>
 
-
     <div v-if="store.loading" class="text-gray-500 text-center py-20">
       Loading orders...
     </div>
 
-    <div v-else-if="(store.orders || []).length === 0" class="text-center text-gray-400 py-20">
-      No orders found.
+    <div v-else-if="(store.orders || []).length === 0" class="flex flex-col items-center justify-center text-center text-gray-400 py-20 gap-4 flex-1">
+      <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-purple-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+      <div>
+        <div class="text-lg font-semibold text-gray-300">No orders found.</div>
+        <div class="text-sm text-gray-400 mt-2">Your <span class="font-bold text-purple-400">{{ tabs.find(t => t.key === store.tab)?.label }}</span> will be displayed here.</div>
+      </div>
     </div>
 
-    <div v-else class="max-w-6xl mx-auto space-y-10">
-      <!-- Search Results Info -->
-      <div v-if="isSearchActive" class="text-center mb-4">
-        <p class="text-gray-400">
-          Found <span class="font-semibold text-purple-400">{{ (Object.values(groupedOrders).flat()).length }}</span> orders
-        </p>
-      </div>
-      <div v-for="(orders, date) in groupedOrders" :key="date" class="space-y-6">
-        <h2 class="text-2xl font-semibold text-purple-400 border-b border-neutral-700 pb-2">
-          {{ date }}
-        </h2>
+    <div v-else class="flex-1 flex flex-col">
+      <div class="max-w-6xl mx-auto w-full space-y-10 flex-1">
+        <div v-for="(orders, date) in groupedOrders" :key="date" class="space-y-6">
+          <h2 class="text-2xl font-semibold text-purple-400 border-b border-neutral-700 pb-2">
+            {{ date }}
+          </h2>
 
-        <div v-for="order in orders" :key="order.id" class="itbms-row">
-          <Card class="bg-neutral-900/80 border border-neutral-700 hover:border-purple-500 transition">
-            <CardHeader>
-              <div class="flex justify-between items-center flex-wrap gap-4">
-                <div class="text-gray-300">
-                  <div class="font-semibold">Order #{{ order.id }}</div>
-                  <div class="text-sm">Date: {{ new Date(order.orderDate).toLocaleString('th-TH') }}</div>
-                  <div class="text-sm">Buyer: {{ order?.buyerName || '-' }}</div>
+          <div v-for="(order, idx) in orders" :key="order.id" class="itbms-row"
+            :class="idx === orders.length - 1 ? 'mb-8' : ''">
+            <Card class="bg-neutral-900/80 border border-neutral-700 hover:border-purple-500 transition">
+              <CardHeader>
+                <div class="flex justify-between items-center flex-wrap gap-4">
+                  <div class="text-gray-300">
+                    <div class="font-semibold">Order #{{ order.id }}</div>
+                    <div class="text-sm">Date: {{ new Date(order.orderDate).toLocaleString('th-TH') }}</div>
+                    <div class="text-sm">Buyer: {{ order?.buyerName || '-' }}</div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span
+                      class="px-3 py-1 text-xs rounded-full"
+                      :class="{
+                        'bg-green-600/20 text-green-400': order.orderStatus === 'COMPLETED',
+                        'bg-red-600/20 text-red-400': order.orderStatus === 'CANCELLED',
+                        'bg-blue-600/20 text-blue-400': order.orderStatus === 'NEW',
+                      }"
+                      >{{ order.orderStatus }}</span
+                    >
+                    <button
+                      type="button"
+                      @click.stop="viewOrder(order.id)"
+                      class="text-xs md:text-sm font-semibold px-3 py-1 rounded-lg border border-purple-500 text-purple-300 hover:bg-purple-600/20 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      aria-label="View order details"
+                    >
+                      VIEW
+                    </button>
+                  </div>
                 </div>
-                <div class="flex items-center gap-3">
-                  <span
-                    class="px-3 py-1 text-xs rounded-full"
-                    :class="{
-                      'bg-green-600/20 text-green-400': order.orderStatus === 'COMPLETED',
-                      'bg-red-600/20 text-red-400': order.orderStatus === 'CANCELLED',
-                      'bg-blue-600/20 text-blue-400': order.orderStatus === 'NEW',
-                    }"
-                    >{{ order.orderStatus }}</span
-                  >
-                  <button
-                    type="button"
-                    @click.stop="viewOrder(order.id)"
-                    class="text-xs md:text-sm font-semibold px-3 py-1 rounded-lg border border-purple-500 text-purple-300 hover:bg-purple-600/20 focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    aria-label="View order details"
-                  >
-                    VIEW
-                  </button>
-                </div>
-              </div>
-                <p class="mt-2 text-sm text-gray-300">Ship to: {{ order?.buyerName }}, {{ order?.shippingAddress }}</p>
-              <p class="mt-1 text-sm text-gray-300">Note: {{ order.orderNote || '-' }}</p>
-            </CardHeader>
+                  <p class="mt-2 text-sm text-gray-300">Ship to: {{ order?.buyerName }}, {{ order?.shippingAddress }}</p>
+                <p class="mt-1 text-sm text-gray-300">Note: {{ order.orderNote || '-' }}</p>
+              </CardHeader>
 
-            <CardContent class="divide-y divide-neutral-800">
-              <div v-for="item in order.orderItems" :key="item.saleItemId" class="flex items-center gap-4 py-4 itbms-item-row">
-                <img
-                  :src="`${BASE_IMG_URL}${item.saleItemId}.jpg`"
-                  @error="(e) => (e.target.src = DEFAULT_IMAGE)"
-                  alt="Item Image"
-                  class="w-16 h-16 rounded object-cover"
-                />
-                <div class="flex-1">
-                  <p class="font-semibold text-lg itbms-item-description">
-                    {{ item.description }}
-                  </p>
-                  <p class="text-sm text-gray-400 itbms-item-quantity">
-                    Qty: {{ item.quantity }}
+              <CardContent class="divide-y divide-neutral-800">
+                <div v-for="item in order.orderItems" :key="item.saleItemId" class="flex items-center gap-4 py-4 itbms-item-row">
+                  <img
+                    :src="`${BASE_IMG_URL}${item.saleItemId}.jpg`"
+                    @error="(e) => (e.target.src = DEFAULT_IMAGE)"
+                    alt="Item Image"
+                    class="w-16 h-16 rounded object-cover"
+                  />
+                  <div class="flex-1">
+                    <p class="font-semibold text-lg itbms-item-description">
+                      {{ item.description }}
+                    </p>
+                    <p class="text-sm text-gray-400 itbms-item-quantity">
+                      Qty: {{ item.quantity }}
+                    </p>
+                  </div>
+                  <p class="text-right text-gray-300 itbms-item-total-price">
+                    ฿{{ (item.price * item.quantity).toLocaleString() }}
                   </p>
                 </div>
-                <p class="text-right text-gray-300 itbms-item-total-price">
-                  ฿{{ (item.price * item.quantity).toLocaleString() }}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="mt-8">
-      <Pagination v-if="displayTotalPages > 1" :total-pages="displayTotalPages" @send-pages="changePage" />
+    <div class="flex justify-center items-end w-full flex-shrink-0" style="min-height:80px;">
+      <div class="w-full">
+        <Pagination v-if="store.totalPages > 1" :total-pages="store.totalPages" @send-pages="changePage" />
+      </div>
     </div>
   </div>
 </template>
