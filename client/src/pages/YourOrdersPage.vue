@@ -150,30 +150,44 @@ const groupedOrders = computed(() => {
           class="py-1 px-4 text-lg font-semibold rounded-lg"
           :class="status === 'NEW' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
         >
-          New
+          NEW
         </button>
         <button
           @click="changeStatus('COMPLETED')"
           class="py-1 px-4 text-lg font-semibold rounded-lg"
           :class="status === 'COMPLETED' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
         >
-          Completed
+          COMPLETED
         </button>
         <button
           @click="changeStatus('CANCELLED')"
           class="py-1 px-4 text-lg font-semibold rounded-lg"
           :class="status === 'CANCELLED' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
         >
-          Cancelled
+          CANCELLED
         </button>
       </div>
 
       <div
-      v-if="Object.keys(groupedOrders).length === 0"
-      class="text-center text-gray-400 py-20"
-    >
-      No orders found.
-    </div>
+        v-if="Object.keys(groupedOrders).length === 0"
+        class="flex flex-col items-center justify-center text-center text-gray-400 py-20 gap-4"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-purple-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        </svg>
+        <div>
+          <div class="text-lg font-semibold text-gray-300">No orders found.</div>
+          <div class="text-sm text-gray-400 mt-2">Your <span class="font-bold text-purple-400">{{ status }}</span> orders will be displayed here.</div>
+        </div>
+        <button
+          v-if="status === 'NEW'"
+          type="button"
+          class="mt-6 px-5 py-2 rounded-lg bg-white text-black font-semibold shadow hover:opacity-80 border border-black transition"
+          @click="router.push('/sale-items')"
+        >
+          Browse Products & Add to Cart
+        </button>
+      </div>
 
     
       <div

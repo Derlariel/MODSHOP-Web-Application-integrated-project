@@ -18,9 +18,9 @@ const store = useSellerOrdersStore();
 const router = useRouter();
 
 const tabs = [
-  { key: 'new', label: 'New Orders' },
-  { key: 'cancelled', label: 'Cancelled Orders' },
-  { key: 'all', label: 'All Orders' },
+  { key: 'new', label: 'NEW ' },
+  { key: 'cancelled', label: 'CANCELLED' },
+  { key: 'all', label: 'ALL ORDERS' },
 ];
 
 onMounted(async () => {
@@ -144,8 +144,14 @@ const groupedOrders = computed(() => {
       Loading orders...
     </div>
 
-    <div v-else-if="(store.orders || []).length === 0" class="text-center text-gray-400 py-20">
-      No orders found.
+    <div v-else-if="(store.orders || []).length === 0" class="flex flex-col items-center justify-center text-center text-gray-400 py-20 gap-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-purple-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+      <div>
+        <div class="text-lg font-semibold text-gray-300">No orders found.</div>
+        <div class="text-sm text-gray-400 mt-2">Your <span class="font-bold text-purple-400">{{ tabs.find(t => t.key === store.tab)?.label }}</span> will be displayed here.</div>
+      </div>
     </div>
 
     <div v-else class="max-w-6xl mx-auto space-y-10">

@@ -114,36 +114,36 @@ watch(
       <!-- Icons -->
       <div class="hidden lg:flex text-white items-center space-x-4">
         <!-- Seller Sales Orders shortcut -->
-        <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="relative">
-          <ShoppingBag class="w-5 h-5 cursor-pointer hover:text-white" />
-          <span
-            v-if="sellerOrders.newOrdersCount > 0"
-            class="absolute -top-2 -right-2 bg-purple-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full"
-          >
-            {{ sellerOrders.newOrdersCount }}
-          </span>
-        </router-link>
+          <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="relative group">
+            <ShoppingBag class="w-5 h-5 cursor-pointer transition-all duration-200 group-hover:text-purple-400 group-hover:scale-[1.02]" />
+            <span
+              v-if="sellerOrders.newOrdersCount > 0"
+              class="absolute -top-2 -right-2 bg-purple-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full"
+            >
+              {{ sellerOrders.newOrdersCount }}
+            </span>
+          </router-link>
 
         <!-- Your Orders link for both Seller and Buyer -->
-        <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="relative">
-          <FileText class="w-5 h-5 cursor-pointer hover:text-white" />
-          <span
-            v-if="orderStore.newOrdersCount > 0"
-            class="absolute -top-2 -right-2 bg-blue-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full"
-          >
-            {{ orderStore.newOrdersCount }}
-          </span>
-        </router-link>
+          <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="relative group">
+            <FileText class="w-5 h-5 cursor-pointer transition-all duration-200 group-hover:text-blue-400 group-hover:scale-[1.02]" />
+            <span
+              v-if="orderStore.newOrdersCount > 0"
+              class="absolute -top-2 -right-2 bg-blue-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full"
+            >
+              {{ orderStore.newOrdersCount }}
+            </span>
+          </router-link>
 
         <router-link to="/cart" class="relative">
-          <ShoppingCart class="w-5 h-5 cursor-pointer hover:text-white" />
-          <span
-            v-if="auth.isAuthenticated && cart.totalItems > 0"
-            class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full"
-          >
-            {{ cart.totalItems }}
-          </span>
-        </router-link>
+            <ShoppingCart class="w-5 h-5 cursor-pointer transition-all duration-200 hover:text-green-400 hover:scale-[1.02]" />
+            <span
+              v-if="auth.isAuthenticated && cart.totalItems > 0"
+              class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full"
+            >
+              {{ cart.totalItems }}
+            </span>
+          </router-link>
         
         <router-link
           v-if="!auth.isAuthenticated"
@@ -201,24 +201,24 @@ watch(
       <router-link to="/about" class="block hover:text-blue-400">About</router-link>
 
       <!-- Seller Sales Orders shortcut -->
-      <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="block hover:text-purple-400 flex items-center gap-1 justify-center">
-        <ShoppingBag class="w-5 h-5" />
-        <span>Sales Orders</span>
-        <span v-if="sellerOrders.newOrdersCount > 0" class="ml-2 bg-purple-500 text-white text-xs min-w-5 h-5 px-2 py-0.5 rounded-full">{{ sellerOrders.newOrdersCount }}</span>
-      </router-link>
+        <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="block flex items-center gap-1 justify-center group">
+          <ShoppingBag class="w-5 h-5 transition-all duration-200 group-hover:text-purple-400 group-hover:scale-[1.02]" />
+          <span class="transition-all duration-200 group-hover:text-purple-400">Sales Orders</span>
+          <span v-if="sellerOrders.newOrdersCount > 0" class="ml-2 bg-purple-500 text-white text-xs min-w-5 h-5 px-2 py-0.5 rounded-full">{{ sellerOrders.newOrdersCount }}</span>
+        </router-link>
 
       <!-- Your Orders link for both Seller and Buyer -->
-      <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="block hover:text-purple-400 flex items-center gap-1 justify-center">
-        <FileText class="w-5 h-5" />
-        <span>Your Orders</span>
-        <span v-if="orderStore.newOrdersCount > 0" class="ml-2 bg-blue-500 text-white text-xs min-w-5 h-5 px-2 py-0.5 rounded-full">{{ orderStore.newOrdersCount }}</span>
-      </router-link>
+        <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="block flex items-center gap-1 justify-center group">
+          <FileText class="w-5 h-5 transition-all duration-200 group-hover:text-blue-400 group-hover:scale-[1.02]" />
+          <span class="transition-all duration-200 group-hover:text-blue-400">Your Orders</span>
+          <span v-if="orderStore.newOrdersCount > 0" class="ml-2 bg-blue-500 text-white text-xs min-w-5 h-5 px-2 py-0.5 rounded-full">{{ orderStore.newOrdersCount }}</span>
+        </router-link>
 
       <!-- Cart link -->
-      <router-link to="/cart" class="block hover:text-red-400 relative">
-        Cart
-        <span v-if="auth.isAuthenticated && cart.totalItems > 0" class="ml-2 bg-red-500 text-white text-xs w-5 h-5 inline-flex items-center justify-center rounded-full">{{ cart.totalItems }}</span>
-      </router-link>
+        <router-link to="/cart" class="block relative group">
+          <span class="transition-all duration-200 group-hover:text-red-400 group-hover:scale-[1.02]">Cart</span>
+          <span v-if="auth.isAuthenticated && cart.totalItems > 0" class="ml-2 bg-red-500 text-white text-xs w-5 h-5 inline-flex items-center justify-center rounded-full">{{ cart.totalItems }}</span>
+        </router-link>
 
       <!-- Register -->
       <router-link
