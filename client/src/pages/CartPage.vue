@@ -8,6 +8,9 @@ import CardContent from "@/components/UI/cart/CardContent.vue"
 import CardTitle from "@/components/UI/cart/CartTitle.vue"
 import { computed, ref, onMounted } from "vue"
 import { createOrder, getOrders } from "@/api/orderAPI"
+
+const BASE_IMG_URL = `${import.meta.env.VITE_BASE_URL}/sale-items-images/`;
+import DEFAULT_IMAGE from '@/assets/default.jpg';
 import { useAuthStore } from "@/stores/useAuthStore"
 import { useOrderStore } from "@/stores/useOrderStore"
 import { useSellerOrdersStore } from "@/stores/useSellerOrdersStore"
@@ -280,27 +283,27 @@ function clearShippingAddress() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-black text-white px-6 py-24">
-    <div class="text-center mb-12">
-      <h1 class="text-5xl font-extrabold tracking-tight">🛒 Your Shopping Cart</h1>
-      <p class="text-gray-400 mt-2">Review items and proceed to checkout</p>
+  <div class="min-h-screen bg-black text-white px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
+    <div class="text-center mb-8 sm:mb-12">
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">🛒 Your Shopping Cart</h1>
+      <p class="text-gray-400 mt-2 text-sm sm:text-base">Review items and proceed to checkout</p>
     </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto">
         <!-- LEFT: Cart Items -->
-        <div class="lg:col-span-2 space-y-8">
+        <div class="lg:col-span-2 space-y-6 sm:space-y-8">
           <template v-if="cart.cart.length === 0">
             <Card>
                 <CardContent>
-                <div class="flex flex-col items-center justify-center py-16">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div class="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 sm:h-16 sm:w-16 text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7A1 1 0 007.6 17h8.8a1 1 0 00.95-.7L21 7M7 13V7m0 6h10" />
                   </svg>
-                  <div class="text-2xl font-bold mb-2">No sale items in your cart</div>
-                  <div class="text-gray-400 mb-6 text-center">Please select products to add to your cart<br>or click the button below to go back to the Product Gallery</div>
+                  <div class="text-xl sm:text-2xl font-bold mb-2 text-center">No sale items in your cart</div>
+                  <div class="text-gray-400 mb-6 text-center text-sm sm:text-base">Please select products to add to your cart<br>or click the button below to go back to the Product Gallery</div>
                   <router-link
                     to="/sale-items"
-                    class="px-6 py-2 rounded-xl bg-white text-black font-semibold shadow hover:opacity-80 transition-all"
+                    class="px-5 sm:px-6 py-2 text-sm sm:text-base rounded-xl bg-white text-black font-semibold shadow hover:opacity-80 transition-all"
                   >
                     Browse Products
                   </router-link>
@@ -311,20 +314,23 @@ function clearShippingAddress() {
           <template v-else>
             <!-- ...existing code... -->
             <Card>
-              <CardContent class="flex items-center justify-between">
+              <CardContent class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                 <div class="flex items-center">
-                  <input
-                    type="checkbox"
-                    v-model="allSelected"
-                    class="w-5 h-5 accent-blue-500 mr-3"
-                  />
-                  <span>Select All ({{ cart.totalItems }} items)</span>
+                  <label class="relative mr-3">
+                    <input
+                      type="checkbox"
+                      v-model="allSelected"
+                      class="custom-checkbox"
+                    />
+                    <span class="checkmark"></span>
+                  </label>
+                  <span class="text-sm sm:text-base">Select All ({{ cart.totalItems }} items)</span>
                 </div>
                 <!-- Quick Select Actions -->
-                <div class="flex gap-2">
+                <div class="flex gap-2 w-full sm:w-auto">
                   <button
                     @click="allSelected = true"
-                    class="text-xs px-3 py-1 rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 transition"
+                    class="text-xs sm:text-sm px-3 py-1 sm:py-1.5 rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 transition flex-1 sm:flex-initial"
                   >
                     Select All
                   </button>
@@ -332,42 +338,53 @@ function clearShippingAddress() {
               </CardContent>
             </Card>
 
-            <div v-for="(items, sellerId) in groupedCart" :key="sellerId" class="space-y-6">
+            <div v-for="(items, sellerId) in groupedCart" :key="sellerId" class="space-y-4 sm:space-y-6">
               <Card>
                 <CardHeader>
-                  <div class="flex items-center gap-1">
-                    <input
-                      type="checkbox"
-                      :checked="items.every(i => selectedItems.has(i.saleItemId + '-' + i.sellerId)) && items.length > 0"
-                      @change="(e) => toggleSeller(sellerId, e.target.checked)"
-                      class="w-5 h-5 accent-blue-500"
-                    />
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <div class="flex items-center gap-1 sm:gap-2">
+                    <label class="relative">
+                      <input
+                        type="checkbox"
+                        :checked="items.every(i => selectedItems.has(i.saleItemId + '-' + i.sellerId)) && items.length > 0"
+                        @change="(e) => toggleSeller(sellerId, e.target.checked)"
+                        class="custom-checkbox"
+                      />
+                      <span class="checkmark"></span>
+                    </label>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
-                    <CardTitle>{{ items[0].sellerNickname }} <span class="text-sm text-gray-400 "> (SELLER)</span></CardTitle>
+                    <CardTitle class="text-base sm:text-lg">{{ items[0].sellerNickname }} <span class="text-xs sm:text-sm text-gray-400 "> (SELLER)</span></CardTitle>
                   </div>
                 </CardHeader>
 
-                <CardContent class="space-y-4">
+                <CardContent class="space-y-3 sm:space-y-4">
                   <div
                     v-for="item in items"
                     :key="item.saleItemId"
-                    class="flex items-center justify-between bg-neutral-900/80 border border-neutral-700 rounded-xl p-4 shadow hover:border-purple-500 transition"
+                    class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-neutral-900/80 border border-neutral-700 rounded-xl p-3 sm:p-4 shadow hover:border-purple-500 transition gap-3 sm:gap-4"
                   >
-                    <div class="flex items-center gap-4">
-                      <input
-                        type="checkbox"
-                        :checked="selectedItems.has(item.saleItemId + '-' + item.sellerId)"
-                        @change="toggleItem(item)"
-                        class="w-5 h-5 accent-green-500"
+                    <div class="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                      <label class="relative flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          :checked="selectedItems.has(item.saleItemId + '-' + item.sellerId)"
+                          @change="toggleItem(item)"
+                          class="custom-checkbox"
+                        />
+                        <span class="checkmark"></span>
+                      </label>
+
+                      <img
+                        :src="`${BASE_IMG_URL}${item.saleItemId}.jpg`"
+                        @error="(e) => (e.target.src = DEFAULT_IMAGE)"
+                        alt="Item Image"
+                        class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover flex-shrink-0 bg-neutral-700"
                       />
 
-                      <div class="w-16 h-16 bg-neutral-700 rounded-lg"></div>
-
-                      <div>
-                        <div class="font-semibold text-lg">{{ item.name }}</div>
-                        <div class="text-sm text-gray-400">
+                      <div class="flex-1 min-w-0">
+                        <div class="font-semibold text-base sm:text-lg truncate">{{ item.name }}</div>
+                        <div class="text-xs sm:text-sm text-gray-400">
                           {{ (item.price * item.quantity).toLocaleString() }} THB
                           <span class="text-xs text-gray-500">
                             ({{ item.price.toLocaleString() }} THB / pc)
@@ -376,14 +393,14 @@ function clearShippingAddress() {
                       </div>
                     </div>
 
-                    <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto justify-end">
                       <BaseInput
                         isButton
                         buttonText="-"
                         variant="secondary"
                         @click="handleDecrease(item)"
                       />
-                      <span class="px-4 font-bold text-lg">{{ item.quantity }}</span>
+                      <span class="px-3 sm:px-4 font-bold text-base sm:text-lg">{{ item.quantity }}</span>
                       <BaseInput
                         isButton
                         buttonText="+"
@@ -400,23 +417,23 @@ function clearShippingAddress() {
         </div>
 
       <!-- RIGHT: Summary -->
-      <Card class="h-fit sticky top-24">
+      <Card class="h-fit lg:sticky lg:top-24">
         <CardHeader>
-          <CardTitle>Cart Summary</CardTitle>
+          <CardTitle class="text-lg sm:text-xl">Cart Summary</CardTitle>
         </CardHeader>
         <CardContent>
           <div class="mb-4">
             <div class="space-y-3">
               <!-- Buyer Name Display -->
-              <div class="text-sm bg-neutral-800/50 rounded-lg p-3 border border-neutral-700">
+              <div class="text-xs sm:text-sm bg-neutral-800/50 rounded-lg p-3 border border-neutral-700">
                 <span class="text-gray-400">👤 Buyer: </span>
                 <span class="text-white font-medium">{{ buyerName || 'Not set' }}</span>
               </div>
               
               <!-- Shipping Address Section with Visual Indicator -->
               <div class="space-y-2">
-                <div class="flex items-center justify-between">
-                  <label class="block text-sm font-medium text-gray-300">
+                <div class="flex items-center justify-between gap-2">
+                  <label class="block text-xs sm:text-sm font-medium text-gray-300">
                     📍 Shipping Address<span class="text-red-500">*</span>
                   </label>
                   
@@ -424,12 +441,13 @@ function clearShippingAddress() {
                   <button
                     v-if="savedAddresses.length > 0"
                     @click="showAddressDropdown = !showAddressDropdown"
-                    class="text-xs px-3 py-1.5 rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 transition flex items-center gap-1"
+                    class="text-xs px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 transition flex items-center gap-1 whitespace-nowrap"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                    Previous Addresses ({{ savedAddresses.length }})
+                    <span class="hidden sm:inline">Previous Addresses ({{ savedAddresses.length }})</span>
+                    <span class="sm:hidden">Previous ({{ savedAddresses.length }})</span>
                   </button>
                 </div>
                 
@@ -441,23 +459,23 @@ function clearShippingAddress() {
                     v-for="(addr, index) in savedAddresses"
                     :key="index"
                     @click="selectSavedAddress(addr)"
-                    class="w-full text-left text-sm px-3 py-2 rounded-lg bg-neutral-700/50 hover:bg-blue-600/30 text-gray-300 hover:text-white transition border border-transparent hover:border-blue-500/50"
+                    class="w-full text-left text-xs sm:text-sm px-3 py-2 rounded-lg bg-neutral-700/50 hover:bg-blue-600/30 text-gray-300 hover:text-white transition border border-transparent hover:border-blue-500/50"
                   >
                     {{ addr }}
                   </button>
                 </div>
                 
                 <!-- Default Address Warning with improved visibility -->
-                <div v-if="isDefaultAddress" class="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-l-4 border-yellow-500 rounded-lg px-4 py-3 flex items-start gap-3">
-                  <span class="text-2xl">⚠️</span>
+                <div v-if="isDefaultAddress" class="bg-gradient-to-r from-yellow-900/30 to-orange-900/30 border-l-4 border-yellow-500 rounded-lg px-3 sm:px-4 py-2 sm:py-3 flex items-start gap-2 sm:gap-3">
+                  <span class="text-xl sm:text-2xl">⚠️</span>
                   <div class="flex-1">
-                    <p class="text-sm font-semibold text-yellow-300">Default Address in Use</p>
+                    <p class="text-xs sm:text-sm font-semibold text-yellow-300">Default Address in Use</p>
                     <p class="text-xs text-yellow-200/80 mt-1">Please update with your real shipping address before placing order</p>
                   </div>
                 </div>
                 
                 <textarea
-                  class="itbms-shipping-address w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-neutral-800 text-white border-neutral-700 placeholder:text-gray-500"
+                  class="itbms-shipping-address w-full px-3 sm:px-4 py-2.5 sm:py-3.5 text-sm sm:text-base rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-neutral-800 text-white border-neutral-700 placeholder:text-gray-500"
                   :class="isDefaultAddress ? 'border-yellow-500 ring-2 ring-yellow-500/20' : ''"
                   rows="3"
                   v-model="shippingAddress"
@@ -481,9 +499,9 @@ function clearShippingAddress() {
 
               <!-- Order Note Section -->
               <div class="space-y-2">
-                <label class="block text-sm font-medium text-gray-300">📝 Order Note (Optional)</label>
+                <label class="block text-xs sm:text-sm font-medium text-gray-300">📝 Order Note (Optional)</label>
                 <textarea
-                  class="itbms-order-note w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-neutral-800 text-white border-neutral-700 placeholder:text-gray-500"
+                  class="itbms-order-note w-full px-3 sm:px-4 py-2.5 sm:py-3.5 text-sm sm:text-base rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-neutral-800 text-white border-neutral-700 placeholder:text-gray-500"
                   rows="2"
                   v-model="orderNote"
                   placeholder="Special instructions, delivery preferences, etc."
@@ -492,8 +510,8 @@ function clearShippingAddress() {
             </div>
           </div>
 
-          <p class="text-gray-300 text-lg">Selected Items: <b>{{ selectedTotalItems }}</b></p>
-          <p class="text-gray-300 text-lg mb-2">
+          <p class="text-gray-300 text-base sm:text-lg">Selected Items: <b>{{ selectedTotalItems }}</b></p>
+          <p class="text-gray-300 text-base sm:text-lg mb-2">
             Total Price:
             <b class="text-white">{{ selectedTotalPrice.toLocaleString() }} THB</b>
           </p>
@@ -504,7 +522,7 @@ function clearShippingAddress() {
             :buttonText="placing ? 'Processing...' : 'Place Order'"
             variant="primary"
             :disabled="selectedTotalItems === 0 || placing || !shippingAddress || !shippingAddress.trim()"
-            class="w-[45%] py-2 text-lg font-semibold rounded-xl transition-all duration-300"
+            class="w-full sm:w-auto sm:min-w-[45%] py-2 text-base sm:text-lg font-semibold rounded-xl transition-all duration-300"
             :class="{
               'opacity-50 cursor-not-allowed': selectedTotalItems === 0 || placing || !shippingAddress || !shippingAddress.trim(),
               'hover:scale-[1.02]': selectedTotalItems > 0 && !placing && shippingAddress && shippingAddress.trim()
@@ -565,5 +583,63 @@ function clearShippingAddress() {
 }
 .previous-addresses-scroll::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(90deg, #a78bfa 40%, #6366f1 100%);
+}
+
+/* Custom round checkbox style */
+.custom-checkbox {
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  border: 2px solid #6366f1;
+  background: #18181b;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 0 0 0 #6366f1;
+}
+.custom-checkbox:hover {
+  border-color: #a78bfa;
+}
+.custom-checkbox:focus {
+  box-shadow: 0 0 0 2px #a78bfa44;
+}
+.custom-checkbox:checked {
+  background: linear-gradient(135deg, #7c3aed 60%, #6366f1 100%);
+  border-color: #7c3aed;
+}
+.checkmark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.custom-checkbox:checked + .checkmark::after {
+  content: '';
+  display: block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 0 0 2px #7c3aed;
+  position: absolute;
+}
+.custom-checkbox:checked + .checkmark::before {
+  content: '';
+  display: block;
+  width: 0.5rem;
+  height: 0.25rem;
+  border-left: 2.5px solid #7c3aed;
+  border-bottom: 2.5px solid #7c3aed;
+  position: absolute;
+  left: 0.35rem;
+  top: 0.35rem;
+  transform: rotate(-45deg);
 }
 </style>

@@ -139,7 +139,7 @@ onMounted(async () => {
 });
 
 const fetchOrders = (statusValue = status.value, page = orderStore.activePage) => {
-  console.log(`Fetching orders for user ${userStore.user.id}, status=${statusValue}, page=${page}`);
+  // console.log(`Fetching orders for user ${userStore.user.id}, status=${statusValue}, page=${page}`);
   orderStore.fetchOrders(userStore.user.id, statusValue, page);
 };
 
@@ -287,8 +287,8 @@ const updatePages = (page) => {
   fetchOrders(status.value, page);
 };
 watch(() => orderStore.orders, (newOrders) => {
-  console.log(status)
-  console.log("orderStore.orders changed:", newOrders);
+  // console.log(status)
+  // console.log("orderStore.orders changed:", newOrders);
 });
 
 watch(status, (newStatus) => {
@@ -322,7 +322,7 @@ watch(() => orderStore.activePage, (newPage) => {
 });
 
 const groupedOrders = computed(() => {
-  console.log('Recomputing groupedOrders...');
+  // console.log('Recomputing groupedOrders...');
   const grouped = {};
   const orders = isSearchActive.value ? searchResults.value : orderStore.orders.slice();
 
@@ -331,7 +331,7 @@ const groupedOrders = computed(() => {
     if (!grouped[date]) grouped[date] = [];
     grouped[date].push(order);
   });
-  console.log(grouped)
+  // console.log(grouped)
   return grouped;
 });
 
@@ -360,14 +360,14 @@ const handlePageUpdate = (page) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-black text-white flex flex-col px-6 pt-20">
-    <div class="text-center mb-12">
-      <h1 class="text-5xl font-extrabold tracking-tight">📦 Your Orders</h1>
-      <p class="text-gray-400 mt-2">Track and view your completed purchases</p>
+  <div class="min-h-screen bg-black text-white flex flex-col px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20">
+    <div class="text-center mb-8 sm:mb-12">
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">📦 Your Orders</h1>
+      <p class="text-gray-400 mt-2 text-sm sm:text-base">Track and view your completed purchases</p>
     </div>
 
     <!-- Search Filter Component -->
-    <div class="max-w-6xl mx-auto mb-8">
+    <div class="w-full sm:w-[90%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%] mx-auto mb-6 sm:mb-8">
       <OrderFilterSearch
         v-model="searchFilters"
         :seller-options="sellerOptions"
@@ -378,51 +378,51 @@ const handlePageUpdate = (page) => {
       />
     </div>
 
-    <div v-if="orderStore.loading" class="text-gray-500 text-center py-20">
+    <div v-if="orderStore.loading" class="text-gray-500 text-center py-12 sm:py-20">
       Loading your orders...
     </div>
 
     <div v-else class="flex-1 flex flex-col">
-      <div class="max-w-6xl mx-auto w-full space-y-10 flex-1">
-        <div class="mb-6 flex gap-4 justify-center">
-          <button
-            @click="changeStatus('NEW')"
-            class="py-1 px-4 text-lg font-semibold rounded-lg"
-            :class="status === 'NEW' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
-          >
-            NEW
-          </button>
-          <button
-            @click="changeStatus('COMPLETED')"
-            class="py-1 px-4 text-lg font-semibold rounded-lg"
-            :class="status === 'COMPLETED' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
-          >
-            COMPLETED
-          </button>
-          <button
-            @click="changeStatus('CANCELLED')"
-            class="py-1 px-4 text-lg font-semibold rounded-lg"
-            :class="status === 'CANCELLED' ? 'text-white bg-purple-500' : 'bg-neutral-900 text-gray-300'"
-          >
-            CANCELLED
-          </button>
+      <div class="w-full sm:w-[90%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%] mx-auto space-y-6 sm:space-y-10 flex-1">
+        <div class="mb-4 sm:mb-6 flex flex-wrap gap-2 sm:gap-4 justify-center">
+            <button
+              @click="changeStatus('NEW')"
+              class="py-2 px-3 sm:py-1 sm:px-4 text-sm sm:text-base font-semibold rounded-lg border border-neutral-700 transition-colors"
+              :class="status === 'NEW' ? 'bg-purple-600 text-white' : 'bg-neutral-900 text-gray-300 hover:bg-neutral-800'"
+            >
+              NEW
+            </button>
+            <button
+              @click="changeStatus('COMPLETED')"
+              class="py-2 px-3 sm:py-1 sm:px-4 text-sm sm:text-base font-semibold rounded-lg border border-neutral-700 transition-colors"
+              :class="status === 'COMPLETED' ? 'bg-purple-600 text-white' : 'bg-neutral-900 text-gray-300 hover:bg-neutral-800'"
+            >
+              COMPLETED
+            </button>
+            <button
+              @click="changeStatus('CANCELLED')"
+              class="py-2 px-3 sm:py-1 sm:px-4 text-sm sm:text-base font-semibold rounded-lg border border-neutral-700 transition-colors"
+              :class="status === 'CANCELLED' ? 'bg-purple-600 text-white' : 'bg-neutral-900 text-gray-300 hover:bg-neutral-800'"
+            >
+              CANCELLED
+            </button>
         </div>
 
         <div
           v-if="Object.keys(groupedOrders).length === 0"
-          class="flex flex-col items-center justify-center text-center text-gray-400 py-20 gap-4 flex-1"
+          class="flex flex-col items-center justify-center text-center text-gray-400 py-12 sm:py-20 gap-4 flex-1 px-4"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-purple-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-purple-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
           <div>
-            <div class="text-lg font-semibold text-gray-300">No orders found.</div>
-            <div class="text-sm text-gray-400 mt-2">Your <span class="font-bold text-purple-400">{{ status }}</span> orders will be displayed here.</div>
+            <div class="text-base sm:text-lg font-semibold text-gray-300">No orders found.</div>
+            <div class="text-xs sm:text-sm text-gray-400 mt-2">Your <span class="font-bold text-purple-400">{{ status }}</span> orders will be displayed here.</div>
           </div>
           <button
             v-if="status === 'NEW'"
             type="button"
-            class="mt-6 px-5 py-2 rounded-lg bg-white text-black font-semibold shadow hover:opacity-80 border border-black transition"
+            class="mt-4 sm:mt-6 px-4 sm:px-5 py-2 text-sm sm:text-base rounded-lg bg-white text-black font-semibold shadow hover:opacity-80 border border-black transition"
             @click="router.push('/sale-items')"
           >
             Browse Products & Add to Cart
@@ -432,30 +432,30 @@ const handlePageUpdate = (page) => {
         <div
           v-for="(orders, date) in groupedOrders"
           :key="date"
-          class="space-y-6"
+          class="space-y-4 sm:space-y-6"
         >
           <h2
-            class="text-2xl font-semibold text-purple-400 border-b border-neutral-700 pb-2"
+            class="text-xl sm:text-2xl font-semibold text-purple-400 border-b border-neutral-700 pb-2"
           >
             {{ date }}
           </h2>
 
           <div v-for="(order, idx) in orders" :key="order.id" class="itbms-row"
-            :class="idx === orders.length - 1 ? 'mb-8' : ''">
+            :class="idx === orders.length - 1 ? 'mb-6 sm:mb-8' : ''">
             <Card
               class="bg-neutral-900/80 border border-neutral-700 hover:border-purple-500 transition"
             >
               <CardHeader>
-                <div class="flex justify-between items-center flex-wrap gap-4">
-                  <div class="space-y-1">
-                    <CardTitle class="itbms-nickname"
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+                  <div class="space-y-1 w-full sm:w-auto">
+                    <CardTitle class="itbms-nickname text-base sm:text-lg"
                       >Seller: {{ order.seller.nickName }}</CardTitle
                     >
-                    <p class="text-sm text-gray-400 itbms-order-id">
+                    <p class="text-xs sm:text-sm text-gray-400 itbms-order-id">
                       Order #: {{ order.id }}
                     </p>
                   </div>
-                  <div class="text-sm text-gray-400 space-x-4">
+                  <div class="text-xs sm:text-sm text-gray-400 flex flex-col sm:flex-row gap-1 sm:gap-4 w-full sm:w-auto">
                     <span class="itbms-order-date">
                       Order Date:
                       {{ new Date(order.orderDate).toLocaleDateString("th-TH") }}
@@ -467,24 +467,26 @@ const handlePageUpdate = (page) => {
                       }}
                     </span>
                   </div>
-                  <div class="text-right">
-                    <p
-                      class="text-green-400 font-bold text-lg itbms-total-order-price"
-                    >
-                      ฿{{
-                        order.orderItems
-                          .reduce((sum, i) => sum + i.price * i.quantity, 0)
-                          .toLocaleString()
-                      }}
-                    </p>
-                    <p class="text-sm text-gray-400 itbms-order-status">
-                      Status: {{ order.orderStatus }}
-                    </p>
-                    <div class="mt-2">
+                  <div class="flex justify-between sm:justify-end items-center w-full sm:w-auto gap-4 sm:text-right">
+                    <div>
+                      <p
+                        class="text-green-400 font-bold text-base sm:text-lg itbms-total-order-price"
+                      >
+                        ฿{{
+                          order.orderItems
+                            .reduce((sum, i) => sum + i.price * i.quantity, 0)
+                            .toLocaleString()
+                        }}
+                      </p>
+                      <p class="text-xs sm:text-sm text-gray-400 itbms-order-status">
+                        Status: {{ order.orderStatus }}
+                      </p>
+                    </div>
+                    <div class="flex-shrink-0">
                       <button
                         type="button"
                         @click.stop="viewOrder(order.id)"
-                        class="text-xs md:text-sm font-semibold px-3 py-1 rounded-lg border border-purple-500 text-purple-300 hover:bg-purple-600/20 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        class="text-xs sm:text-sm font-semibold px-3 py-1.5 sm:py-1 rounded-lg border border-purple-500 text-purple-300 hover:bg-purple-600/20 focus:outline-none focus:ring-2 focus:ring-purple-600 transition"
                         aria-label="View order details"
                       >
                         VIEW
@@ -493,7 +495,7 @@ const handlePageUpdate = (page) => {
                   </div>
                 </div>
 
-                <p class="mt-2 text-sm text-gray-300 itbms-shipping-address">
+                <p class="mt-3 sm:mt-2 text-xs sm:text-sm text-gray-300 itbms-shipping-address">
                   <b>Shipped To: </b>
                   <span v-if="order.shippingAddress">
                     {{
@@ -503,7 +505,7 @@ const handlePageUpdate = (page) => {
                     }}{{ order.shippingAddress }}
                   </span>
                 </p>
-                <p class="mt-1 text-sm text-gray-300 itbms-order-note">
+                <p class="mt-1 text-xs sm:text-sm text-gray-300 itbms-order-note">
                   <b>Note:</b> {{ order.orderNote || "—" }}
                 </p>
               </CardHeader>
@@ -512,23 +514,23 @@ const handlePageUpdate = (page) => {
                 <div
                   v-for="item in order.orderItems"
                   :key="item.saleItemId"
-                  class="flex items-center gap-4 py-4 itbms-item-row"
+                  class="flex items-center gap-3 sm:gap-4 py-3 sm:py-4 itbms-item-row"
                 >
                   <img
                     :src="`${BASE_URL}/sale-items-images/${item.saleItemId}.jpg`"
                     @error="(e) => (e.target.src = DEFAULT_IMAGE)"
                     alt="Item Image"
-                    class="w-16 h-16 rounded object-cover"
+                    class="w-14 h-14 sm:w-16 sm:h-16 rounded object-cover flex-shrink-0"
                   />
-                  <div class="flex-1">
-                    <p class="font-semibold text-lg itbms-item-description">
+                  <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-sm sm:text-base lg:text-lg itbms-item-description truncate sm:whitespace-normal">
                       {{ item.description }}
                     </p>
-                    <p class="text-sm text-gray-400 itbms-item-quantity">
+                    <p class="text-xs sm:text-sm text-gray-400 itbms-item-quantity">
                       Qty: {{ item.quantity }}
                     </p>
                   </div>
-                  <p class="text-right text-gray-300 itbms-item-total-price">
+                  <p class="text-right text-gray-300 text-sm sm:text-base itbms-item-total-price flex-shrink-0">
                     ฿{{ (item.price * item.quantity).toLocaleString() }}
                   </p>
                 </div>
@@ -539,8 +541,8 @@ const handlePageUpdate = (page) => {
       </div>
     </div>
 
-    <div class="flex justify-center items-end w-full flex-shrink-0" style="min-height:80px;">
-      <div class="w-full">
+    <div class="flex justify-center items-end w-full flex-shrink-0 pb-4 sm:pb-0" style="min-height:80px;">
+      <div class="w-full px-2 sm:px-0">
         <Pagination
           v-if="orderStore.allPages > 1"
           :total-pages="orderStore.allPages"

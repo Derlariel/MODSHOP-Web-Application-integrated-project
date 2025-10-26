@@ -54,16 +54,6 @@ public class SaleItemV2Controller {
     @Autowired
     private SaleItemImageService saleItemImageService;
 
-    @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
-    private ListMapper listMapper;
-
-
-
-
-
     @PutMapping("/{id}")
     public ResponseEntity<SaleItemDetailDto> updateSaleItem(
             @PathVariable Integer id,

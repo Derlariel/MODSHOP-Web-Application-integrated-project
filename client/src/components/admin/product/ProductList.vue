@@ -114,7 +114,7 @@ async function loadSellerProducts(page = currentPage.value) {
       }
     }
 
-    console.log('Loading products for seller ID:', auth.user.id)
+    // console.log('Loading products for seller ID:', auth.user.id)
 
     const response = await fetch(
       `${import.meta.env.VITE_BASE_URL}/v2/sellers/${auth.user.id}/sale-items?page=${page}&size=${pageSize.value}`,

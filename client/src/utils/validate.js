@@ -180,7 +180,7 @@ export const validateScreenSize = (data) => {
 
   // const decimalPlaces = (trimmed.split('.')[1] || '').length;
   const decimalPlaces = (StrData.split('.')[1] || '').length;
-  console.log("dec", decimalPlaces);
+  // console.log("dec", decimalPlaces);
   if (decimalPlaces > 2) {
     
     return {
