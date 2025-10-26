@@ -186,14 +186,12 @@ async function placeOrder() {
   if (placing.value || selectedItems.value.size === 0) return
   if (!auth.isAuthenticated) return
 
-  // Friendly validation: block order if still using mock address
   if (isDefaultAddress.value) {
     errorMessage.value = "Please update your shipping address before placing your order"
     showError.value = true
     return
   }
 
-  // Block seller from placing orders for their own items
   if (auth?.user?.role === "SELLER") {
     const hasOwnItemSelected = Array.from(selectedItems.value).some(key => {
       const [saleItemIdStr, sellerIdStr] = String(key).split("-")
@@ -206,7 +204,6 @@ async function placeOrder() {
     }
   }
 
-  // group selected items by seller for payload
   const bySeller = {}
   const orderedKeys = []
   for (const item of cart.cart) {
@@ -289,97 +286,118 @@ function clearShippingAddress() {
       <p class="text-gray-400 mt-2">Review items and proceed to checkout</p>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-      <!-- LEFT: Cart Items -->
-      <div class="lg:col-span-2 space-y-8">
-        <Card>
-          <CardContent class="flex items-center justify-between">
-            <div class="flex items-center">
-              <input
-                type="checkbox"
-                v-model="allSelected"
-                class="w-5 h-5 accent-blue-500 mr-3"
-              />
-              <span>Select All ({{ cart.totalItems }} items)</span>
-            </div>
-            <!-- Quick Select Actions -->
-            <div class="flex gap-2">
-              <button
-                @click="allSelected = true"
-                class="text-xs px-3 py-1 rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 transition"
-              >
-                Select All
-              </button>
-
-            </div>
-          </CardContent>
-        </Card>
-
-        <div v-for="(items, sellerId) in groupedCart" :key="sellerId" class="space-y-6">
-          <Card>
-            <CardHeader>
-              <div class="flex items-center gap-1">
-                <input
-                  type="checkbox"
-                  :checked="items.every(i => selectedItems.has(i.saleItemId + '-' + i.sellerId)) && items.length > 0"
-                  @change="(e) => toggleSeller(sellerId, e.target.checked)"
-                  class="w-5 h-5 accent-blue-500"
-                />
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                <CardTitle>{{ items[0].sellerNickname }} <span class="text-sm text-gray-400 "> (SELLER)</span></CardTitle>
-              </div>
-            </CardHeader>
-
-            <CardContent class="space-y-4">
-              <div
-                v-for="item in items"
-                :key="item.saleItemId"
-                class="flex items-center justify-between bg-neutral-900/80 border border-neutral-700 rounded-xl p-4 shadow hover:border-purple-500 transition"
-              >
-                <div class="flex items-center gap-4">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <!-- LEFT: Cart Items -->
+        <div class="lg:col-span-2 space-y-8">
+          <template v-if="cart.cart.length === 0">
+            <Card>
+                <CardContent>
+                <div class="flex flex-col items-center justify-center py-16">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7A1 1 0 007.6 17h8.8a1 1 0 00.95-.7L21 7M7 13V7m0 6h10" />
+                  </svg>
+                  <div class="text-2xl font-bold mb-2">No sale items in your cart</div>
+                  <div class="text-gray-400 mb-6 text-center">Please select products to add to your cart<br>or click the button below to go back to the Product Gallery</div>
+                  <router-link
+                    to="/sale-items"
+                    class="px-6 py-2 rounded-xl bg-white text-black font-semibold shadow hover:opacity-80 transition-all"
+                  >
+                    Browse Products
+                  </router-link>
+                </div>
+                </CardContent>
+            </Card>
+          </template>
+          <template v-else>
+            <!-- ...existing code... -->
+            <Card>
+              <CardContent class="flex items-center justify-between">
+                <div class="flex items-center">
                   <input
                     type="checkbox"
-                    :checked="selectedItems.has(item.saleItemId + '-' + item.sellerId)"
-                    @change="toggleItem(item)"
-                    class="w-5 h-5 accent-green-500"
+                    v-model="allSelected"
+                    class="w-5 h-5 accent-blue-500 mr-3"
                   />
+                  <span>Select All ({{ cart.totalItems }} items)</span>
+                </div>
+                <!-- Quick Select Actions -->
+                <div class="flex gap-2">
+                  <button
+                    @click="allSelected = true"
+                    class="text-xs px-3 py-1 rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/40 transition"
+                  >
+                    Select All
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
 
-                  <div class="w-16 h-16 bg-neutral-700 rounded-lg"></div>
+            <div v-for="(items, sellerId) in groupedCart" :key="sellerId" class="space-y-6">
+              <Card>
+                <CardHeader>
+                  <div class="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      :checked="items.every(i => selectedItems.has(i.saleItemId + '-' + i.sellerId)) && items.length > 0"
+                      @change="(e) => toggleSeller(sellerId, e.target.checked)"
+                      class="w-5 h-5 accent-blue-500"
+                    />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <CardTitle>{{ items[0].sellerNickname }} <span class="text-sm text-gray-400 "> (SELLER)</span></CardTitle>
+                  </div>
+                </CardHeader>
 
-                  <div>
-                    <div class="font-semibold text-lg">{{ item.name }}</div>
-                    <div class="text-sm text-gray-400">
-                      {{ (item.price * item.quantity).toLocaleString() }} THB
-                      <span class="text-xs text-gray-500">
-                        ({{ item.price.toLocaleString() }} THB / pc)
-                      </span>
+                <CardContent class="space-y-4">
+                  <div
+                    v-for="item in items"
+                    :key="item.saleItemId"
+                    class="flex items-center justify-between bg-neutral-900/80 border border-neutral-700 rounded-xl p-4 shadow hover:border-purple-500 transition"
+                  >
+                    <div class="flex items-center gap-4">
+                      <input
+                        type="checkbox"
+                        :checked="selectedItems.has(item.saleItemId + '-' + item.sellerId)"
+                        @change="toggleItem(item)"
+                        class="w-5 h-5 accent-green-500"
+                      />
+
+                      <div class="w-16 h-16 bg-neutral-700 rounded-lg"></div>
+
+                      <div>
+                        <div class="font-semibold text-lg">{{ item.name }}</div>
+                        <div class="text-sm text-gray-400">
+                          {{ (item.price * item.quantity).toLocaleString() }} THB
+                          <span class="text-xs text-gray-500">
+                            ({{ item.price.toLocaleString() }} THB / pc)
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                      <BaseInput
+                        isButton
+                        buttonText="-"
+                        variant="secondary"
+                        @click="handleDecrease(item)"
+                      />
+                      <span class="px-4 font-bold text-lg">{{ item.quantity }}</span>
+                      <BaseInput
+                        isButton
+                        buttonText="+"
+                        variant="primary"
+                        :disabled="item.quantity >= item.stock"
+                        @click="cart.updateQuantity(item.saleItemId, item.sellerId, item.quantity + 1)"
+                      />
                     </div>
                   </div>
-                </div>
-
-                <div class="flex items-center space-x-3">
-                  <BaseInput
-                    isButton
-                    buttonText="-"
-                    variant="secondary"
-                    @click="handleDecrease(item)"
-                  />
-                  <span class="px-4 font-bold text-lg">{{ item.quantity }}</span>
-                  <BaseInput
-                    isButton
-                    buttonText="+"
-                    variant="primary"
-                    :disabled="item.quantity >= item.stock"
-                    @click="cart.updateQuantity(item.saleItemId, item.sellerId, item.quantity + 1)"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </div>
+          </template>
         </div>
-      </div>
 
       <!-- RIGHT: Summary -->
       <Card class="h-fit sticky top-24">
@@ -508,7 +526,8 @@ function clearShippingAddress() {
     <ConfirmModal
       :visible="showConfirm"
       title="Remove Item"
-      message="Do you want to remove this item from the cart?"
+      message="Do you want to remove"
+      :itemName="pendingRemove ? `&quot;${pendingRemove.name}&quot; from the cart?` : ''"
       confirmText="Remove"
       cancelText="Cancel"
       @confirm="confirmRemove"

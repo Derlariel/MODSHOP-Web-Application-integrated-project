@@ -78,9 +78,9 @@ watch(
       </router-link>
 
       <!-- Desktop Nav -->
-      <div class="hidden lg:flex justify-center flex-1 text-white font-light">
+      <div class="hidden lg:block absolute left-1/2 top-0 h-14 w-[480px] xl:w-[600px]" style="transform: translateX(-50%);">
         <ul
-          class="flex justify-center space-x-6 lg:space-x-10 xl:space-x-12 font-light"
+          class="flex h-full items-center justify-center space-x-6 xl:space-x-10 font-light text-white"
         >
           <li
             :class="
@@ -89,7 +89,7 @@ watch(
                 : 'hover:text-white'
             "
           >
-            <router-link :to="{ name: 'Main' }">Home</router-link>
+            <router-link :to="{ name: 'Main' }" active-class="font-bold text-white">HOME</router-link>
           </li>
           <li
             :class="
@@ -98,51 +98,58 @@ watch(
                 : 'hover:text-white'
             "
           >
-            <router-link :to="{ name: 'product-gallery' }"
-              >Products</router-link
-            >
+            <router-link :to="{ name: 'product-gallery' }" active-class="font-bold text-white">PRODUCTS</router-link>
           </li>
           <li class="hover:text-white">
-            <router-link :to="{ name: 'brands-list' }">Brands</router-link>
+            <router-link :to="{ name: 'brands-list' }" active-class="font-bold text-white">BRANDS</router-link>
           </li>
           <li class="hover:text-white">
-            <router-link to="/about">About</router-link>
+            <router-link to="/about" active-class="font-bold text-white">ABOUT</router-link>
           </li>
         </ul>
       </div>
 
-      <!-- Icons -->
-      <div class="hidden lg:flex text-white items-center space-x-4">
+  <!-- Icons -->
+  <div class="hidden lg:flex text-white items-center space-x-1 xl:space-x-3">
         <!-- Seller Sales Orders shortcut -->
-          <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="relative group">
-            <ShoppingBag class="w-5 h-5 cursor-pointer transition-all duration-200 group-hover:text-purple-400 group-hover:scale-[1.02]" />
-            <span
-              v-if="sellerOrders.newOrdersCount > 0"
-              class="absolute -top-2 -right-2 bg-purple-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full"
-            >
-              {{ sellerOrders.newOrdersCount }}
-            </span>
+          <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="group flex items-center min-w-[48px]">
+            <div class="relative mr-2">
+              <ShoppingBag class="w-5 h-5 cursor-pointer transition-all duration-200 group-hover:text-purple-400 group-hover:scale-[1.02]" />
+              <span
+                v-if="sellerOrders.newOrdersCount > 0"
+                class="absolute -top-2 -right-2 bg-purple-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full"
+              >
+                {{ sellerOrders.newOrdersCount }}
+              </span>
+            </div>
+            <span class="text-sm whitespace-nowrap ml-1 group-hover:text-purple-400 transition-colors duration-200 hidden xl:inline">Sales Orders</span>
           </router-link>
 
         <!-- Your Orders link for both Seller and Buyer -->
-          <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="relative group">
-            <FileText class="w-5 h-5 cursor-pointer transition-all duration-200 group-hover:text-blue-400 group-hover:scale-[1.02]" />
-            <span
-              v-if="orderStore.newOrdersCount > 0"
-              class="absolute -top-2 -right-2 bg-blue-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full"
-            >
-              {{ orderStore.newOrdersCount }}
-            </span>
+          <router-link v-if="auth.isAuthenticated && (auth.user?.role==='BUYER' || auth.user?.role==='SELLER')" to="/your-orders" class="group flex items-center min-w-[48px]">
+            <div class="relative mr-2">
+              <FileText class="w-5 h-5 cursor-pointer transition-all duration-200 group-hover:text-blue-400 group-hover:scale-[1.02]" />
+              <span
+                v-if="orderStore.newOrdersCount > 0"
+                class="absolute -top-2 -right-2 bg-blue-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full"
+              >
+                {{ orderStore.newOrdersCount }}
+              </span>
+            </div>
+            <span class="text-sm whitespace-nowrap ml-1 group-hover:text-blue-400 transition-colors duration-200 hidden xl:inline">Your Orders</span>
           </router-link>
 
-        <router-link to="/cart" class="relative">
-            <ShoppingCart class="w-5 h-5 cursor-pointer transition-all duration-200 hover:text-green-400 hover:scale-[1.02]" />
-            <span
-              v-if="auth.isAuthenticated && cart.totalItems > 0"
-              class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full"
-            >
-              {{ cart.totalItems }}
-            </span>
+        <router-link to="/cart" class="group flex items-center ">
+            <div class="relative mr-2">
+              <ShoppingCart class="w-5 h-5 cursor-pointer transition-all duration-200 group-hover:text-green-400 group-hover:scale-[1.02]" />
+              <span
+                v-if="auth.isAuthenticated && cart.totalItems > 0"
+                class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full"
+              >
+                {{ cart.totalItems }}
+              </span>
+            </div>
+
           </router-link>
         
         <router-link
@@ -195,10 +202,10 @@ watch(
       v-if="isMobileMenuOpen"
       class="lg:hidden px-6 py-4 space-y-4 border-t text-center font-semibold text-white bg-black bg-opacity-90"
     >
-      <router-link :to="{ name: 'Main' }" class="block hover:text-blue-400">Home</router-link>
-      <router-link :to="{ name: 'product-gallery' }" class="block hover:text-blue-400">Products</router-link>
-      <router-link :to="{ name: 'brands-list' }" class="block hover:text-blue-400">Brands</router-link>
-      <router-link to="/about" class="block hover:text-blue-400">About</router-link>
+      <router-link :to="{ name: 'Main' }" class="block hover:text-blue-400">HOME</router-link>
+      <router-link :to="{ name: 'product-gallery' }" class="block hover:text-blue-400">PRODUCTS</router-link>
+      <router-link :to="{ name: 'brands-list' }" class="block hover:text-blue-400">BRANDS</router-link>
+      <router-link to="/about" class="block hover:text-blue-400">ABOUT</router-link>
 
       <!-- Seller Sales Orders shortcut -->
         <router-link v-if="auth.isAuthenticated && auth.user?.role==='SELLER'" to="/sale-orders" class="block flex items-center gap-1 justify-center group">
