@@ -60,7 +60,7 @@ public class AuthService {
 
     //send email with reset link
     private void sendPasswordResetEmail(String to, String token) {
-        String resetLink = frontendBaseUrl + token;
+        String resetLink = frontendBaseUrl + "reset-password?token=" + token;
 
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setTo(to);
@@ -102,6 +102,33 @@ public class AuthService {
         // Clear Security Context 
         org.springframework.security.core.context.SecurityContextHolder.clearContext();
     }
+
+    @Transactional
+    public void resetPasswordByToken(String token, String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired token"));
+
+        if (resetToken.isUsed()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token already used");
+        }
+        if (resetToken.getExpiration().isBefore(Instant.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token expired");
+        }
+
+        User user = resetToken.getUser();
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        String encoded = passwordEncoder.encode(newPassword);
+        user.setPasswordHash(encoded);
+        userRepository.save(user);
+
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
+    }
+
+
 
 
 

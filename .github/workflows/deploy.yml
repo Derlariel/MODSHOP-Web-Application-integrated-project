@@ -16,21 +16,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Auto Deploy container application itb-mshop 
+      - name: Docker login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Auto Deploy container application itb-mshop
         run: |
-          set -x  
+          set -x
           cd /home/sysadmin/2-2567_INT221_KK-1
-
           git pull https://napatzzz:${{ secrets.GH_PAH_TOKEN }}@github.com/Derlariel/2-2567_INT221_KK-1.git main
-
           rm -rf ./secrets/db_password
           mkdir -p ./secrets
           echo "${{ secrets.DB_PASSWORD }}" > ./secrets/db_password
-          # sudo chown 100:101 ./secrets/db_password
-          # sudo chmod 400 ./secrets/db_password
 
           docker compose down -v
-          docker compose build 
+          docker compose build
           docker compose up -d
           docker image prune -f
-   

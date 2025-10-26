@@ -30,8 +30,8 @@ const form = reactive({
   bankAccountNo: "",
   bankName: "",
   nationalIdNumber: "",
-  nationalIdFront: null, // File
-  nationalIdBack: null, // File
+  nationalIdFront: null, 
+  nationalIdBack: null, 
 });
 
 const errors = reactive({});

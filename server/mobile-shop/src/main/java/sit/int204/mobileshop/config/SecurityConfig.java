@@ -70,6 +70,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/v2/auth/reset-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v2/sale-items").authenticated()
                         .requestMatchers(HttpMethod.POST, "/v2/orders").authenticated()
                         .anyRequest().authenticated()

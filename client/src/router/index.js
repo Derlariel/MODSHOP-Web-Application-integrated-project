@@ -65,6 +65,16 @@ const routes = [
   { path: "/register", name: "Register", component: Register },
   { path: "/login", name: "Login", component: Login },
   {
+    path: "/forgot-password",
+    name: "ForgotPasswordPage",
+    component: ResetPasswordPage,
+  },
+  {
+  path: "/reset-password",
+  name: "ResetPasswordPage",
+  component: ResetPasswordPage,
+},
+  {
     path: "/",
     component: DefaultLayout,
     children: [
