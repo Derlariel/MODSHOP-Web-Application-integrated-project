@@ -148,7 +148,7 @@ const handleAddToCart = async (item) => {
     auth?.user?.role === "SELLER" &&
     Number(detail?.sellerId) === Number(auth.user.id)
   ) {
-    errorMessage.value = "You cannot add your own sale item to the cart.";
+    errorMessage.value = `You cannot add your own "${detail.model}" to the cart.`;
     showError.value = true;
     return;
   }

@@ -104,7 +104,7 @@ const addToCart = () => {
       auth?.user?.role === "SELLER" &&
       Number(product.value.sellerId) === Number(auth.user.id)
     ) {
-      errorMessage.value = "You cannot add your own sale item to the cart.";
+      errorMessage.value = `You cannot add your own "${product.value.model}" to the cart.`;
       showError.value = true;
       return;
     }
