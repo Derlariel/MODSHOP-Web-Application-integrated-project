@@ -198,12 +198,16 @@ defineExpose({ clearAllFiles, initializeImages });
       <!-- ✅ Upload UI -->
       <div v-if="editMode" class="mt-8 space-y-6">
         <div class="flex justify-center gap-4">
-          <label for="file-upload-multi" class="bg-blue-600 text-white px-6 py-3 rounded-lg cursor-pointer">
+          <label for="file-upload-multi"
+            class="px-6 py-3 rounded-lg cursor-pointer font-semibold border border-neutral-700 bg-white text-black transition-colors duration-200 hover:opacity-80 hover:text-black hover:border-black hover:scale-105">
             เพิ่มหลายรูป
           </label>
           <input id="file-upload-multi" type="file" multiple accept="image/*" class="hidden" @change="handleMultiFileChange" />
 
-          <button @click="clearAllFiles" class="bg-red-600 text-white px-6 py-3 rounded-lg">ล้างทั้งหมด</button>
+          <button @click="clearAllFiles"
+            class="px-6 py-3 rounded-lg font-semibold border border-neutral-700 bg-black text-white transition-colors duration-200 hover:bg-white hover:text-black hover:border-black">
+            ล้างทั้งหมด
+          </button>
         </div>
 
         <div class="flex flex-wrap justify-center gap-4">
