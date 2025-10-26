@@ -17,7 +17,7 @@ public class RegisterUserDto {
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
-    @Size(max = 100, message = "Email must not exceed 100 characters")
+    @Size(max = 50, message = "Email must not exceed 50 characters")
     @Pattern(
         regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
         message = "Invalid email format"

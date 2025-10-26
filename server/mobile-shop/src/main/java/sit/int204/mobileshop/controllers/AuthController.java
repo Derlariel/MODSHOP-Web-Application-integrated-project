@@ -62,7 +62,7 @@ public class AuthController {
         refreshTokenCookie.setMaxAge(0);
         response.addCookie(refreshTokenCookie);
 
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Register user", description = "Register a new buyer or seller account with file upload support")
@@ -88,16 +88,8 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> verifyEmail(
             @RequestParam("token") String token,
             HttpServletResponse response) throws IOException {
-        // <<<<<<< Updated upstream
-
-        // Map<String, Object> result = userService.verifyEmail(token).getBody();
-        // String redirectUrl = env.getProperty("app.frontend.redirect");
-        // response.sendRedirect(redirectUrl + "sale-items?status=verified");
-        // System.out.println(redirectUrl + "sale-items");
-        // =======
         Map<String, Object> result = userService.verifyEmail(token).getBody();
         response.sendRedirect("http://intproj24.sit.kmutt.ac.th/kk1/sale-items?status=verified");
-        // >>>>>>> Stashed changes
         return ResponseEntity.ok(result);
     }
 
@@ -123,24 +115,24 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
+        // Access Token อายุ 24 ชั่วโมง
         Cookie accessTokenCookie = new Cookie("access_token", authResponse.getAccessToken());
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(cookieSecure);
         accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(1 * 60);  // 👈 1 นาที
+        accessTokenCookie.setMaxAge(24 * 60 * 60);  // 24 ชั่วโมง
         response.addCookie(accessTokenCookie);
 
-// Refresh Token อายุ 5 นาที (300 วินาที)
+        // Refresh Token อายุ 7 วัน
         if (authResponse.getRefreshToken() != null) {
             Cookie refreshTokenCookie = new Cookie("refresh_token", authResponse.getRefreshToken());
             refreshTokenCookie.setHttpOnly(true);
             refreshTokenCookie.setSecure(cookieSecure);
             refreshTokenCookie.setPath("/");
-            refreshTokenCookie.setMaxAge(5 * 60);  // 👈 5 นาที
+            refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);  // 7 วัน
             response.addCookie(refreshTokenCookie);
         }
 
-        /*
         AuthResponseDto responseWithoutTokens = AuthResponseDto.builder()
                 .tokenType(authResponse.getTokenType())
                 .expiresIn(authResponse.getExpiresIn())
@@ -151,21 +143,6 @@ public class AuthController {
                 .build();
 
         return ResponseEntity.ok(responseWithoutTokens); 
-         */
-
-         //for Postman test
-        AuthResponseDto responseWithTokens = AuthResponseDto.builder()
-                .accessToken(authResponse.getAccessToken())
-                .refreshToken(authResponse.getRefreshToken())
-                .tokenType(authResponse.getTokenType())
-                .expiresIn(authResponse.getExpiresIn())
-                .nickname(authResponse.getNickname())
-                .userId(authResponse.getUserId())
-                .email(authResponse.getEmail())
-                .role(authResponse.getRole())
-                .build();
-
-        return ResponseEntity.ok(responseWithTokens);
     }
 
     @PostMapping("/refresh")
@@ -196,11 +173,12 @@ public class AuthController {
             if (newTokens == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
+            // Access Token อายุ 24 ชั่วโมง
             Cookie accessTokenCookie = new Cookie("access_token", newTokens.getAccessToken());
             accessTokenCookie.setHttpOnly(true);
             accessTokenCookie.setSecure(cookieSecure);
             accessTokenCookie.setPath("/");
-            accessTokenCookie.setMaxAge(1 * 60);
+            accessTokenCookie.setMaxAge(24 * 60 * 60);  // 24 ชั่วโมง
             response.addCookie(accessTokenCookie);
 
             Map<String, String> responseBody = new HashMap<>();

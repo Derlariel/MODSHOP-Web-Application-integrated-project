@@ -1,3 +1,4 @@
+
 package sit.int204.mobileshop.entities;
 
 import jakarta.persistence.*;

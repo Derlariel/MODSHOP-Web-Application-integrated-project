@@ -61,7 +61,7 @@ public class SellerFieldsValidator implements ConstraintValidator<SellerFieldsVa
             isValid = false;
         }
 
-        // Bank account: digits only 3-30 (updated requirement)
+        // Bank account: digits only 3-30
         if (!isEmpty(dto.getBankAccountNumber()) && !dto.getBankAccountNumber().matches("^\\d{3,30}$")) {
             context.buildConstraintViolationWithTemplate("Bank account number must be 3-30 digits")
                     .addPropertyNode("bankAccountNumber")

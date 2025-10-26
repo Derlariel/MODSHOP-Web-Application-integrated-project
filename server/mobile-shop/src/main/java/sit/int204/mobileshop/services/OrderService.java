@@ -1,6 +1,7 @@
 package sit.int204.mobileshop.services;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,6 +34,7 @@ import sit.int204.mobileshop.repositories.OrderRepository;
 import sit.int204.mobileshop.repositories.SaleItemRepository;
 import sit.int204.mobileshop.repositories.SaleItemImageRepository;
 import sit.int204.mobileshop.repositories.UserRepository;
+import sit.int204.mobileshop.specifications.OrderSpecs;
 
 @Service
 public class OrderService {
@@ -226,17 +229,23 @@ public class OrderService {
 
         // Validate that all orders are for the authenticated user
         for (OrderRequestDto orderDto : orderDtos) {
+            // If buyerId is provided, it must match; if null, we'll use authenticated user
             if (orderDto.getBuyerId() != null && !orderDto.getBuyerId().equals(authenticatedUser.getId().intValue())) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Order buyer ID does not match authenticated user");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot create order for another user");
             }
+            
+            // Prevent seller from buying their own items
             if (orderDto.getSellerId() != null && orderDto.getSellerId().equals(authenticatedUser.getId().intValue())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Buyer and seller cannot be the same user");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot buy your own items");
             }
 
             // Guard: items must be provided
             if (orderDto.getItems() == null || orderDto.getItems().isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Order items must not be empty");
             }
+            
+            // Force buyerId to match authenticated user (override any provided value)
+            orderDto.setBuyerId(authenticatedUser.getId().intValue());
         }
 
         List<Order> orders = orderDtos.stream().map(orderDto -> {
@@ -269,6 +278,7 @@ public class OrderService {
                 return saleItem;
             }).collect(Collectors.toList());
 
+            // ตรวจสอบสต็อกทุกรายการก่อน
             boolean hasInsufficientStock = false;
             for (int i = 0; i < orderDto.getItems().size(); i++) {
                 var itemDto = orderDto.getItems().get(i);
@@ -280,10 +290,9 @@ public class OrderService {
             }
 
             if (hasInsufficientStock) {
-                // CANCELLED: do not deduct any stock
                 order.setOrderStatus(OrderStatus.CANCELLED);
             } else {
-                // NEW: deduct stock now under the same lock/transaction to prevent negatives
+                // หักสต็อก
                 for (int i = 0; i < orderDto.getItems().size(); i++) {
                     var itemDto = orderDto.getItems().get(i);
                     var saleItem = lockedItems.get(i);
@@ -373,6 +382,114 @@ public class OrderService {
         return Optional.of(dtoPage);
     }
 
+    /**
+     * Filter and search orders with multiple criteria
+     * @param userId - Filter by buyer (optional)
+     * @param sellerId - Filter by seller (optional)
+     * @param buyerName - Search by buyer name (optional)
+     * @param sellerName - Search by seller name (optional)
+     * @param brandName - Search by brand name (optional)
+     * @param model - Search by model (optional)
+     * @param keyword - General keyword search (optional)
+     * @param startDate - Filter by start date (optional)
+     * @param endDate - Filter by end date (optional)
+     * @param orderStatus - Filter by order status (optional)
+     * @param page - Page number
+     * @param size - Page size
+     * @param sortField - Sort field
+     * @param sortDirection - Sort direction (asc/desc)
+     * @return PageDto of OrderResponseDto
+     */
+    public Optional<PageDto<OrderResponseDto>> findOrdersWithFilters(
+            Long userId,
+            Long sellerId,
+            String buyerName,
+            String sellerName,
+            String brandName,
+            String model,
+            String keyword,
+            LocalDate startDate,
+            LocalDate endDate,
+            OrderStatus orderStatus,
+            Integer page,
+            Integer size,
+            String sortField,
+            String sortDirection) {
+
+        // Build specifications
+        Specification<Order> spec = Specification.where(null);
+
+        if (userId != null) {
+            spec = spec.and(OrderSpecs.userEquals(userId));
+        }
+
+        if (sellerId != null) {
+            spec = spec.and(OrderSpecs.sellerEquals(sellerId));
+        }
+
+        if (buyerName != null && !buyerName.isBlank()) {
+            spec = spec.and(OrderSpecs.buyerNameContains(buyerName));
+        }
+
+        if (sellerName != null && !sellerName.isBlank()) {
+            spec = spec.and(OrderSpecs.sellerNameContains(sellerName));
+        }
+
+        if (brandName != null && !brandName.isBlank()) {
+            spec = spec.and(OrderSpecs.brandNameContains(brandName));
+        }
+
+        if (model != null && !model.isBlank()) {
+            spec = spec.and(OrderSpecs.modelContains(model));
+        }
+
+        if (keyword != null && !keyword.isBlank()) {
+            // Use appropriate keyword search based on whether it's a buyer or seller search
+            if (sellerId != null) {
+                // Seller searching their orders - search by buyer
+                spec = spec.and(OrderSpecs.keywordSearchForSeller(keyword));
+            } else {
+                // Buyer searching their orders - search by seller
+                spec = spec.and(OrderSpecs.keywordSearchForBuyer(keyword));
+            }
+        }
+
+        if (startDate != null || endDate != null) {
+            spec = spec.and(OrderSpecs.orderDateBetween(startDate, endDate));
+        }
+
+        if (orderStatus != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("orderStatus"), orderStatus));
+        }
+
+        // Setup pagination and sorting
+        final Sort.Direction dir = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(new Sort.Order(dir, sortField != null ? sortField : "orderDate"));
+        if (page == null || page < 0) page = 0;
+        if (size == null || size <= 0) size = 10;
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // Execute query
+        Page<Order> pageResult = orderRepository.findAll(spec, pageable);
+
+        // Map to DTOs
+        List<OrderResponseDto> orders = pageResult.getContent().stream()
+                .map(this::buildOrderResponseDto)
+                .collect(Collectors.toList());
+
+        PageDto<OrderResponseDto> dtoPage = new PageDto<>();
+        dtoPage.setContent(orders);
+        dtoPage.setFirst(pageResult.isFirst());
+        dtoPage.setLast(pageResult.isLast());
+        dtoPage.setPage(pageResult.getNumber());
+        dtoPage.setSize(pageResult.getSize());
+        dtoPage.setTotalElements((int) pageResult.getTotalElements());
+        dtoPage.setTotalPages(pageResult.getTotalPages());
+        dtoPage.setSort(sortField + ": " + (dir.isAscending() ? "ASC" : "DESC"));
+
+        return Optional.of(dtoPage);
+    }
+
     // ---- Helpers
     private OrderResponseDto buildOrderResponseDto(Order order) {
         OrderResponseDto dto = modelMapper.map(order, OrderResponseDto.class);
@@ -432,5 +549,22 @@ public class OrderService {
         return oid;
     }
 
+    /**
+     * Get distinct buyer names for a seller's orders
+     * @param sellerId - The seller ID
+     * @return List of buyer full names
+     */
+    public List<String> getBuyerNamesForSeller(Long sellerId) {
+        return orderRepository.findDistinctBuyerNamesBySellerId(sellerId);
+    }
+
+    /**
+     * Get distinct seller names for a user's orders
+     * @param userId - The user ID
+     * @return List of seller full names
+     */
+    public List<String> getSellerNamesForUser(Long userId) {
+        return orderRepository.findDistinctSellerNamesByUserId(userId);
+    }
 
 }
