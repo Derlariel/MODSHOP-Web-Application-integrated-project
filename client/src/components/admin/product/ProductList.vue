@@ -340,13 +340,13 @@ onMounted(async () => {
     </div>
 
     <!-- Pagination Component -->
-     <div class="max-w-7xl mx-auto m-12">
-    <Pagination 
-      v-if="!isLoading && totalPages > 1" 
-      :totalPages="totalPages" 
-      @sendPages="handlePageChange" 
-    />
-    </div> 
+    <div class="max-w-full  flex justify-center  pt-6">
+      <Pagination 
+        v-if="!isLoading && totalPages > 1" 
+        :totalPages="totalPages" 
+        @sendPages="handlePageChange" 
+      />
+    </div>
   </div>
 </template>
 
