@@ -3,6 +3,7 @@ package sit.int204.mobileshop.dtos;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 import sit.int204.mobileshop.utils.SellerFieldsValidation;
@@ -16,25 +17,38 @@ public class RegisterUserDto {
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
-    @Size(max = 100, message = "Email must not exceed 100 characters")
+    @Size(max = 50, message = "Email must not exceed 50 characters")
+    @Pattern(
+        regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+        message = "Invalid email format"
+    )
     private String email;
 
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
+    @Pattern(
+        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$",
+        message = "Password must include lower, upper, number, and special character"
+    )
     private String password;
 
     @NotBlank(message = "Full name is required")
     @Size(min = 4, max = 40, message = "Full name must be between 4 and 40 characters")
+    @Pattern(
+        regexp = "^(?!\\s)(?!.*\\s$)(?!.*\\s{2,}).{4,40}$",
+        message = "Full name must not have leading/trailing spaces and must not contain multiple spaces"
+    )
     private String fullname;
 
     @NotBlank(message = "Role is required")
+    @Pattern(regexp = "(?i)^(BUYER|SELLER)$", message = "Role must be BUYER or SELLER")
     private String role;
 
     // Seller specific fields - will be validated by @SellerFieldsValidation
     @Size(max = 20, message = "Mobile number must not exceed 20 characters")
     private String mobileNumber;
 
-    @Size(max = 50, message = "Bank account number must not exceed 50 characters")
+    @Size(max = 30, message = "Bank account number must not exceed 30 characters")
     private String bankAccountNumber;
 
     @Size(max = 100, message = "Bank name must not exceed 100 characters")

@@ -48,7 +48,7 @@ const props = defineProps({
 watch(
   () => props.imageChanged,
   (newVal) => {
-    console.log("Image changed prop:", newVal);
+    // console.log("Image changed prop:", newVal);
     if (newVal) {
       changeImage.value = true;
     } else {

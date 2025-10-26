@@ -1,5 +1,6 @@
 <script setup>
 import Advisor from '@/assets/group-about/teacher.png';
+import Kongphob from '@/assets/team-pics/kongphob.JPG';
 </script>
 
 <template>
@@ -10,7 +11,7 @@ import Advisor from '@/assets/group-about/teacher.png';
         <img :src="Advisor" alt="Advisor" class="w-48 h-48 rounded-full border-4 border-blue-200 shadow mb-4" />
         <div>
           <h2 class="text-xl font-semibold text-gray-800">Asst. Prof. Dr. Kriengkrai Porkaew</h2>
-          <p class="text-gray-500">อาจารย์ที่ปรึกษากลุ่ม KK-1 วิชา INT221</p>
+          <p class="text-gray-500">อาจารย์ที่ปรึกษากลุ่ม KK-1 วิชา INT222 Integrated Project II</p>
         </div>
       </div>
     </div>
@@ -19,7 +20,7 @@ import Advisor from '@/assets/group-about/teacher.png';
       <h2 class="text-2xl font-semibold text-blue-600 mb-8">Project Members</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div class="flex flex-col items-center">
-          <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Student 1" class="w-20 h-20 rounded-full border-4 border-blue-100 shadow mb-3" />
+          <img :src="Kongphob" alt="Student 1" class="w-20 h-20 rounded-full border-4 border-blue-100 shadow mb-3" />
           <div>
             <h3 class="text-lg font-medium text-gray-800">Kongphob Kongsan</h3>
             <p class="text-gray-500">Student ID: 66130500004</p>

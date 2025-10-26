@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,10 +23,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import sit.int204.mobileshop.dtos.AuthRequestDto;
-import sit.int204.mobileshop.dtos.AuthResponseDto;
-import sit.int204.mobileshop.dtos.RegisterUserDto;
-import sit.int204.mobileshop.dtos.UserResponseDto;
+import org.springframework.web.server.ResponseStatusException;
+import sit.int204.mobileshop.dtos.*;
+import sit.int204.mobileshop.entities.User;
+import sit.int204.mobileshop.services.AuthService;
 import sit.int204.mobileshop.services.UserService;
 
 @RestController
@@ -40,6 +42,8 @@ public class AuthController {
     @Value("${app.cookie.same-site:None}")
     private String cookieSameSite;
 
+    @Autowired
+    private AuthService authService;
 
 
     @PostMapping("/logout")
@@ -58,7 +62,7 @@ public class AuthController {
         refreshTokenCookie.setMaxAge(0);
         response.addCookie(refreshTokenCookie);
 
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Register user", description = "Register a new buyer or seller account with file upload support")
@@ -84,16 +88,8 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> verifyEmail(
             @RequestParam("token") String token,
             HttpServletResponse response) throws IOException {
-        // <<<<<<< Updated upstream
-
-        // Map<String, Object> result = userService.verifyEmail(token).getBody();
-        // String redirectUrl = env.getProperty("app.frontend.redirect");
-        // response.sendRedirect(redirectUrl + "sale-items?status=verified");
-        // System.out.println(redirectUrl + "sale-items");
-        // =======
         Map<String, Object> result = userService.verifyEmail(token).getBody();
         response.sendRedirect("http://intproj24.sit.kmutt.ac.th/kk1/sale-items?status=verified");
-        // >>>>>>> Stashed changes
         return ResponseEntity.ok(result);
     }
 
@@ -119,19 +115,21 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
+        // Access Token อายุ 24 ชั่วโมง
         Cookie accessTokenCookie = new Cookie("access_token", authResponse.getAccessToken());
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(cookieSecure);
         accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(30 * 60);
+        accessTokenCookie.setMaxAge(24 * 60 * 60);  // 24 ชั่วโมง
         response.addCookie(accessTokenCookie);
 
+        // Refresh Token อายุ 7 วัน
         if (authResponse.getRefreshToken() != null) {
             Cookie refreshTokenCookie = new Cookie("refresh_token", authResponse.getRefreshToken());
             refreshTokenCookie.setHttpOnly(true);
             refreshTokenCookie.setSecure(cookieSecure);
             refreshTokenCookie.setPath("/");
-            refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
+            refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);  // 7 วัน
             response.addCookie(refreshTokenCookie);
         }
 
@@ -144,7 +142,7 @@ public class AuthController {
                 .role(authResponse.getRole())
                 .build();
 
-        return ResponseEntity.ok(responseWithoutTokens);
+        return ResponseEntity.ok(responseWithoutTokens); 
     }
 
     @PostMapping("/refresh")
@@ -175,20 +173,67 @@ public class AuthController {
             if (newTokens == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
+            // Access Token อายุ 24 ชั่วโมง
             Cookie accessTokenCookie = new Cookie("access_token", newTokens.getAccessToken());
             accessTokenCookie.setHttpOnly(true);
             accessTokenCookie.setSecure(cookieSecure);
             accessTokenCookie.setPath("/");
-            accessTokenCookie.setMaxAge(30 * 60);
+            accessTokenCookie.setMaxAge(24 * 60 * 60);  // 24 ชั่วโมง
             response.addCookie(accessTokenCookie);
 
             Map<String, String> responseBody = new HashMap<>();
             responseBody.put("message", "Token refreshed successfully");
+            System.out.println("refresh here");
             return ResponseEntity.ok(responseBody);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        authService.requestPasswordReset(email);
+        return ResponseEntity.ok("Reset link sent to " + email);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<String> changePassword(
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal Object principal
+    ) {
+        String oldPassword = body.get("oldPassword");
+        String newPassword = body.get("newPassword");
+
+        System.out.println("🔐 Principal: " + principal);
+
+        String email = null;
+        if (principal instanceof UserResponseDto userDto) {
+            email = userDto.getEmail();
+        } else if (principal instanceof User userEntity) {
+            email = userEntity.getEmail();
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid user principal");
+        }
+
+        authService.changePassword(email, oldPassword, newPassword);
+        return ResponseEntity.ok("Password changed successfully");
+    }
+
+    @PutMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody Map<String, String> body) {
+        String token = body.get("token");
+        String newPassword = body.get("newPassword");
+
+        if (token == null || newPassword == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token and newPassword are required");
+        }
+
+        authService.resetPasswordByToken(token, newPassword);
+        return ResponseEntity.ok("Password has been reset successfully");
+    }
+
+
+
 
 }

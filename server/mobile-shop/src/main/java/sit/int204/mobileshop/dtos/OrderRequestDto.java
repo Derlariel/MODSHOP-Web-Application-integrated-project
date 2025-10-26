@@ -1,5 +1,6 @@
 package sit.int204.mobileshop.dtos;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,5 +15,7 @@ public class OrderRequestDto {
     private Integer sellerId;
     private String shippingAddress;
     private String orderNote;
+
+    @JsonAlias({"orderItems", "items"})
     private List<OrderItemDto> items;
 }

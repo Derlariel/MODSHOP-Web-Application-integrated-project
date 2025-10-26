@@ -138,7 +138,7 @@ export const useProductStore = defineStore("product", {
         }
 
         const newProduct = await addProduct(
-          `${BASE_URL}/v2/sale-items`,
+          `/v2/sale-items`,
           formData
         );
         this.products.push(newProduct);
@@ -150,7 +150,7 @@ export const useProductStore = defineStore("product", {
     async updateProduct(productId, formData) {
       try {
         const updated = await updateProductById(
-          `${BASE_URL}/v2/sale-items`,
+          `/v2/sale-items`,
           productId,
           formData
         );
@@ -162,7 +162,20 @@ export const useProductStore = defineStore("product", {
     },
     async deleteProduct(id) {
       try {
-        await deleteProductById(`${BASE_URL}/v1/sale-items`, id);
+        const res = await fetch(`${BASE_URL}/v1/sale-items/${id}` , {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        if (!res.ok) {
+          let message = 'Failed to delete product';
+          try {
+            const data = await res.json();
+            message = data?.message || data?.error || message;
+          } catch {}
+          const e = new Error(message);
+          e.status = res.status;
+          throw e;
+        }
         this.products = this.products.filter((p) => p.id !== id);
       } catch (err) {
         console.error("Failed to delete product", err);

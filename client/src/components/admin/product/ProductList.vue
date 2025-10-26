@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, nextTick } from "vue";
 import { useAuthStore } from "@/stores/useAuthStore";
 import ListModel from "@/components/shared/ListModel.vue";
 import { useRouter } from "vue-router";
@@ -62,6 +62,14 @@ const confirmDelete = async () => {
     );
 
     if (!response.ok) {
+      if (response.status === 409) {
+        // Close confirm modal first to avoid overlapping modals
+        showDeleteModal.value = false;
+        await nextTick();
+        errorMessage.value = "This sale item cannot be deleted because it is already included in one or more orders.";
+        showErrorModal.value = true;
+        return;
+      }
       throw new Error('Failed to delete product');
     }
 
@@ -77,8 +85,13 @@ const confirmDelete = async () => {
     }, 3000);
   } catch (error) {
     console.error("Failed to delete product:", error);
-    errorMessage.value = "Failed to delete the sale item. Please try again.";
-    showErrorModal.value = true;
+    // Ensure confirm modal closes before showing error modal
+    showDeleteModal.value = false;
+    await nextTick();
+    if (!showErrorModal.value) {
+      errorMessage.value = "Unable to delete this sale item at the moment. Please try again.";
+      showErrorModal.value = true;
+    }
   } finally {
     showDeleteModal.value = false;
   }
@@ -101,7 +114,7 @@ async function loadSellerProducts(page = currentPage.value) {
       }
     }
 
-    console.log('Loading products for seller ID:', auth.user.id)
+    // console.log('Loading products for seller ID:', auth.user.id)
 
     const response = await fetch(
       `${import.meta.env.VITE_BASE_URL}/v2/sellers/${auth.user.id}/sale-items?page=${page}&size=${pageSize.value}`,
@@ -211,8 +224,8 @@ onMounted(async () => {
 
         <SuccessModal :visible="showSuccessModal" :message="alertMessage" />
 
-        <!-- Only show ErrorModal if not empty list -->
-        <ErrorModal v-if="showErrorModal && !(products.length === 0 && totalPages === 0)" :message="errorMessage" @close="showErrorModal = false" />
+  <!-- Always allow ErrorModal to show when requested (same behavior as ProductDetail.vue) -->
+  <ErrorModal :visible="showErrorModal" :message="errorMessage" @close="showErrorModal = false" />
 
         <div class="flex justify-end mb-6 space-x-4">
           <router-link
@@ -327,13 +340,13 @@ onMounted(async () => {
     </div>
 
     <!-- Pagination Component -->
-     <div class="max-w-7xl mx-auto m-12">
-    <Pagination 
-      v-if="!isLoading && totalPages > 1" 
-      :totalPages="totalPages" 
-      @sendPages="handlePageChange" 
-    />
-    </div> 
+    <div class="max-w-full  flex justify-center  pt-6">
+      <Pagination 
+        v-if="!isLoading && totalPages > 1" 
+        :totalPages="totalPages" 
+        @sendPages="handlePageChange" 
+      />
+    </div>
   </div>
 </template>
 

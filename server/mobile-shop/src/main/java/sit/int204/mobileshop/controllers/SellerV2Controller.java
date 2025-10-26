@@ -3,19 +3,14 @@ package sit.int204.mobileshop.controllers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jwt.Jwt;
 
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import sit.int204.mobileshop.dtos.PageDto;
-import sit.int204.mobileshop.dtos.SaleItemDetailDto;
-import sit.int204.mobileshop.dtos.SaleItemDto;
-import sit.int204.mobileshop.dtos.SaleItemRequestDto;
+import org.springframework.web.server.ResponseStatusException;
+import sit.int204.mobileshop.dtos.*;
+import sit.int204.mobileshop.services.OrderService;
 import sit.int204.mobileshop.services.SaleItemImageService;
-import sit.int204.mobileshop.dtos.UserResponseDto;
 import sit.int204.mobileshop.services.SaleItemService;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -23,10 +18,12 @@ import java.util.List;
 public class SellerV2Controller {
     private final SaleItemService saleItemService;
     private final SaleItemImageService  saleItemImageService;
-    public SellerV2Controller(SaleItemService saleItemService , SaleItemImageService saleItemImageService) {
+    private final OrderService orderService;
+    
+    public SellerV2Controller(SaleItemService saleItemService , SaleItemImageService saleItemImageService , OrderService orderService) {
         this.saleItemService = saleItemService;
         this.saleItemImageService = saleItemImageService;
-
+        this.orderService = orderService;
     }
 
     @GetMapping("/{id}/sale-items")
@@ -75,6 +72,23 @@ public class SellerV2Controller {
         }
     }
 
+    @GetMapping("/{sid}/buyers/names")
+    public ResponseEntity<List<String>> getBuyerNamesForSeller(
+            @PathVariable Long sid,
+            Authentication authentication) {
+        try {
+            UserResponseDto authenticatedUser = (UserResponseDto) authentication.getPrincipal();
+            if (!authenticatedUser.getId().equals(sid)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            
+            List<String> names = orderService.getBuyerNamesForSeller(sid);
+            return ResponseEntity.ok(names);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
+    }
+
 //    @PostMapping("/{id}/sale-items")
 //    public ResponseEntity<SaleItemDetailDto> createSaleItemBySeller(
 //            @PathVariable Long id,
@@ -99,5 +113,40 @@ public class SellerV2Controller {
 //
 //        return ResponseEntity.status(HttpStatus.CREATED).body(result);
 //    }
+
+    @GetMapping("/{sid}/orders")
+    public ResponseEntity<PageDto<OrderResponseDto>> getSellerOrders(
+            @PathVariable Long sid,
+            @RequestParam(defaultValue = "all") String tab,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "orderDate") String sortField,
+            @RequestParam(defaultValue = "desc") String sortDirection,
+            Authentication authentication
+    ) {
+        try {
+            UserResponseDto authenticatedUser = (UserResponseDto) authentication.getPrincipal();
+            if (!authenticatedUser.getId().equals(sid)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+
+            System.out.println(authenticatedUser);
+            System.out.println("here");
+
+            PageDto<OrderResponseDto> result = orderService
+                    .findAllBySellerId(sid, tab, page, size, sortField, sortDirection)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No orders found"));
+
+            System.out.println(result);
+            System.out.println("result");
+            return ResponseEntity.ok(result);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
+    }
+
 
 }

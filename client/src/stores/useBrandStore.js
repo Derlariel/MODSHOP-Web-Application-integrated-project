@@ -70,7 +70,7 @@ export const useBrandStore = defineStore(
       try {
         isLoading.value = true;
         error.value = null;
-        const brand = await getProductById(`${BASE_URL}/v1/brands`, id);
+        const brand = await getProductById(`/v1/brands`, id);
         return brand;
       } catch (err) {
         console.error('Error loading brand details:', err);
@@ -85,7 +85,7 @@ export const useBrandStore = defineStore(
       try {
         isLoading.value = true;
         error.value = null;
-        const response = await updateProductById(`${BASE_URL}/v1/brands`, id, brandData);
+        const response = await updateProductById(`/v1/brands`, id, brandData);
         await loadBrands();
         return response;
       } catch (err) {
@@ -101,7 +101,7 @@ export const useBrandStore = defineStore(
       try {
         isLoading.value = true;
         error.value = null;
-        await deleteProductById(`${BASE_URL}/v1/brands`, id);
+        await deleteProductById(`/v1/brands`, id);
         await loadBrands();
       } catch (err) {
         console.error('Error deleting brand:', err);

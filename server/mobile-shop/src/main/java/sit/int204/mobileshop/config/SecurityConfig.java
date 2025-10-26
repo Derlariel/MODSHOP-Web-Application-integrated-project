@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import sit.int204.mobileshop.exceptions.JwtAuthenticationEntryPoint;
 import sit.int204.mobileshop.filters.JwtAuthFilter;
 import sit.int204.mobileshop.repositories.SellerRepository;
 import sit.int204.mobileshop.services.JwtService;
@@ -32,6 +33,9 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+    @Autowired
     private JwtUserDetailsService jwtUserDetailsService;
 
     private static final String[] PUBLIC_GET_ENDPOINTS = {
@@ -42,14 +46,11 @@ public class SecurityConfig {
             "/actuator/health",
             "/swagger-ui/**",
             "/v3/api-docs/**",
-            "/v2/orders/**",
             "/v2/users/**"
     };
 
     private static final String[] PUBLIC_POST_ENDPOINTS = {
             "/v2/auth/**",
-            "/v2/orders/**",
-
     };
 
 
@@ -65,9 +66,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
                         .requestMatchers(HttpMethod.POST, PUBLIC_POST_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/v2/auth/reset-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v2/sale-items").authenticated()
                         .requestMatchers(HttpMethod.POST, "/v2/orders").authenticated()
                         .anyRequest().authenticated()
