@@ -39,9 +39,9 @@ refreshToken()
       auth.user = null;
       localStorage.removeItem('userClaims');
       // แนะนำ: redirect ไป login แทน reload
-      if (router.currentRoute.value.name !== 'Login') {
-        router.push({ name: 'Login' });
-      }
+      // if (router.currentRoute.value.name !== 'Login') {
+      //   router.push({ name: 'Login' });
+      // }
     }
   })
   .catch((err) => console.error("Token refresh failed:", err));
