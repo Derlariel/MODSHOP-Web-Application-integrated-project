@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 
 export function useOrderFilters() {
-  const filters = ref({
+  const defaultFilters = {
     keyword: '',
     sellerName: '',
     brandName: '',
@@ -13,79 +13,41 @@ export function useOrderFilters() {
     size: 10,
     sortField: 'orderDate',
     sortDirection: 'desc'
-  })
+  }
+
+  const filters = ref({ ...defaultFilters })
 
   const buildQueryParams = () => {
     const params = new URLSearchParams()
 
-    if (filters.value.keyword?.trim()) {
-      params.append('keyword', filters.value.keyword.trim())
-    }
-    if (filters.value.sellerName?.trim()) {
-      params.append('sellerName', filters.value.sellerName.trim())
-    }
-    if (filters.value.brandName?.trim()) {
-      params.append('brandName', filters.value.brandName.trim())
-    }
-    if (filters.value.model?.trim()) {
-      params.append('model', filters.value.model.trim())
-    }
-    if (filters.value.startDate) {
-      params.append('startDate', filters.value.startDate)
-    }
-    if (filters.value.endDate) {
-      params.append('endDate', filters.value.endDate)
-    }
-    if (filters.value.orderStatus) {
-      params.append('orderStatus', filters.value.orderStatus)
-    }
-
-    params.append('page', filters.value.page.toString())
-    params.append('size', filters.value.size.toString())
-    params.append('sortField', filters.value.sortField)
-    params.append('sortDirection', filters.value.sortDirection)
+    Object.entries(filters.value).forEach(([key, value]) => {
+      if (value !== null && value !== '' && value !== undefined) {
+        params.append(key, value.toString())
+      }
+    })
 
     return params.toString()
   }
 
   const hasActiveFilters = computed(() => {
-    return filters.value.keyword ||
-      filters.value.sellerName ||
-      filters.value.brandName ||
-      filters.value.model ||
-      filters.value.startDate ||
-      filters.value.endDate ||
-      filters.value.orderStatus
+    return Object.keys(defaultFilters).some((key) => {
+      if (['page', 'size', 'sortField', 'sortDirection'].includes(key)) return false
+      return filters.value[key]
+    })
   })
 
   const clearFilters = () => {
-    filters.value = {
-      keyword: '',
-      sellerName: '',
-      brandName: '',
-      model: '',
-      startDate: null,
-      endDate: null,
-      orderStatus: null,
-      page: 0,
-      size: filters.value.size,
-      sortField: 'orderDate',
-      sortDirection: 'desc'
-    }
+    filters.value = { ...defaultFilters, size: filters.value.size }
   }
 
-  const setPage = (page) => {
-    filters.value.page = page
-  }
-
+  const setPage = (page) => (filters.value.page = page)
   const setSize = (size) => {
     filters.value.size = size
     filters.value.page = 0
   }
-
-  const setSort = (sortField, sortDirection) => {
-    filters.value.sortField = sortField
-    filters.value.sortDirection = sortDirection
+  const setSort = (field, direction) => {
+    filters.value.sortField = field
+    filters.value.sortDirection = direction
     filters.value.page = 0
   }
 
