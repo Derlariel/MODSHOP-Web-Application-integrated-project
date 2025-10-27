@@ -18,13 +18,13 @@ const orderStore = useOrderStore();
 const userStore = useAuthStore();
 const brandStore = useBrandStore();
 const BASE_URL = import.meta.env.VITE_BASE_URL;
-
 const DEFAULT_IMAGE = new URL("@/assets/default.jpg", import.meta.url).href;
 
-// Search state with persistence
+// Local storage keys
 const STORAGE_KEY_FILTERS = 'yourOrdersFilters';
 const STORAGE_KEY_SEARCH_ACTIVE = 'yourOrdersSearchActive';
 
+// Load filters
 const loadFiltersFromStorage = () => {
   try {
     const saved = sessionStorage.getItem(STORAGE_KEY_FILTERS);
@@ -33,330 +33,161 @@ const loadFiltersFromStorage = () => {
     return null;
   }
 };
-
-const saveFiltersToStorage = (filters) => {
-  try {
-    sessionStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters));
-  } catch (e) {
-    console.error('Failed to save filters:', e);
-  }
-};
-
-const loadSearchActiveFromStorage = () => {
-  try {
-    const saved = sessionStorage.getItem(STORAGE_KEY_SEARCH_ACTIVE);
-    return saved === 'true';
-  } catch {
-    return false;
-  }
-};
-
-const saveSearchActiveToStorage = (active) => {
-  try {
-    sessionStorage.setItem(STORAGE_KEY_SEARCH_ACTIVE, active.toString());
-  } catch (e) {
-    console.error('Failed to save search active state:', e);
-  }
-};
+const saveFiltersToStorage = (filters) => sessionStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters));
+const loadSearchActiveFromStorage = () => sessionStorage.getItem(STORAGE_KEY_SEARCH_ACTIVE) === 'true';
+const saveSearchActiveToStorage = (active) => sessionStorage.setItem(STORAGE_KEY_SEARCH_ACTIVE, active.toString());
 
 const status = ref("NEW");
 const savedFilters = loadFiltersFromStorage();
-const searchFilters = ref(savedFilters || {
-  keyword: '',
-  buyerName: '',
-  sellerName: '',
-  brandName: '',
-  model: '',
-  startDate: null,
-  endDate: null
-});
+const searchFilters = ref(savedFilters || { keyword:'', buyerName:'', sellerName:'', brandName:'', model:'', startDate:null, endDate:null });
 const isSearchActive = ref(loadSearchActiveFromStorage());
 const searchResults = ref([]);
 const searchTotalPages = ref(0);
 const allSellerNames = ref([]);
 
-onMounted(async () => {
-  // Ensure brands are loaded for dropdown options
-  try { await brandStore.loadBrands(); } catch (_) {}
-  
-  // Load seller names only for this user's orders
-  if (userStore.user?.id) {
-    try {
-      const sellersRes = await getSellerNamesForUser(userStore.user.id);
-      const list = Array.isArray(sellersRes?.data) ? sellersRes.data : sellersRes;
-      allSellerNames.value = (list || []).filter(x => typeof x === 'string').sort((a,b) => a.localeCompare(b));
-    } catch (_) {
-      allSellerNames.value = [];
-    }
-  }
-  
-  const savedPage = Number(sessionStorage.getItem("ordersActivePage")) || 1;
-  orderStore.setActivePage(savedPage);
-  
-  // Determine which tab to show based on available orders
-  if (userStore.user?.id) {
-    try {
-      // Check for NEW orders first (priority 1)
-      const newRes = await getOrdersWithStatus(userStore.user.id, 0, 1, "id,desc", "NEW");
-      const hasNew = (newRes?.data?.totalElements ?? 0) > 0;
-      
-      if (hasNew) {
-        status.value = "NEW";
-      } else {
-        // Check for COMPLETED orders (priority 2)
-        const completedRes = await getOrdersWithStatus(userStore.user.id, 0, 1, "id,desc", "COMPLETED");
-        const hasCompleted = (completedRes?.data?.totalElements ?? 0) > 0;
-        
-        if (hasCompleted) {
-          status.value = "COMPLETED";
-        } else {
-          // Check for CANCELLED orders (priority 3)
-          const cancelledRes = await getOrdersWithStatus(userStore.user.id, 0, 1, "id,desc", "CANCELLED");
-          const hasCancelled = (cancelledRes?.data?.totalElements ?? 0) > 0;
-          
-          if (hasCancelled) {
-            status.value = "CANCELLED";
-          } else {
-            // No orders at all, default to NEW
-            status.value = "NEW";
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error checking order counts:", error);
-      status.value = "NEW"; // fallback to NEW on error
-    }
-    
-    orderStore.refreshBadge(userStore.user.id);
-  }
-  
-  fetchOrders();
-  
-  // Restore search if it was active
-  if (isSearchActive.value && savedFilters) {
-    await handleSearch(searchFilters.value);
-  }
-});
-
+// Fetch orders
 const fetchOrders = (statusValue = status.value, page = orderStore.activePage) => {
-  // console.log(`Fetching orders for user ${userStore.user.id}, status=${statusValue}, page=${page}`);
   orderStore.fetchOrders(userStore.user.id, statusValue, page);
 };
 
+// Search
 const handleSearch = async (filterData) => {
   if (!userStore.user?.id) return;
-  
   isSearchActive.value = true;
   saveSearchActiveToStorage(true);
   saveFiltersToStorage(filterData);
   orderStore.setActivePage(1);
-  
+
   try {
-    const params = new URLSearchParams();
-    params.append('userId', userStore.user.id);
-    params.append('page', 0);
-    params.append('size', 10);
-    params.append('sortField', 'orderDate');
-    params.append('sortDirection', 'desc');
-    
-    // Always use current status tab
-    params.append('orderStatus', status.value);
-    
-    if (filterData.keyword?.trim()) {
-      params.append('keyword', filterData.keyword.trim());
-    }
-    if (filterData.sellerName?.trim()) {
-      params.append('sellerName', filterData.sellerName.trim());
-    }
-    if (filterData.brandName?.trim()) {
-      params.append('brandName', filterData.brandName.trim());
-    }
-    if (filterData.model?.trim()) {
-      params.append('model', filterData.model.trim());
-    }
-    if (filterData.startDate) {
-      params.append('startDate', filterData.startDate);
-    }
-    if (filterData.endDate) {
-      params.append('endDate', filterData.endDate);
-    }
-    
-    const response = await fetch(`${BASE_URL}/v2/orders/search?${params.toString()}`, {
-      credentials: 'include'
+    const params = new URLSearchParams({
+      userId: userStore.user.id,
+      page: 0,
+      size: 10,
+      sortField: 'orderDate',
+      sortDirection: 'desc',
+      orderStatus: status.value
     });
-    
-    if (!response.ok) {
-      throw new Error('Failed to search orders');
-    }
-    
-    const data = await response.json();
+
+    if (filterData.keyword?.trim()) params.append('keyword', filterData.keyword.trim());
+    if (filterData.sellerName?.trim()) params.append('sellerName', filterData.sellerName.trim());
+    if (filterData.brandName?.trim()) params.append('brandName', filterData.brandName.trim());
+    if (filterData.model?.trim()) params.append('model', filterData.model.trim());
+    if (filterData.startDate) params.append('startDate', filterData.startDate);
+    if (filterData.endDate) params.append('endDate', filterData.endDate);
+
+    const res = await fetch(`${BASE_URL}/v2/orders/search?${params}`, { credentials: 'include' });
+    const data = await res.json();
     searchResults.value = data.content || [];
     searchTotalPages.value = data.totalPages || 0;
-  } catch (error) {
-    console.error('Error searching orders:', error);
+  } catch {
     searchResults.value = [];
     searchTotalPages.value = 0;
   }
 };
 
+// Clear search
 const handleClearSearch = () => {
   isSearchActive.value = false;
   saveSearchActiveToStorage(false);
   searchResults.value = [];
   searchTotalPages.value = 0;
-  searchFilters.value = {
-    keyword: '',
-    buyerName: '',
-    sellerName: '',
-    brandName: '',
-    model: '',
-    startDate: null,
-    endDate: null
-  };
+  searchFilters.value = { keyword:'', buyerName:'', sellerName:'', brandName:'', model:'', startDate:null, endDate:null };
   saveFiltersToStorage(searchFilters.value);
   orderStore.setActivePage(1);
   fetchOrders(status.value, 1);
 };
 
+// Pagination for search
 const updateSearchPage = async (page) => {
   if (!userStore.user?.id) return;
-  
+
   try {
-    const params = new URLSearchParams();
-    params.append('userId', userStore.user.id);
-    params.append('page', page - 1); // Convert to 0-based
-    params.append('size', 10);
-    params.append('sortField', 'orderDate');
-    params.append('sortDirection', 'desc');
-    
-    // Always use current status tab
-    params.append('orderStatus', status.value);
-    
-    if (searchFilters.value.keyword?.trim()) {
-      params.append('keyword', searchFilters.value.keyword.trim());
-    }
-    if (searchFilters.value.sellerName?.trim()) {
-      params.append('sellerName', searchFilters.value.sellerName.trim());
-    }
-    if (searchFilters.value.brandName?.trim()) {
-      params.append('brandName', searchFilters.value.brandName.trim());
-    }
-    if (searchFilters.value.model?.trim()) {
-      params.append('model', searchFilters.value.model.trim());
-    }
-    if (searchFilters.value.startDate) {
-      params.append('startDate', searchFilters.value.startDate);
-    }
-    if (searchFilters.value.endDate) {
-      params.append('endDate', searchFilters.value.endDate);
-    }
-    
-    const response = await fetch(`${BASE_URL}/v2/orders/search?${params.toString()}`, {
-      credentials: 'include'
+    const params = new URLSearchParams({
+      userId: userStore.user.id,
+      page: page - 1,
+      size: 10,
+      sortField: 'orderDate',
+      sortDirection: 'desc',
+      orderStatus: status.value
     });
-    
-    if (!response.ok) {
-      throw new Error('Failed to search orders');
-    }
-    
-    const data = await response.json();
+
+    if (searchFilters.value.keyword?.trim()) params.append('keyword', searchFilters.value.keyword.trim());
+    if (searchFilters.value.sellerName?.trim()) params.append('sellerName', searchFilters.value.sellerName.trim());
+    if (searchFilters.value.brandName?.trim()) params.append('brandName', searchFilters.value.brandName.trim());
+    if (searchFilters.value.model?.trim()) params.append('model', searchFilters.value.model.trim());
+    if (searchFilters.value.startDate) params.append('startDate', searchFilters.value.startDate);
+    if (searchFilters.value.endDate) params.append('endDate', searchFilters.value.endDate);
+
+    const res = await fetch(`${BASE_URL}/v2/orders/search?${params}`, { credentials: 'include' });
+    const data = await res.json();
     searchResults.value = data.content || [];
     orderStore.setActivePage(page);
-  } catch (error) {
-    console.error('Error searching orders:', error);
-  }
+  } catch (_) {}
 };
 
-const changeStatus = (newStatus) => {
-  if (status.value === newStatus) return;
-  status.value = newStatus;
-  orderStore.setActivePage(1);
-  sessionStorage.setItem("ordersActivePage", 1);
-  
-  // If search is active, re-run search with new status
-  if (isSearchActive.value) {
-    handleSearch(searchFilters.value);
-  } else {
-    fetchOrders(newStatus, 1);
-  }
-};
-
+// Pagination (normal)
 const updatePages = (page) => {
   orderStore.setActivePage(page);
   sessionStorage.setItem("ordersActivePage", page);
-  fetchOrders(status.value, page);
 };
-watch(() => orderStore.orders, (newOrders) => {
-  // console.log(status)
-  // console.log("orderStore.orders changed:", newOrders);
+
+// Watch page change → decide which fetch to use (no loop)
+watch(() => orderStore.activePage, (newPage) => {
+  sessionStorage.setItem("ordersActivePage", newPage);
+  if (isSearchActive.value) {
+    updateSearchPage(newPage);
+  } else {
+    fetchOrders(status.value, newPage);
+  }
 });
 
+// Watch status tab
 watch(status, (newStatus) => {
   orderStore.setActivePage(1);
   sessionStorage.setItem("ordersActivePage", 1);
-  fetchOrders(newStatus, 1);
+  if (isSearchActive.value) handleSearch(searchFilters.value);
+  else fetchOrders(newStatus, 1);
 });
 
-const viewOrder = (orderId) => {
-  const idx = orderStore.orders.findIndex(o => o.id === orderId);
-  if (idx !== -1) {
-    if (status.value === 'NEW') {
-      orderStore.orders.splice(idx, 1);
-    } else {
-      orderStore.orders[idx] = { ...orderStore.orders[idx], orderStatus: 'COMPLETED' };
-    }
-  }
-  router.push({ name: 'YourOrderPage', params: { orderId } });
-}
-
-// Refresh badge when component is activated (e.g., returning from another page)
-onActivated(() => {
-  if (userStore.user?.id) {
-    orderStore.refreshBadge(userStore.user.id);
-  }
-});
-
-watch(() => orderStore.activePage, (newPage) => {
-  sessionStorage.setItem("ordersActivePage", newPage);
-  fetchOrders(status.value, newPage);
-});
-
+// Group orders by date
 const groupedOrders = computed(() => {
-  // console.log('Recomputing groupedOrders...');
   const grouped = {};
   const orders = isSearchActive.value ? searchResults.value : orderStore.orders.slice();
-
   orders.forEach((order) => {
     const date = new Date(order.orderDate).toLocaleDateString("th-TH");
     if (!grouped[date]) grouped[date] = [];
     grouped[date].push(order);
   });
-  // console.log(grouped)
   return grouped;
 });
 
-// Dropdown options
-const brandOptions = computed(() => {
-  try {
-    return Array.isArray(brandStore.filterBrands?.()) ? brandStore.filterBrands() : [];
-  } catch {
-    return [];
-  }
-});
-
+// Brands / Sellers / Pages
+const brandOptions = computed(() => brandStore.filterBrands?.() || []);
 const sellerOptions = computed(() => allSellerNames.value);
+const displayTotalPages = computed(() => isSearchActive.value ? searchTotalPages.value : orderStore.allPages);
 
-const displayTotalPages = computed(() => {
-  return isSearchActive.value ? searchTotalPages.value : orderStore.allPages;
+const handlePageUpdate = (page) => orderStore.setActivePage(page);
+
+// On mount
+onMounted(async () => {
+  try { await brandStore.loadBrands(); } catch (_) {}
+  if (userStore.user?.id) {
+    try {
+      const sellersRes = await getSellerNamesForUser(userStore.user.id);
+      const list = Array.isArray(sellersRes?.data) ? sellersRes.data : sellersRes;
+      allSellerNames.value = (list || []).filter(x => typeof x === 'string').sort((a,b) => a.localeCompare(b));
+    } catch (_) { allSellerNames.value = []; }
+  }
+
+  const savedPage = Number(sessionStorage.getItem("ordersActivePage")) || 1;
+  orderStore.setActivePage(savedPage);
+  fetchOrders();
+  if (isSearchActive.value && savedFilters) await handleSearch(searchFilters.value);
 });
 
-const handlePageUpdate = (page) => {
-  if (isSearchActive.value) {
-    updateSearchPage(page);
-  } else {
-    updatePages(page);
-  }
-};
+onActivated(() => {
+  if (userStore.user?.id) orderStore.refreshBadge(userStore.user.id);
+});
 </script>
 
 <template>
@@ -544,10 +375,10 @@ const handlePageUpdate = (page) => {
     <div class="flex justify-center items-end w-full flex-shrink-0 pb-4 sm:pb-0" style="min-height:80px;">
       <div class="w-full px-2 sm:px-0">
         <Pagination
-          v-if="orderStore.allPages > 1"
-          :total-pages="orderStore.allPages"
-          @send-pages="updatePages"
-        />
+    v-if="displayTotalPages > 1"
+    :total-pages="displayTotalPages"
+    @send-pages="handlePageUpdate"
+  />
       </div>
     </div>
   </div>
