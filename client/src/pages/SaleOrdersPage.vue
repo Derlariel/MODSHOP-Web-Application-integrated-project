@@ -308,7 +308,7 @@ const updateSearchPage = async (page) => {
     </div>
 
     <!-- Search Filter Component -->
-    <div class="w-full sm:w-[90%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%] mx-auto mb-6 sm:mb-8">
+    <!-- <div class="w-full sm:w-[90%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%] mx-auto mb-6 sm:mb-8">
       <OrderFilterSearch
         v-model="searchFilters"
         :brand-options="brandOptions"
@@ -319,7 +319,7 @@ const updateSearchPage = async (page) => {
         @search="handleSearch"
         @clear="handleClearSearch"
       />
-    </div>
+    </div> -->
 
     <!-- Tabs -->
     <div class="flex flex-wrap gap-2 sm:gap-3 justify-center mb-4 sm:mb-6">

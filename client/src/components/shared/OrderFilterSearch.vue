@@ -36,12 +36,10 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-    keywordPlaceholder: {
-        type: String,
-        default: 'Search orders by seller, brand, or model...'
-    }
-
-
+  keywordPlaceholder: {
+    type: String,
+    default: 'Search orders by seller, brand, or model...'
+  }
 })
 
 const emit = defineEmits(['update:modelValue', 'search', 'clear'])
@@ -49,17 +47,13 @@ const emit = defineEmits(['update:modelValue', 'search', 'clear'])
 const filters = ref({ ...props.modelValue })
 const showAdvanced = ref(false)
 
-// Watch for external changes
+// sync value from parent → child
 watch(() => props.modelValue, (newValue) => {
   filters.value = { ...newValue }
 }, { deep: true })
 
-// Watch for internal changes
-watch(filters, (newValue) => {
-  emit('update:modelValue', newValue)
-}, { deep: true })
-
 const handleSearch = () => {
+  emit('update:modelValue', { ...filters.value })
   emit('search', filters.value)
 }
 
@@ -73,8 +67,8 @@ const handleClear = () => {
     startDate: null,
     endDate: null
   }
+  emit('update:modelValue', { ...filters.value })
   emit('clear')
-  emit('search', filters.value)
 }
 
 const handleKeyDown = (event) => {
@@ -84,15 +78,15 @@ const handleKeyDown = (event) => {
   }
 }
 
-const hasActiveFilters = computed(() => {
-  return filters.value.keyword ||
-    filters.value.buyerName ||
-    filters.value.sellerName ||
-    filters.value.brandName ||
-    filters.value.model ||
-    filters.value.startDate ||
-    filters.value.endDate
-})
+const hasActiveFilters = computed(() =>
+  filters.value.keyword ||
+  filters.value.buyerName ||
+  filters.value.sellerName ||
+  filters.value.brandName ||
+  filters.value.model ||
+  filters.value.startDate ||
+  filters.value.endDate
+)
 
 const toggleAdvanced = () => {
   showAdvanced.value = !showAdvanced.value
@@ -103,6 +97,7 @@ const toggleAdvanced = () => {
   <div class="w-full space-y-4">
     <!-- Main Search Bar -->
     <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+
       <!-- Keyword Search -->
       <div class="flex-1 relative">
         <BaseInput
@@ -112,84 +107,74 @@ const toggleAdvanced = () => {
           @keydown="handleKeyDown"
           class="w-full"
         />
-        <Search 
-          class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" 
-        />
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
       </div>
 
       <!-- Search Button -->
-        <button
-          @click="handleSearch"
-          :disabled="!hasActiveFilters"
-          class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium whitespace-nowrap"
-          :class="!hasActiveFilters ? 'opacity-50 cursor-not-allowed' : ''"
-          type="button"
-        >
-          Search
-        </button>
-
-      <!-- Advanced Filter Toggle -->
       <button
-        @click="toggleAdvanced"
-        class="px-4 py-2 border border-neutral-700 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors duration-200 font-medium whitespace-nowrap flex items-center gap-2"
-        type="button"
+        @click="handleSearch"
+        :disabled="!hasActiveFilters"
+        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium whitespace-nowrap"
+        :class="!hasActiveFilters ? 'opacity-50 cursor-not-allowed' : ''"
       >
-        <Filter class="w-4 h-4" />
-        Advanced
+        Search
       </button>
 
-      <!-- Clear Button (shown when filters are active) -->
+      <!-- Advanced Toggle -->
+      <button
+        @click="toggleAdvanced"
+        class="px-4 py-2 border border-neutral-700 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors duration-200 font-medium flex items-center gap-2"
+      >
+        <Filter class="w-4 h-4" /> Advanced
+      </button>
+
+      <!-- Clear -->
       <button
         v-if="hasActiveFilters"
         @click="handleClear"
-        class="px-4 py-2 border border-red-500 bg-neutral-900 text-red-400 rounded-lg hover:bg-red-600/20 transition-colors duration-200 font-medium whitespace-nowrap flex items-center gap-2"
-        type="button"
+        class="px-4 py-2 border border-red-500 bg-neutral-900 text-red-400 rounded-lg hover:bg-red-600/20 transition-colors duration-200 font-medium flex items-center gap-2"
       >
-        <X class="w-4 h-4" />
-        Clear
+        <X class="w-4 h-4" /> Clear
       </button>
     </div>
 
     <!-- Advanced Filters -->
     <div v-show="showAdvanced" class="bg-neutral-900 p-4 rounded-lg border border-neutral-700 space-y-4">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Seller Name Dropdown -->
+
         <div v-if="showSellerFilter">
-          <label class="block text-sm font-medium text-gray-300 mb-1">Your Seller</label>
+          <label class="block text-sm font-medium text-gray-300 mb-1">Seller</label>
           <select
             v-model="filters.sellerName"
-            class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:ring-purple-500"
           >
             <option value="">All Sellers</option>
             <option v-for="s in sellerOptions" :key="s" :value="s">{{ s }}</option>
           </select>
         </div>
 
-        <!-- Buyer Name Text Input -->
         <div v-if="showBuyerFilter">
-          <label class="block text-sm font-medium text-gray-300 mb-1">Your Buyer</label>
+          <label class="block text-sm font-medium text-gray-300 mb-1">Buyer</label>
           <select
             v-model="filters.buyerName"
-            class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:ring-purple-500"
           >
             <option value="">All Buyers</option>
             <option v-for="b in buyerOptions" :key="b" :value="b">{{ b }}</option>
           </select>
         </div>
 
-        <!-- Brand Dropdown -->
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-1">Brand</label>
           <select
             v-model="filters.brandName"
-            class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:ring-purple-500"
           >
             <option value="">All Brands</option>
             <option v-for="b in brandOptions" :key="b" :value="b">{{ b }}</option>
           </select>
         </div>
 
-        <!-- Model -->
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-1">Model</label>
           <BaseInput
@@ -200,31 +185,30 @@ const toggleAdvanced = () => {
           />
         </div>
 
-        <!-- Start Date -->
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-1">Start Date</label>
           <div class="relative">
             <input
               v-model="filters.startDate"
               type="date"
-              class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:ring-purple-500"
             />
-            <Calendar class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <Calendar class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           </div>
         </div>
 
-        <!-- End Date -->
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-1">End Date</label>
           <div class="relative">
             <input
               v-model="filters.endDate"
               type="date"
-              class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:ring-purple-500"
             />
-            <Calendar class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <Calendar class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           </div>
         </div>
+
       </div>
     </div>
   </div>

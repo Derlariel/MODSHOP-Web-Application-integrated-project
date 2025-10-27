@@ -125,11 +125,34 @@ const updateSearchPage = async (page) => {
   } catch (_) {}
 };
 
+const changeStatus = (newStatus) => {
+  if (status.value === newStatus) return;
+  status.value = newStatus;
+  orderStore.setActivePage(1);
+  sessionStorage.setItem("ordersActivePage", 1);
+
+  // If search is active, re-run search with new status
+  if (isSearchActive.value) {
+    handleSearch(searchFilters.value);
+  } else {
+    fetchOrders(newStatus, 1);
+  }
+};
+
 // Pagination (normal)
 const updatePages = (page) => {
   orderStore.setActivePage(page);
   sessionStorage.setItem("ordersActivePage", page);
 };
+const viewOrder = async (orderId) => {
+  try {
+    await getOrdersWithId(orderId);
+    await store.fetchOrders(auth.user.id);
+  } catch (e) {
+  } finally {
+    router.push({ name: 'YourOrderPage', params: { orderId } });
+  }
+}
 
 // Watch page change → decide which fetch to use (no loop)
 watch(() => orderStore.activePage, (newPage) => {
@@ -198,7 +221,7 @@ onActivated(() => {
     </div>
 
     <!-- Search Filter Component -->
-    <div class="w-full sm:w-[90%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%] mx-auto mb-6 sm:mb-8">
+    <!-- <div class="w-full sm:w-[90%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%] mx-auto mb-6 sm:mb-8">
       <OrderFilterSearch
         v-model="searchFilters"
         :seller-options="sellerOptions"
@@ -207,7 +230,7 @@ onActivated(() => {
         @search="handleSearch"
         @clear="handleClearSearch"
       />
-    </div>
+    </div> -->
 
     <div v-if="orderStore.loading" class="text-gray-500 text-center py-12 sm:py-20">
       Loading your orders...
