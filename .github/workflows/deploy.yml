@@ -3,7 +3,7 @@ name: Deploy kk1
 on:
   push:
     branches:
-      - main
+      - exam
 
 jobs:
   deploy:

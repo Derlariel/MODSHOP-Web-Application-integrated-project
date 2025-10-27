@@ -25,7 +25,7 @@ export const useAuthStore = defineStore("auth", {
     initPersistence() {
       if (this._syncInitialized) return;
       this._syncInitialized = true;
-      window.addEventListener("storage", (e) => {
+      window.addEventListener("b", (e) => {
         if (e.key === "userClaims") {
           try {
             this.user = e.newValue ? JSON.parse(e.newValue) : null;
