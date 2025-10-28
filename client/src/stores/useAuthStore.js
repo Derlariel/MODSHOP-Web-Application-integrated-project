@@ -94,8 +94,35 @@ export const useAuthStore = defineStore("auth", {
       } finally {
         this.user = null;
         localStorage.removeItem("userClaims");
+        
+        // Clear all order filter states from sessionStorage
+        this.clearOrderFilters();
+        
         sessionStorage.setItem("logout-success", "true");
       }
+    },
+
+    clearOrderFilters() {
+      // Clear all order-related and pagination sessionStorage keys for all users
+      const keysToRemove = [];
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key && (
+          key.includes('saleOrdersFilters') ||
+          key.includes('saleOrdersSearchActive') ||
+          key.includes('saleOrdersPage') ||
+          key.includes('saleOrdersTab') ||
+          key.includes('yourOrdersFilters') ||
+          key.includes('yourOrdersSearchActive') ||
+          key.includes('yourOrdersPage') ||
+          key.includes('yourOrdersStatus') ||
+          key === 'productGalleryPage' ||
+          key === 'productListPage'
+        )) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => sessionStorage.removeItem(key));
     },
 
     async refreshUserData() {

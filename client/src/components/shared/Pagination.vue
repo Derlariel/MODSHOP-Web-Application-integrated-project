@@ -12,6 +12,10 @@ const props = defineProps({
     type: Number,
     required: true,
     default: 1
+  },
+  currentPageProp: {
+    type: Number,
+    default: 1
   }
 })
 
@@ -60,15 +64,12 @@ const setActivePage = (page) => {
   currentPage.value = page
   emit('sendPages', page)
 
-  sessionStorage.setItem('activePage', String(page))
-  productStore.setActivePage(page)
 }
 
 const goToFirst = () => {
   currentPage.value = 1
   startPage.value = 1
   emit('sendPages', 1)
-  sessionStorage.setItem('activePage', '1')
 }
 
 const goToLast = () => {
@@ -82,7 +83,6 @@ const goToLast = () => {
   }
   
   emit('sendPages', props.totalPages)
-  sessionStorage.setItem('activePage', String(props.totalPages))
 }
 
 const goToNext = () => {
@@ -123,23 +123,43 @@ watch(() => props.totalPages, (newTotal) => {
   }
 })
 
-// Initialize from sessionStorage
-onMounted(() => {
-  const savedPage = sessionStorage.getItem('activePage')
-  if (savedPage) {
-    const page = parseInt(savedPage)
-    if (page >= 1 && page <= props.totalPages) {
-      currentPage.value = page
-      
-      // คำนวณ startPage ที่เหมาะสม
-      if (props.totalPages > maxVisiblePages) {
-        if (page <= maxVisiblePages) {
-          startPage.value = 1
-        } else {
-          startPage.value = Math.max(1, page - maxVisiblePages + 1)
-        }
+// Watch for currentPageProp changes from parent
+watch(() => props.currentPageProp, (newPage) => {
+  if (newPage >= 1 && newPage <= props.totalPages && newPage !== currentPage.value) {
+    currentPage.value = newPage
+    
+    // Adjust startPage to show the current page
+    if (props.totalPages > maxVisiblePages) {
+      if (newPage <= maxVisiblePages) {
+        startPage.value = 1
+      } else if (newPage > props.totalPages - maxVisiblePages) {
+        startPage.value = props.totalPages - maxVisiblePages + 1
+      } else {
+        startPage.value = newPage - Math.floor(maxVisiblePages / 2)
       }
     }
+  }
+}, { immediate: true })
+
+// Initialize from sessionStorage
+onMounted(() => {
+  // Initialize from prop or default to 1
+  if (props.currentPageProp >= 1 && props.currentPageProp <= props.totalPages) {
+    currentPage.value = props.currentPageProp
+    
+    // Calculate appropriate startPage
+    if (props.totalPages > maxVisiblePages) {
+      if (props.currentPageProp <= maxVisiblePages) {
+        startPage.value = 1
+      } else if (props.currentPageProp > props.totalPages - maxVisiblePages) {
+        startPage.value = props.totalPages - maxVisiblePages + 1
+      } else {
+        startPage.value = props.currentPageProp - Math.floor(maxVisiblePages / 2)
+      }
+    }
+  } else {
+    currentPage.value = 1
+    startPage.value = 1
   }
 })
 </script>

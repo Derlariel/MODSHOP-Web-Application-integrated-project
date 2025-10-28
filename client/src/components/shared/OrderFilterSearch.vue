@@ -47,9 +47,11 @@ const emit = defineEmits(['update:modelValue', 'search', 'clear'])
 const filters = ref({ ...props.modelValue })
 const showAdvanced = ref(false)
 
-// sync value from parent → child
 watch(() => props.modelValue, (newValue) => {
-  filters.value = { ...newValue }
+  const isDifferent = JSON.stringify(filters.value) !== JSON.stringify(newValue)
+  if (isDifferent) {
+    filters.value = { ...newValue }
+  }
 }, { deep: true })
 
 const handleSearch = () => {

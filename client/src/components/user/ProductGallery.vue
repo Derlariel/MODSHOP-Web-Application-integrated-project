@@ -107,6 +107,7 @@ async function initProducts() {
 
 const updatePages = (pages) => {
   productStore.setActivePage(pages);
+  sessionStorage.setItem("productGalleryPage", pages);
   ++trigger.value;
 };
 
@@ -191,9 +192,11 @@ onMounted(async () => {
   }
 
   await initProducts();
-  const savedPage = sessionStorage.getItem("activePage");
+  const savedPage = sessionStorage.getItem("productGalleryPage");
   if (savedPage) {
     productStore.setActivePage(parseInt(savedPage));
+  } else {
+    productStore.setActivePage(1);
   }
 
   const status = route.query.status;
@@ -250,7 +253,7 @@ onMounted(async () => {
     showSuccess.value = true;
     sessionStorage.removeItem("delete-success");
     productStore.setActivePage(1);
-    sessionStorage.setItem("activePage", 1);
+    sessionStorage.setItem("productGalleryPage", 1);
     setTimeout(() => {
       showSuccess.value = false;
     }, 2000);
@@ -557,6 +560,7 @@ watch(
     <Pagination
       v-if="!isLoading && !noProductsFromFilter && product.length > 0"
       :totalPages="productStore.allPages"
+      :current-page-prop="productStore.activePage"
       @sendPages="updatePages"
     />
   </div>

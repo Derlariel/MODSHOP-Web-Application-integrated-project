@@ -163,6 +163,7 @@ async function initProducts() {
 const handlePageChange = async (page) => {
   const backendPage = page - 1;
   isLoading.value = true;
+  sessionStorage.setItem("productListPage", page);
   try {
     await loadSellerProducts(backendPage);
   } catch (err) {
@@ -173,6 +174,14 @@ const handlePageChange = async (page) => {
 };
 
 onMounted(async () => {
+  const savedPage = sessionStorage.getItem("productListPage");
+  if (savedPage) {
+    const pageNum = parseInt(savedPage);
+    if (pageNum > 0) {
+      currentPage.value = pageNum - 1; // Backend uses 0-based
+    }
+  }
+  
   await initProducts();
 
   if (sessionStorage.getItem("login-success") === "true") {
@@ -343,7 +352,8 @@ onMounted(async () => {
     <div class="max-w-full  flex justify-center  pt-6">
       <Pagination 
         v-if="!isLoading && totalPages > 1" 
-        :totalPages="totalPages" 
+        :totalPages="totalPages"
+        :current-page-prop="currentPage + 1"
         @sendPages="handlePageChange" 
       />
     </div>
