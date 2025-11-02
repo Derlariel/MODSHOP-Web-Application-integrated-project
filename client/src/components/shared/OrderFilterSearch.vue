@@ -44,8 +44,43 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'search', 'clear'])
 
+
 const filters = ref({ ...props.modelValue })
 const showAdvanced = ref(false)
+
+
+// refs สำหรับ input date
+import { onMounted, nextTick } from 'vue'
+const startDateInputRef = ref(null)
+const endDateInputRef = ref(null)
+
+const openStartDatePicker = () => {
+  if (startDateInputRef.value && startDateInputRef.value.showPicker) {
+    startDateInputRef.value.showPicker()
+  }
+}
+const openEndDatePicker = () => {
+  if (endDateInputRef.value && endDateInputRef.value.showPicker) {
+    endDateInputRef.value.showPicker()
+  }
+}
+
+let swapTimeout = null
+watch(
+  () => [filters.value.startDate, filters.value.endDate],
+  ([start, end]) => {
+    if (start && end && start > end) {
+      clearTimeout(swapTimeout)
+      swapTimeout = setTimeout(() => {
+        if (filters.value.startDate > filters.value.endDate) {
+          [filters.value.startDate, filters.value.endDate] = [filters.value.endDate, filters.value.startDate]
+        }
+      }, 2000)
+    } else {
+      clearTimeout(swapTimeout)
+    }
+  }
+)
 
 watch(() => props.modelValue, (newValue) => {
   const isDifferent = JSON.stringify(filters.value) !== JSON.stringify(newValue)
@@ -189,25 +224,39 @@ const toggleAdvanced = () => {
 
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-1">Start Date</label>
-          <div class="relative">
+          <div class="relative group">
             <input
               v-model="filters.startDate"
               type="date"
-              class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:ring-purple-500"
+              ref="startDateInputRef"
+              class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:ring-purple-500 pr-10"
             />
-            <Calendar class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <span
+              class="calendar-icon absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center cursor-pointer transition group-hover:bg-neutral-700 rounded-full"
+              @click="openStartDatePicker"
+              @mousedown.prevent
+            >
+              <Calendar class="w-5 h-5 text-gray-400 transition group-hover:text-purple-400" />
+            </span>
           </div>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-300 mb-1">End Date</label>
-          <div class="relative">
+          <div class="relative group">
             <input
               v-model="filters.endDate"
               type="date"
-              class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:ring-purple-500"
+              ref="endDateInputRef"
+              class="w-full px-3 py-2 border border-neutral-700 bg-neutral-800 text-white rounded-lg focus:ring-purple-500 pr-10"
             />
-            <Calendar class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <span
+              class="calendar-icon absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center cursor-pointer transition group-hover:bg-neutral-700 rounded-full"
+              @click="openEndDatePicker"
+              @mousedown.prevent
+            >
+              <Calendar class="w-5 h-5 text-gray-400 transition group-hover:text-purple-400" />
+            </span>
           </div>
         </div>
 
@@ -223,5 +272,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 :deep(.w-full input) {
   padding-left: 2.5rem;
+}
+
+
+.group:hover .calendar-icon,
+.group:focus-within .calendar-icon {
+  background: #6d28d9;
+  color: #a78bfa; 
 }
 </style>
