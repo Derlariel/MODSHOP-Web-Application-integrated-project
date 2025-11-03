@@ -35,7 +35,6 @@ onMounted(async () => {
     return;
   }
   
-  // preload buyer names for dropdown - only buyers who have ordered from this seller
   try {
     const buyersRes = await getBuyerNamesForSeller(auth.user.id);
     const list = Array.isArray(buyersRes?.data) ? buyersRes.data : buyersRes;
@@ -44,46 +43,51 @@ onMounted(async () => {
     allBuyerNames.value = [];
   }
   
-  // Determine which tab to show based on available orders
+  const savedTab = loadTabFromStorage();
+  
   try {
-    // Check for NEW orders first (priority 1)
-    const newRes = await getSellerOrders(auth.user.id, {
-      tab: 'new',
-      page: 0,
-      size: 1,
-      sort: 'id,desc',
-    });
-    const hasNew = (newRes?.data?.totalElements ?? 0) > 0;
-    
-    if (hasNew) {
-      store.setTab('new');
+    if (savedTab && ['new', 'cancelled', 'all'].includes(savedTab)) {
+      store.setTab(savedTab);
     } else {
-      // Check for ALL orders (priority 2)
-      const allRes = await getSellerOrders(auth.user.id, {
-        tab: 'all',
+      // Otherwise, check for NEW orders first (priority 1)
+      const newRes = await getSellerOrders(auth.user.id, {
+        tab: 'new',
         page: 0,
         size: 1,
         sort: 'id,desc',
       });
-      const hasAll = (allRes?.data?.totalElements ?? 0) > 0;
+      const hasNew = (newRes?.data?.totalElements ?? 0) > 0;
       
-      if (hasAll) {
-        store.setTab('all');
+      if (hasNew) {
+        store.setTab('new');
       } else {
-        // Check for CANCELLED orders (priority 3)
-        const cancelledRes = await getSellerOrders(auth.user.id, {
-          tab: 'cancelled',
+        // Check for ALL orders (priority 2)
+        const allRes = await getSellerOrders(auth.user.id, {
+          tab: 'all',
           page: 0,
           size: 1,
           sort: 'id,desc',
         });
-        const hasCancelled = (cancelledRes?.data?.totalElements ?? 0) > 0;
+        const hasAll = (allRes?.data?.totalElements ?? 0) > 0;
         
-        if (hasCancelled) {
-          store.setTab('cancelled');
+        if (hasAll) {
+          store.setTab('all');
         } else {
-          // No orders at all, default to NEW
-          store.setTab('new');
+          // Check for CANCELLED orders (priority 3)
+          const cancelledRes = await getSellerOrders(auth.user.id, {
+            tab: 'cancelled',
+            page: 0,
+            size: 1,
+            sort: 'id,desc',
+          });
+          const hasCancelled = (cancelledRes?.data?.totalElements ?? 0) > 0;
+          
+          if (hasCancelled) {
+            store.setTab('cancelled');
+          } else {
+            // No orders at all, default to NEW
+            store.setTab('new');
+          }
         }
       }
     }
@@ -92,24 +96,23 @@ onMounted(async () => {
     store.setTab('new'); // fallback to new on error
   }
   
-  await store.fetchOrders(auth.user.id);
-  // Refresh badge count when page loads
-  store.refreshBadge(auth.user.id);
+  // Restore saved page
+  const savedPage = loadPageFromStorage();
+  store.page = savedPage;
   
   // Restore search if it was active
   if (isSearchActive.value && savedFilters) {
     await handleSearch(searchFilters.value);
+  } else {
+    await store.fetchOrders(auth.user.id);
   }
+  
+  // Refresh badge count when page loads
+  store.refreshBadge(auth.user.id);
 });
 
 const viewOrder = async (orderId) => {
-  try {
-    await getOrdersWithId(orderId);
-    await store.fetchOrders(auth.user.id);
-  } catch (e) {
-  } finally {
-    router.push({ name: 'YourOrderPage', params: { orderId } });
-  }
+  router.push({ name: 'YourOrderPage', params: { orderId } });
 }
 
 onActivated(() => {
@@ -120,6 +123,12 @@ onActivated(() => {
 
 function selectTab(key) {
   store.setTab(key);
+  saveTabToStorage(key);
+  
+  // Reset to page 1 when changing tabs
+  store.page = 1;
+  savePageToStorage(1);
+  
   if (isSearchActive.value) {
     handleSearch(searchFilters.value);
   } else {
@@ -128,21 +137,25 @@ function selectTab(key) {
 }
 
 function changePage(p) {
+  savePageToStorage(p);
+  
   if (isSearchActive.value) {
     updateSearchPage(p);
   } else {
-    store.setPage(p);
+    store.page = p;
     store.fetchOrders(auth.user.id);
   }
 }
 
-// Search state with persistence
-const STORAGE_KEY_FILTERS = 'saleOrdersFilters';
-const STORAGE_KEY_SEARCH_ACTIVE = 'saleOrdersSearchActive';
+// Search state with persistence (per-user, session-only)
+const getUserStorageKey = (key) => {
+  const userId = auth.user?.id;
+  return userId ? `${key}_user_${userId}` : key;
+};
 
 const loadFiltersFromStorage = () => {
   try {
-    const saved = sessionStorage.getItem(STORAGE_KEY_FILTERS);
+    const saved = sessionStorage.getItem(getUserStorageKey('saleOrdersFilters'));
     return saved ? JSON.parse(saved) : null;
   } catch {
     return null;
@@ -151,7 +164,7 @@ const loadFiltersFromStorage = () => {
 
 const saveFiltersToStorage = (filters) => {
   try {
-    sessionStorage.setItem(STORAGE_KEY_FILTERS, JSON.stringify(filters));
+    sessionStorage.setItem(getUserStorageKey('saleOrdersFilters'), JSON.stringify(filters));
   } catch (e) {
     console.error('Failed to save filters:', e);
   }
@@ -159,7 +172,7 @@ const saveFiltersToStorage = (filters) => {
 
 const loadSearchActiveFromStorage = () => {
   try {
-    const saved = sessionStorage.getItem(STORAGE_KEY_SEARCH_ACTIVE);
+    const saved = sessionStorage.getItem(getUserStorageKey('saleOrdersSearchActive'));
     return saved === 'true';
   } catch {
     return false;
@@ -168,9 +181,42 @@ const loadSearchActiveFromStorage = () => {
 
 const saveSearchActiveToStorage = (active) => {
   try {
-    sessionStorage.setItem(STORAGE_KEY_SEARCH_ACTIVE, active.toString());
+    sessionStorage.setItem(getUserStorageKey('saleOrdersSearchActive'), active.toString());
   } catch (e) {
     console.error('Failed to save search active state:', e);
+  }
+};
+
+const loadPageFromStorage = () => {
+  try {
+    const saved = sessionStorage.getItem(getUserStorageKey('saleOrdersPage'));
+    return saved ? parseInt(saved) : 1;
+  } catch {
+    return 1;
+  }
+};
+
+const savePageToStorage = (page) => {
+  try {
+    sessionStorage.setItem(getUserStorageKey('saleOrdersPage'), page.toString());
+  } catch (e) {
+    console.error('Failed to save page:', e);
+  }
+};
+
+const loadTabFromStorage = () => {
+  try {
+    return sessionStorage.getItem(getUserStorageKey('saleOrdersTab')) || null;
+  } catch {
+    return null;
+  }
+};
+
+const saveTabToStorage = (tab) => {
+  try {
+    sessionStorage.setItem(getUserStorageKey('saleOrdersTab'), tab);
+  } catch (e) {
+    console.error('Failed to save tab:', e);
   }
 };
 
@@ -219,7 +265,11 @@ const handleSearch = async (filterData) => {
   isSearchActive.value = true;
   saveSearchActiveToStorage(true);
   saveFiltersToStorage(filterData);
-  store.setPage(1);
+  
+  // Set page to 1 without triggering watchers
+  store.page = 1;
+  savePageToStorage(1);
+  
   try {
     const params = new URLSearchParams();
     params.append('sellerId', auth.user.id);
@@ -265,12 +315,18 @@ const handleClearSearch = () => {
     endDate: null
   };
   saveFiltersToStorage(searchFilters.value);
-  store.setPage(1);
+  
+  // Set page to 1 and fetch
+  store.page = 1;
+  savePageToStorage(1);
   store.fetchOrders(auth.user.id);
 };
 
 const updateSearchPage = async (page) => {
   if (!auth.user?.id) return;
+  
+  savePageToStorage(page);
+  
   try {
     const params = new URLSearchParams();
     params.append('sellerId', auth.user.id);
@@ -293,7 +349,9 @@ const updateSearchPage = async (page) => {
     if (!res.ok) throw new Error('Failed to search seller orders');
     const data = await res.json();
     searchResults.value = data.content || [];
-    store.setPage(page);
+    
+    // Update page without triggering watchers
+    store.page = page;
   } catch (e) {
     console.error('Seller search page error:', e);
   }
@@ -308,7 +366,7 @@ const updateSearchPage = async (page) => {
     </div>
 
     <!-- Search Filter Component -->
-    <!-- <div class="w-full sm:w-[90%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%] mx-auto mb-6 sm:mb-8">
+    <div class="w-full sm:w-[90%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%] mx-auto mb-6 sm:mb-8">
       <OrderFilterSearch
         v-model="searchFilters"
         :brand-options="brandOptions"
@@ -319,7 +377,7 @@ const updateSearchPage = async (page) => {
         @search="handleSearch"
         @clear="handleClearSearch"
       />
-    </div> -->
+    </div>
 
     <!-- Tabs -->
     <div class="flex flex-wrap gap-2 sm:gap-3 justify-center mb-4 sm:mb-6">
@@ -418,7 +476,12 @@ const updateSearchPage = async (page) => {
 
     <div class="flex justify-center items-end w-full flex-shrink-0 pb-4 sm:pb-0" style="min-height:80px;">
       <div class="w-full px-2 sm:px-0">
-        <Pagination v-if="store.totalPages > 1" :total-pages="store.totalPages" @send-pages="changePage" />
+        <Pagination 
+          v-if="displayTotalPages > 1" 
+          :total-pages="displayTotalPages" 
+          :current-page-prop="store.page"
+          @send-pages="changePage" 
+        />
       </div>
     </div>
   </div>
