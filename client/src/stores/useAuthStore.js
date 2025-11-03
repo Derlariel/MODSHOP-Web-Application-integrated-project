@@ -168,7 +168,25 @@ export const useAuthStore = defineStore("auth", {
         this.isSubmitting = false;
       }
     },
-
+    
+    async resetPasswordByToken(token , newPassword){
+      this.isSubmitting = true;
+      try{
+        const { res, data} = await request("/v2/auth/reset-password?token="+encodeURIComponent(token), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ newPassword }),
+        })
+        if (!res.ok) throw new Error(data?.message || "Failed to reset password.")
+        return { success: true, message: data?.message || "Password has been reset successfully"}
+      }catch(error){
+        console.error("Password reset failed:", error);
+        return { success: false, message: error.message || "Failed to reset password."}
+      }finally{
+        this.isSubmitting = false;
+      }
+    },
+    
     async updatePasswordInProfile(oldPassword, newPassword) {
       this.isSubmitting = true;
       try {

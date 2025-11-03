@@ -205,7 +205,7 @@ public class AuthController {
         String oldPassword = body.get("oldPassword");
         String newPassword = body.get("newPassword");
 
-        System.out.println("🔐 Principal: " + principal);
+        System.out.println(" Principal: " + principal);
 
         String email = null;
         if (principal instanceof UserResponseDto userDto) {
