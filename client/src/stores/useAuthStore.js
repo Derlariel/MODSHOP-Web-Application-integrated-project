@@ -175,7 +175,7 @@ export const useAuthStore = defineStore("auth", {
         const { res, data} = await request("/v2/auth/reset-password?token="+encodeURIComponent(token), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ newPassword }),
+          body: JSON.stringify({token, newPassword }),
         })
         if (!res.ok) throw new Error(data?.message || "Failed to reset password.")
         return { success: true, message: data?.message || "Password has been reset successfully"}
