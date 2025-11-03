@@ -173,7 +173,7 @@ export const useAuthStore = defineStore("auth", {
       this.isSubmitting = true;
       try{
         const { res, data} = await request("/v2/auth/reset-password?token="+encodeURIComponent(token), {
-          method: "POST",
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({token, newPassword }),
         })
